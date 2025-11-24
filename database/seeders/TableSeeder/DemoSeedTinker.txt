@@ -1,0 +1,85 @@
+php artisan tinker
+
+$subjects = DB::table('subjects')->get()->map(function ($item) {
+    return (array) $item;
+})->toArray();
+
+file_put_contents(
+    database_path('seeders/SubjectsTableSeeder.php'),
+    "<?php\n\nnamespace Database\\Seeders;\n\nuse Illuminate\\Database\\Seeder;\nuse Illuminate\\Support\\Facades\\DB;\n\nclass SubjectsTableSeeder extends Seeder\n{\n    public function run(): void\n    {\n        DB::table('subjects')->insert(" . var_export($subjects, true) . ");\n    }\n}\n"
+);
+
+$categories = DB::table('categories')->get()->map(function ($item) {
+    return (array) $item;
+})->toArray();
+
+file_put_contents(
+    database_path('seeders/CategoriesTableSeeder.php'),
+    "<?php\n\nnamespace Database\\Seeders;\n\nuse Illuminate\\Database\\Seeder;\nuse Illuminate\\Support\\Facades\\DB;\n\nclass categoriesTableSeeder extends Seeder\n{\n    public function run(): void\n    {\n        DB::table('categories')->insert(" . var_export($categories, true) . ");\n    }\n}\n"
+);
+
+$categoryPost = DB::table('category_post')->get()->map(function ($item) {
+    return (array) $item;
+})->toArray();
+
+file_put_contents(
+    database_path('seeders/CategoryPostTableSeeder.php'),
+    "<?php\n\nnamespace Database\\Seeders;\n\nuse Illuminate\\Database\\Seeder;\nuse Illuminate\\Support\\Facades\\DB;\n\nclass categoryPostTableSeeder extends Seeder\n{\n    public function run(): void\n    {\n        DB::table('category_post')->insert(" . var_export($categoryPost, true) . ");\n    }\n}\n"
+);
+
+
+$PostSubject = DB::table('post_subject')->get()->map(function ($item) {
+    return (array) $item;
+})->toArray();
+
+file_put_contents(
+    database_path('seeders/PostSubjectTableSeeder.php'),
+    "<?php\n\nnamespace Database\\Seeders;\n\nuse Illuminate\\Database\\Seeder;\nuse Illuminate\\Support\\Facades\\DB;\n\nclass PostSubjectTableSeeder extends Seeder\n{\n    public function run(): void\n    {\n        DB::table('post_subject')->insert(" . var_export($PostSubject, true) . ");\n    }\n}\n"
+);
+
+
+$PostStudent = DB::table('post_student')->get()->map(function ($item) {
+    return (array) $item;
+})->toArray();
+
+file_put_contents(
+    database_path('seeders/PostStudentTableSeeder.php'),
+    "<?php\n\nnamespace Database\\Seeders;\n\nuse Illuminate\\Database\\Seeder;\nuse Illuminate\\Support\\Facades\\DB;\n\nclass PostStudentTableSeeder extends Seeder\n{\n    public function run(): void\n    {\n        DB::table('post_student')->insert(" . var_export($PostStudent, true) . ");\n    }\n}\n"
+);
+
+$PostTag = DB::table('post_tag')->get()->map(function ($item) {
+    return (array) $item;
+})->toArray();
+
+file_put_contents(
+    database_path('seeders/PostTagTableSeeder.php'),
+    "<?php\n\nnamespace Database\\Seeders;\n\nuse Illuminate\\Database\\Seeder;\nuse Illuminate\\Support\\Facades\\DB;\n\nclass PostTagTableSeeder extends Seeder\n{\n    public function run(): void\n    {\n        DB::table('post_tag')->insert(" . var_export($PostTag, true) . ");\n    }\n}\n"
+);
+
+$StudentSubject = DB::table('student_subject')->get()->map(function ($item) {
+    return (array) $item;
+})->toArray();
+
+file_put_contents(
+    database_path('seeders/StudentSubjectTableSeeder.php'),
+    "<?php\n\nnamespace Database\\Seeders;\n\nuse Illuminate\\Database\\Seeder;\nuse Illuminate\\Support\\Facades\\DB;\n\nclass StudentSubjectTableSeeder extends Seeder\n{\n    public function run(): void\n    {\n        DB::table('student_subject')->insert(" . var_export($StudentSubject, true) . ");\n    }\n}\n"
+);
+
+
+$posts = DB::table('posts')->get()->map(function ($item) {
+    return (array) $item;
+})->toArray();
+
+file_put_contents(
+    database_path('seeders/PostsTableSeeder.php'),
+    "<?php\n\nnamespace Database\\Seeders;\n\nuse Illuminate\\Database\\Seeder;\nuse Illuminate\\Support\\Facades\\DB;\n\nclass PostsTableSeeder extends Seeder\n{\n    public function run(): void\n    {\n        DB::table('posts')->insert(" . var_export($posts, true) . ");\n    }\n}\n"
+);
+
+$tags = DB::table('tags')->get()->map(function ($item) {
+    return (array) $item;
+})->toArray();
+
+file_put_contents(
+    database_path('seeders/TagsTableSeeder.php'),
+    "<?php\n\nnamespace Database\\Seeders;\n\nuse Illuminate\\Database\\Seeder;\nuse Illuminate\\Support\\Facades\\DB;\n\nclass TagsTableSeeder extends Seeder\n{\n    public function run(): void\n    {\n        DB::table('tags')->insert(" . var_export($tags, true) . ");\n    }\n}\n"
+);

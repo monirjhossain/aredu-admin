@@ -1,0 +1,36 @@
+<?php
+
+namespace App\Http\Controllers\API;
+
+use Illuminate\Http\Request;
+use App\Http\Controllers\API\BaseController as BaseController;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Validator;
+use Illuminate\Support\Facades\DB;
+
+class LoginController extends BaseController
+{
+    /**
+     * Login api
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function login(Request $request)
+    {
+        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+            $user = Auth::user();
+            // Results
+            $success['user_id']  =  $user->id;
+            $success['name']     =  $user->name;
+            $success['email']    =  $user->email;
+            $success['profile_pic']  =  $user->profile_pic;
+            $success['role_id']  =  $user->role_id;
+            $success['office_id'] =  $user->office_id;
+            $success['token']    =  $user->createToken('Login')->accessToken;
+            return $this->sendResponse($success, 'User login successfully.');
+        } else {
+            return $this->sendError('Unauthorised.', ['error' => 'User login failed.'], 401);
+        }
+    }
+}
