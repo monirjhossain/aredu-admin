@@ -80,6 +80,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('test-import-execl', TestController::class);
     Route::get('test-income-cost', [TestController::class, 'testIncomeCost']);
     Route::get('test-income', [TestController::class, 'testIncome']);
+    Route::get('import-inquiry', [TestController::class, 'importInquiry']);
 
 
     Route::group(['prefix'=>'setting', 'as' => 'setting.'], function(){
