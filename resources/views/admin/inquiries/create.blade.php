@@ -43,6 +43,12 @@
                                         <div class="row">
                                             <div class="col-lg-6 col-md-6 col-sm-12">
                                                 <div class="form-group">
+                                                    <label for="type">Type</label>
+                                                    <input type="text" name="type" value="{{ old('type') }}" class="form-control" placeholder="Type here">
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                                <div class="form-group">
                                                     <label for="first_name">First Name</label>
                                                     <input type="text" name="first_name" value="{{ old('first_name') }}" class="form-control" placeholder="Type here">
                                                 </div>

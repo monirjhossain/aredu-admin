@@ -29,7 +29,11 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <h3 class="card-title">inquiry List</h3>
                             <a href="{{ route('inquiries.create') }}" class="btn btn-primary">Create inquiry</a>
+                            <button onclick="getSmsTemplate(0)" type="button" class="btn btn-primary messageModal" data-toggle="modal" data-target="#exampleModalLong">
+                                <i class="fas fa-envelope" title="message"></i>
+                            </button>
                         </div>
+
                     </div>
                     <!-- /.card-header -->
                     <div class="card-body" style="overflow: scroll; ">
@@ -37,6 +41,7 @@
                             <thead class="thead-light ">
                                 <tr>
                                     <th style="width: 10px"> # </th>
+                                    <th>Type</th>
                                     <th>Name</th>
                                     <th>Mobile</th>
                                     <th>Email</th>
@@ -53,6 +58,7 @@
                                 @forelse ($inquiries as $inquiry)
                                 <tr>
                                     <td>{{ $inquiry->id }}</td>
+                                    <td>{{ $inquiry->type ?? '' }}</td>
                                     <td>{{ $inquiry->full_name }}
                                         @if ($inquiry->view==0)
                                             <span class="badge badge-danger">New</span>
@@ -96,5 +102,93 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="exampleModalLong" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdrop" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <form id="sendSmsForm" action="{{ route('student.sendBulkSms') }}">
+                        <input type="hidden" name="student_id" value="">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Message text</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <i aria-hidden="true" class="ki ki-close"></i>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            {{-- <select name="template" id=""></select> --}}
+                            <div class="loadersmall"></div>
+                            <div class="form-group">
+                                <label for="preferred_country">Message template</label>
+                                <select name="template" class="form-control" id="" required>
+                                    <option value="">-- select one --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="preferred_country">Message body</label>
+                                <div id="msg_body"> ..... </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary font-weight-bold">Send SMS</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
 </div>
+
+<script>
+    function getSmsTemplate(id) {
+        if(id == 0){
+            $cusUrl = '{{ route("student.sendBulkSms") }}';
+        } else{
+            $cusUrl = '{{ route("student.sendSingleSms") }}';
+        }
+        $('#msg_body').empty();
+        $('#msg_body').append('......');
+        $('#sendSmsForm').attr('action', $cusUrl);
+        $('input[name="student_id"]').val(id);
+
+        jQuery.ajax({
+            url : '{{route("getSmsTemplates")}}',
+            type : "GET",
+            dataType : "json",
+            success:function(data)
+            {
+                jQuery('select[name="template"]').html('<div class="loadersmall"></div>');
+
+                jQuery('select[name="template"]').html('<option value="">-- Select One --</option>');
+                jQuery.each(data.templates, function(key,value){
+                    jQuery('select[name="template"]').append('<option value="'+ value.id +'">'+ value.name +'</option>');
+                });
+                jQuery('.loadersmall').remove();
+            }
+        });
+    }
+    $('select[name="template"]').on('change',function(){
+        console.log('mm');
+        var dataID = jQuery(this).val();
+        jQuery.ajax({
+            url : '{{url("/")}}/sms_template/' +dataID,
+            type : "GET",
+            dataType : "json",
+            success:function(data)
+            {
+                $('#msg_body').empty();
+                $('#msg_body').append(data.template.message);
+            }
+        });
+    });
+
+    $(document).ready(function() {
+        $('.sms_send').click(function() {
+            if (confirm('Are you sure?')) {
+                var url = $(this).attr('linkUrl');
+                $(location).attr('href', url);
+                console.log('dd');
+                console.log(url);
+            }
+        });
+    });
+</script>
 @endsection

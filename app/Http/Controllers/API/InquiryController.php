@@ -67,6 +67,9 @@ class InquiryController extends BaseController
             $inquiry = new Inquiry();
             $inquiryFillableData = $request->only($inquiry->getFillable());
             $inquiry->fill($inquiryFillableData)->save();
+            $student->type = 'From Web - Inquiry';
+            $student->save();
+
             DB::commit();
             return $this->respondCreated('Successfully Submitted', [
                 'inquiry' => $inquiry,
