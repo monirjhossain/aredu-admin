@@ -72,8 +72,17 @@ class BulkSmsController extends Controller
     {
         // return $request;
         Log::channel('sms')->info('===== start bulk sms =====');
+        if(isset($request->page) && $request->page == 'inquery'){
+            
+            $students = Inquiry::orderby('id', 'DESC')->select('id', 'mobile_no');
+            if(isset($request->type) && $request->type !=null && $request->type != ''){
+                $students->where('type',  $request->type);
+            }
+            $students = $students->get();
+        }else{
+            $students = Student::orderby('id', 'DESC')->select('id', 'mobile_no')->get();
+        }
 
-        $students = Student::orderby('id', 'DESC')->select('id', 'mobile_no')->get();
         $template = SmsTemplate::findOrFail($request->template);
         if (count($students) > 0) {
             $mbNumber = '';
@@ -111,7 +120,7 @@ class BulkSmsController extends Controller
                 Log::channel('sms')->info('total: '. $count .' - student_ids:'. $student_ids);
                 Session::flash('success', 'SMS successfully Send');
                 Log::channel('sms')->info('===== End bulk sms =====');
-                return redirect()->route('students.index');
+                return redirect()->back();
             } catch (\Exception $e) {
                 // return $e->getMessage();
                 Log::channel('sms')->info($e->getMessage());

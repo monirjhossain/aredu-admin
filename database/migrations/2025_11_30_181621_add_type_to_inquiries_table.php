@@ -15,7 +15,7 @@ class AddtypeToInquiriesTable extends Migration
     {
         Schema::table('inquiries', function (Blueprint $table) {
             $table->string('type')->after('id')->nullable();
-            $table->unsignedBigInteger('user_id')->nullable();
+            $table->unsignedBigInteger('user_id')->after('view')->nullable();
         });
     }
 

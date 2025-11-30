@@ -27,7 +27,8 @@ class InquiryController extends Controller
     public function index()
     {
         $inquiries = Inquiry::orderBy('created_at', 'DESC')->paginate(20);
-        return view('admin.inquiries.index', compact('inquiries'));
+        $type = Inquiry::select('type')->groupBy('type')->get();
+        return view('admin.inquiries.index', compact('inquiries', 'type'));
     }
 
     /**

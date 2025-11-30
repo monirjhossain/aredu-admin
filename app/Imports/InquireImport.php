@@ -41,91 +41,18 @@ class InquireImport implements ToCollection, WithStartRow
                 $lastName = trim(substr($name, strlen($firstName)));
                 
                 $StudentCreate = Inquiry::create([
-
                     'first_name' => $firstName,
                     'last_name' => $lastName,
-                    'mobile_no' => $mobile_no1,
-                    'user_id' => Auth::id(),
-
+                    'mobile_no' => $mobile_no1 !=null && $name != '' ? $mobile_no1 : $mobile_no2,
+                    // 'user_id' => Auth::id(),
                     'type' => 'Rajshahi-Toha',
-                    'first_name' => $firstName,,
-                    'last_name'=> $lastName,,
-                    'mobile_no' => $mobile_no1,,
-                    'country' => 'Bangladesh',,
-                    'country_preferred' => $mobile_no1,,
-                    'course' => $mobile_no1,,
-                    'last_education' => $mobile_no1,,
-                    'email',
-                    'oppurtunity',
-
+                    'country' => 'Bangladesh',
+                    'country_preferred' => 'china',
+                    // 'course' => $mobile_no1,,
+                    'last_education' => 'hsc',
+                    // 'email',
+                    // 'oppurtunity',
                 ]);
-
-                if($amount !=null && $amount != ''){
-                    $invoiceCreate = Invoice::create([
-                        'invoice_no' => 'inv- ' . $id,
-                        'student_id' => $StudentCreate->id,
-                        'transaction_date' => date('Y-m-d'),
-                        'due_date' => null,
-                        'products' => [
-                            'product' => ['Service Charge'],
-                            'price' => [$amount],
-                            'id' => [4],
-                        ],
-                        'documents' => null,
-                        'subtotal' => $amount,
-                        'discount' => 0,
-                        'tax' => 0,
-                        'grandtotal' => $amount,
-                        'paid' => $amount,
-                        'due' => 0,
-                        'user_id' => Auth::id(),
-                        'currency' => 'BDT',
-                        'exchange_rate' => 1,
-                        'base_amount' => $amount,
-        
-                    ]);
-    
-                    $transictionCreate = FinanceEntry::create([
-        
-                        'type' => 'income',
-                        'amount' => $amount,
-                        'transaction_date' => date('Y-m-d'),
-                        'student_id' => $StudentCreate->id,
-                        'created_by' => Auth::id(),
-                        'description' => 'INV- ' . $invoiceCreate->id,
-                        'reference' => 'INV- ' . $invoiceCreate->id,
-                        'categories' => [4],
-                        'category_id' => 4,
-
-                        'currency' => 'BDT',
-                        'exchange_rate' => 1,
-                        'base_amount' => $amount,
-        
-                    ]);
-
-                    $wallet = Wallet::where('user_id', null)->where('currency_id', 1)->first();
-                    $wallet->debitCredit('income', $amount, $transictionCreate->id, $transictionCreate->description);
-                }
-    
-                if($university !=null && $university != ''){
-                    DB::table('post_student')->insert(array (
-                        0 => 
-                        array (
-                            'student_id' => $StudentCreate->id,
-                            'post_id' => $university,
-                        ),
-                    ));
-                }
-    
-                if($subject !=null && $subject != ''){
-                    DB::table('student_subject')->insert(array (
-                        0 => 
-                        array (
-                            'subject_id' => $subject,
-                            'student_id' => $StudentCreate->id,
-                        ),
-                    ));
-                }
             }
 
         }
@@ -160,6 +87,6 @@ class InquireImport implements ToCollection, WithStartRow
 
     public function startRow(): int
     {
-        return 3;
+        return 1;
     }
 }

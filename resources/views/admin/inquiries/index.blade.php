@@ -28,10 +28,18 @@
                     <div class="card-header">
                         <div class="d-flex justify-content-between align-items-center">
                             <h3 class="card-title">inquiry List</h3>
-                            <a href="{{ route('inquiries.create') }}" class="btn btn-primary">Create inquiry</a>
+                            <div class="">
+                                <select class="form-control" name="type">
+                                    <option value="">All Type</option>
+                                    @foreach ($type as $item)
+                                    <option value="{{$item->type }}">{{$item->type }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                             <button onclick="getSmsTemplate(0)" type="button" class="btn btn-primary messageModal" data-toggle="modal" data-target="#exampleModalLong">
                                 <i class="fas fa-envelope" title="message"></i>
                             </button>
+                            <a href="{{ route('inquiries.create') }}" class="btn btn-primary">Create inquiry</a>
                         </div>
 
                     </div>
@@ -107,6 +115,8 @@
                 <div class="modal-content">
                     <form id="sendSmsForm" action="{{ route('student.sendBulkSms') }}">
                         <input type="hidden" name="student_id" value="">
+                        <input type="hidden" name="type" value="">
+                        <input type="hidden" name="page" value="inquery">
                         <div class="modal-header">
                             <h5 class="modal-title" id="exampleModalLabel">Message text</h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -136,8 +146,12 @@
             </div>
         </div>
 </div>
-
+@endsection
+@section('scripts')
 <script>
+    $('select[name="type"]').on('change', function() {
+        $('input[name="type"]').val($(this).val());
+    });
     function getSmsTemplate(id) {
         if(id == 0){
             $cusUrl = '{{ route("student.sendBulkSms") }}';
@@ -148,6 +162,7 @@
         $('#msg_body').append('......');
         $('#sendSmsForm').attr('action', $cusUrl);
         $('input[name="student_id"]').val(id);
+        $('input[name="type"]').val($('select[name="type"]').val());
 
         jQuery.ajax({
             url : '{{route("getSmsTemplates")}}',
