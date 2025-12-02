@@ -68,7 +68,7 @@
                     <option value="">None</option>
                     @foreach($users as $item)
                     <option value="{{ $item->id }}"{{ old('related_to', $user->related_to ?? '') == $item->id ? 'selected' : '' }}>
-                        {{ $item->name . ' - ' . $item->role->user_type}}
+                        {{ $item->name ?? '' . ' - ' . $item->role->user_type ?? ''}}
                     </option>
                     @endforeach
                 </select>

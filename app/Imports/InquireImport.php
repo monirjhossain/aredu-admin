@@ -87,6 +87,6 @@ class InquireImport implements ToCollection, WithStartRow
 
     public function startRow(): int
     {
-        return 1;
+        return 2;
     }
 }
