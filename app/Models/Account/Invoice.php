@@ -6,6 +6,7 @@ use App\Models\Student\Student;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class Invoice extends Model
 {
@@ -13,6 +14,7 @@ class Invoice extends Model
 
     protected $fillable = [
         'id',
+        'branch_id',
         'invoice_no',
         'student_id',
         'invoice_date',
@@ -56,5 +58,14 @@ class Invoice extends Model
         return !Invoice::where('student_id', $this->student_id)
                       ->where('created_at', '<', $this->created_at)
                       ->exists();
+    }
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($student) {
+            if (Auth::check() && empty($student->branch_id)) {
+                $student->branch_id = Auth::user()->branch;
+            }
+        });
     }
 }

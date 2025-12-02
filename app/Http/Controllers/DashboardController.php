@@ -12,7 +12,8 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $allStudent = Student::orderBy('id', 'DESC')->count();
+        $currentUser = Auth::user();
+        $allStudent = Student::where('branch_id', $currentUser->branch)->count();
         // $intakes = $students->whereIn('intake', ['March-2024', 'September-2024']);
         // $totalStudents = $students->count();
         $admittedToUs = Student::orderBy('id', 'DESC')->whereIn('intake', ['March-2024', 'September-2024'])->where('status', 'Admitted to us')->count();

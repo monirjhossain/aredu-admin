@@ -38,9 +38,7 @@ class FinanceEntryController extends Controller
             $data['entries'] = $data['entries']->where('student_id', $request->student);
         }
         $currentUser = Auth::user();
-        if($currentUser->role_id == 4){
-            $data['entries'] = $data['entries']->where('created_by', $currentUser->id);
-        }
+        $data['entries'] = $data['entries']->where('branch_id', $currentUser->branch);
             
         $data['entries'] = $data['entries']->paginate($perPage);
         $data['openingBalanceBDT']=0;
@@ -97,13 +95,13 @@ class FinanceEntryController extends Controller
     {
         $students = Student::orderBy('id', 'desc')->select('id', 'first_name', 'last_name', 'passport');
         $currentUser = Auth::user();
-        if($currentUser->role_id == 4){
-            $students->where('user_id', $currentUser->id);
-        }
+        $students->where('branch_id', $currentUser->branch);
         $data['students'] = $students->get();
         $data['expenses'] = Expense::orderBy('id', 'desc')->get();
         $data['products'] = Product::orderBy('id', 'desc')->get();
-        $data['currencies'] = Currency::with('latestRate')->get();
+        // $data['currencies'] = Currency::with('latestRate')->get();
+        $data['wallets'] = Wallet::where('branch_id', $currentUser->branch)->get();
+
         $data['title'] = 'Expense Create';
         $data['type'] = 'Expense';
         $data['url'] = 'finance_entries';
@@ -125,8 +123,8 @@ class FinanceEntryController extends Controller
                 'category_id' => 'nullable|string',
                 'reference' => 'nullable|string',
             ]);
-
-            $currency =  Currency::findOrFail($request->currency);
+            $wallet = Wallet::where('id', $request->wallet_id)->first();
+            $currency =  Currency::findOrFail($wallet->currency_id);
             if($currency){
                 $validated['currency'] = $currency->code;
                 $validated['exchange_rate'] = $currency->latestRate->rate;
@@ -135,7 +133,6 @@ class FinanceEntryController extends Controller
             $validated['created_by'] = Auth::id();
             $financeEntry = FinanceEntry::create($validated);
 
-            $wallet = Wallet::where('user_id', null)->where('currency_id', $request->currency)->first();
             $wallet->debitCredit($financeEntry->type, $financeEntry->amount, $financeEntry->id, $financeEntry->description);
             DB::commit();
             return redirect()->route('finance_entries.index', ['type' => 'expense'])->with('success', 'Entry created successfully.');

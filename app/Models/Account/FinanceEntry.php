@@ -8,12 +8,14 @@ use App\Models\Student\Student;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 
 class FinanceEntry extends Model
 {
     use SoftDeletes;
 
     protected $fillable = [
+        'branch_id',
         'type',
         'amount',
         'transaction_date',
@@ -25,9 +27,12 @@ class FinanceEntry extends Model
         'category_id',
         'currency',
         'exchange_rate',
-        'base_amount'
+        'base_amount',
     ];
-
+    protected $casts = [
+        'categories' => 'array',
+    ];
+    
     public function student()
     {
         return $this->belongsTo(Student::class);
@@ -45,7 +50,13 @@ class FinanceEntry extends Model
     {
         return $this->belongsTo(Product::class, 'category_id');
     }
-    protected $casts = [
-        'categories' => 'array',
-    ];
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($student) {
+            if (Auth::check() && empty($student->branch_id)) {
+                $student->branch_id = Auth::user()->branch;
+            }
+        });
+    }
 }

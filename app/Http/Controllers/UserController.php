@@ -15,22 +15,22 @@ class UserController extends Controller
 {
     public function index()
     {
-
-        $data['users'] = UserCollection::collection(User::orderby('id', 'DESC')->paginate(20));
+        $currentUser = Auth::user();
+        $data['users'] = UserCollection::collection(User::orderby('id', 'DESC')->where('branch', $currentUser->branch)->paginate(20));
         $data['page_title'] = 'User List';
         return view('user.index')->with($data);
     }
 
     public function create()
     {
-        $currentUser = User::findOrFail(Auth::id());
+        $currentUser = Auth::user();
         $roles = Role::orderby('id', 'ASC');
         $users = User::orderby('id', 'ASC');
         $branches = Branch::orderby('id', 'ASC');
 
         // if($currentUser->role_id == 2){
         $roles->where('id', '>' , $currentUser->role_id);
-        $users->where('related_to', [$currentUser->id])->orWhere('id', [$currentUser->id]);
+        $users->where('branch', $currentUser->branch);
         // }
         $data['roles'] = $roles->get();
         $data['users'] = $users->get();

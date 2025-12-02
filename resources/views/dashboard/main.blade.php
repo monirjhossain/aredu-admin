@@ -41,13 +41,13 @@ $allowedRoles = [1, 2, 3];
          <span class="count-name"><a href="{{ route('todo.index') }}">All Student</a></span>
       </div>
    </div>
-   <div class="col-md-3 mb-3">
+   {{-- <div class="col-md-3 mb-3">
       <div class="card-counter bg-warning">
          <a href="{{ route('todo.index') }}"><i class="fa fas fa-users text-white"></i></a>
          <span class="count-numbers"><a href="{{ route('todo.index') }}">{{$totalStudents}}</a></span>
-         <span class="count-name"><a href="{{ route('todo.index') }}">Total Student - 24</a></span>
+         <span class="count-name"><a href="{{ route('todo.index') }}">Total Student</a></span>
       </div>
-   </div>
+   </div> --}}
    <div class="col-md-3 mb-3">
       <div class="card-counter bg-success">
          <a href="{{ route('todo.index') }}"><i class="fa fas fa-home text-white"></i></a>

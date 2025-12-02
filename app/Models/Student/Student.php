@@ -14,6 +14,7 @@ use App\Traits\ModelSearchAble;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 
 class Student extends Model
 {
@@ -21,6 +22,7 @@ class Student extends Model
 
     protected $table = 'students';
     protected $fillable = [
+            'branch_id',
             'user_id',
             'study_id',
             'preferred_country',
@@ -110,7 +112,13 @@ class Student extends Model
     {
         return $this->hasMany(EducationQualification::class, 'student_id', 'id');
     }
-
-
-    
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($student) {
+            if (Auth::check() && empty($student->branch_id)) {
+                $student->branch_id = Auth::user()->branch;
+            }
+        });
+    }
 }

@@ -98,13 +98,14 @@ class StudentInvoiceController extends Controller
      */
     public function create(Request $request)
     {
+        $currentUser = Auth::user();
         $student = '';
         if ($request->input('student')) {
             $student_id = $request->input('student');
             $student = Student::findOrFail($student_id);
         }
         $data['products'] = Product::select('id', 'name')->get();
-        $data['wallets'] = Wallet::select('id', 'name')->where('currency_id', 1)->get(); // 1 means BDT
+        $data['wallets'] = Wallet::select('id', 'name')->where('currency_id', 1)->where('branch_id', $currentUser->branch)->get(); // 1 means BDT
         $data['documents'] = Document::select('id', 'name')->get();
         $data['currencies'] = Currency::select('id', 'code')->orderBy('id', 'asc')->get();
         $data['student'] = $student;
@@ -196,7 +197,7 @@ class StudentInvoiceController extends Controller
                 'base_amount' => $invoice->base_amount,
             ]);
 
-            $wallet = Wallet::where('user_id', null)->where('currency_id', $request->currency)->where('id', $request->wallet_id)->first();
+            $wallet = Wallet::where('id', $request->wallet_id)->first();
             $wallet->debitCredit('income', $financeEntry->amount, $financeEntry->id, $financeEntry->description);
 
             DB::commit();

@@ -11,7 +11,14 @@ use Illuminate\Support\Facades\Auth;
 
 class Wallet extends Model
 {
-    protected $fillable = ['user_id', 'name', 'currency_id', 'balance', 'is_active'];
+    protected $fillable = [
+        'branch_id',
+        'user_id',
+        'name',
+        'currency_id',
+        'balance',
+        'is_active'
+    ];
 
     public function user(): BelongsTo
     {
@@ -67,6 +74,15 @@ class Wallet extends Model
         //         'related_wallet_id' => $from->id,
         //     ]);
         // });
+    }
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($student) {
+            if (Auth::check() && empty($student->branch_id)) {
+                $student->branch_id = Auth::user()->branch;
+            }
+        });
     }
 }
 

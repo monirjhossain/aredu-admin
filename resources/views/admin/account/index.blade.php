@@ -187,9 +187,9 @@
                                         <td>
                                             <span class="badge badge-primary">
                                                 @if($entry->type == 'expense')
-                                                    {{ $entry->expense->name }} 
+                                                    {{ $entry->expense->name ?? '-' }} 
                                                 @else
-                                                    {{ $entry->income->name }}
+                                                    {{ $entry->income->name ?? '-' }}
                                                 @endif
                                             </span>
 

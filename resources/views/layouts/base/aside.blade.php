@@ -35,7 +35,7 @@
                     </a>
                 </li>
                 
-                @if(auth()->check() && in_array(auth()->user()->role_id, [1,2]))
+                @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,4]))
                     <li class="menu-item {{ request()->is('user-management') ? 'menu-item-open' : '' }} {{ request()->is('user-management/*') ? 'menu-item-open' : '' }}"
                         aria-haspopup="true" data-menu-toggle="hover">
                         <a href="javascript:;" class="menu-link menu-toggle">
@@ -599,6 +599,8 @@
                         </ul>
                     </div>
                 </li>
+                @endif
+                @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,4]))
                 <li class="menu-item {{ request()->is('wallets') || request()->is('wallets/*') ? 'menu-item-open' : '' }}"
                     aria-haspopup="true" data-menu-toggle="hover">
                     <a href="javascript:;" class="menu-link menu-toggle">

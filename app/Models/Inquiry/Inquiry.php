@@ -21,6 +21,7 @@ class Inquiry extends Model
     protected $table = 'inquiries';
     protected $fillable = [
         'type',
+        'branch_id',
         'first_name',
         'last_name',
         'mobile_no',
@@ -47,6 +48,11 @@ class Inquiry extends Model
         static::creating(function ($inquire) {
             if (Auth::check() && empty($inquire->user_id)) {
                 $inquire->user_id = Auth::id();
+            }
+        });
+        static::creating(function ($student) {
+            if (Auth::check() && empty($student->branch_id)) {
+                $student->branch_id = Auth::user()->branch;
             }
         });
     }

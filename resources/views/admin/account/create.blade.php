@@ -66,13 +66,22 @@
                                 <input type="number" name="amount" class="form-control" placeholder="0.00">
                             </div>
                         </div>
-                        <div class="col-lg-4 col-md-4 col-sm-6" id="studentCategory">
+                        {{-- <div class="col-lg-4 col-md-4 col-sm-6" id="studentCategory">
                             <div class="form-group">
                                 <label for="currency">Currency</label>
                                 <select name="currency" class="form-control" id="">
-                                    {{-- <option value="">None</option> --}}
                                     @foreach ($currencies as $item)
                                         <option value="{{$item->id}}"> {{$item->code . ' - ' . $item->latestRate->rate}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div> --}}
+                        <div class="col-lg-4 col-md-4 col-sm-6" id="studentCategory">
+                            <div class="form-group">
+                                <label for="wallet_id">Wallet</label>
+                                <select name="wallet_id" class="form-control" id="">
+                                    @foreach ($wallets as $item)
+                                        <option value="{{$item->id}}"> {{$item->name . ' - ' . number_format($item->balance, 2) . ' ' . $item->currency->code }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -88,25 +97,6 @@
                                 </select>
                             </div>
                         </div>
-                        {{-- <div class="col-lg-6 col-md-6 col-sm-12">
-                            <div class="form-group row">
-                                <label class="col-form-label text-right col-lg-3 col-sm-12">Multi Select</label>
-                                <div class=" col-lg-4 col-md-9 col-sm-12">
-                                    <select class="form-control select2" id="kt_select2_3" name="param" multiple="multiple">
-                                        <optgroup label="Alaskan/Hawaiian Time Zone">
-                                            <option value="AK" selected>Alaska</option>
-                                            <option value="HI">Hawaii</option>
-                                        </optgroup>
-                                        <optgroup label="Pacific Time Zone">
-                                            <option value="CA">California</option>
-                                            <option value="NV" selected>Nevada</option>
-                                            <option value="OR">Oregon</option>
-                                            <option value="WA">Washington</option>
-                                        </optgroup>
-                                    </select>
-                                </div>
-                            </div>
-                        </div> --}}
                         {{-- <div class="col-lg-6 col-md-6 col-sm-12" id="expenseCategory" style="display:block;">
                             <div class="form-group">
                                 <label for="office_status">Multi Select</label>
@@ -122,7 +112,7 @@
                         <div class="col-lg-4 col-md-4 col-sm-6">
                             <div class="form-group">
                                 <label for="office_status">Expense Categories</label>
-                                <select name="categories[]" class="form-control select2"  id="kt_select2_2" multiple="multiple">
+                                <select name="category_id" class="form-control">
                                     <option value="">None</option>
                                     @foreach ($expenses as $key => $item)
                                         <option value="{{$item->id}}">{{$item->name}}</option>
@@ -131,6 +121,18 @@
 
                             </div>
                         </div>
+                        {{-- <div class="col-lg-4 col-md-4 col-sm-6">
+                            <div class="form-group">
+                                <label for="office_status">Expense Categories</label>
+                                <select name="categories[]" class="form-control select2"  id="kt_select2_2" multiple="multiple">
+                                    <option value="">None</option>
+                                    @foreach ($expenses as $key => $item)
+                                        <option value="{{$item->id}}">{{$item->name}}</option>
+                                    @endforeach
+                                </select>
+
+                            </div>
+                        </div> --}}
                         {{-- <div class="col-lg-6 col-md-6 col-sm-12" id="incomeCategory" style="display:block;">
                             <div class="form-group">
                                 <label for="office_status">Income Categorie</label>

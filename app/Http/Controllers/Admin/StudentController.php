@@ -43,9 +43,7 @@ class StudentController extends Controller
         // dd($students);
     
         $currentUser = Auth::user();
-        if($currentUser->role_id == 4){
-            $students->where('user_id', $currentUser->id);
-        }
+        $students->where('branch_id', $currentUser->branch);
         if ($request->input('subject')) {
             $students->whereHas('subjects', function ($q) use ($request) {
                 $q->where('id', $request->input('subject'));
@@ -67,10 +65,10 @@ class StudentController extends Controller
         //     $students->where('office_status', $request->input('type'));
         // }
         // Passport Number Search
-            if ($request->input('passport_search')) {
-                $passport = $request->input('passport_search');
+        if ($request->input('passport_search')) {
+            $passport = $request->input('passport_search');
             if (strlen($passport) >= 3) {
-            $students->where('passport', 'like', '%' . $passport . '%');
+                $students->where('passport', 'like', '%' . $passport . '%');
             }
         }
         if ($request->input('search')) {
@@ -139,10 +137,7 @@ class StudentController extends Controller
         $data['intake'] = $intake;
         $users = User::select('id', 'name');
         $currentUser = Auth::user();
-        // if($currentUser->role_id == 4){
-        //     $users->where('created_by', $currentUser->id);
-        // }
-        $data['branches'] = Branch::select('id', 'name')->get();
+        $users->where('branch', $currentUser->branch);
         $data['student_statuses'] = StudentStatus::select('id', 'name')->get();
         $data['users'] = $users->get();
         $data['education_levels'] = EducationLevel::select('id', 'name')->get();

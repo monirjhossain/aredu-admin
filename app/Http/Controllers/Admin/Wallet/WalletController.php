@@ -6,12 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Account\Wallet;
 use App\Models\Currency\Currency;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class WalletController extends Controller
 {
     public function index()
     {
-        $wallets = Wallet::with('transactions', 'currency')->paginate(10);
+        $currentUser = Auth::user();
+        $wallets = Wallet::with('transactions', 'currency');
+        $wallets->where('branch_id', $currentUser->branch);
+        $wallets = $wallets->paginate(10);
         return view('admin.wallets.index', compact('wallets'));
     }
 
