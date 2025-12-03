@@ -17,7 +17,13 @@ class UserController extends Controller
     public function index()
     {
         $currentUser = Auth::user();
-        $data['users'] = UserCollection::collection(User::orderby('id', 'DESC')->where('branch', $currentUser->branch)->paginate(20));
+        $id = 0;
+        $users = User::orderby('id', 'DESC');
+        if($currentUser->branch != 1){ //admin
+            $id = $currentUser->branch;
+            $users->where('branch', $currentUser->branch);
+        }
+        $data['users'] = UserCollection::collection($users->paginate(20));
         $data['page_title'] = 'User List';
         return view('user.index')->with($data);
     }
@@ -88,9 +94,6 @@ class UserController extends Controller
     public function edit($id)
     {
         $data['user'] = User::findOrFail($id);
-        $data['page_title'] = 'Edit User';
-
-
         $currentUser = User::findOrFail(Auth::id());
         $roles = Role::orderby('id', 'ASC');
         $users = User::orderby('id', 'ASC');
@@ -103,7 +106,7 @@ class UserController extends Controller
         $data['roles'] = $roles->get();
         $data['users'] = $users->get();
         $data['branches'] = $branches->get();
-        $data['page_title'] = 'Add New User';
+        $data['page_title'] = 'Edit User';
         // return $data;
         return view('user.edit')->with($data);
     }
