@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\Account\Wallet;
 
 class UserController extends Controller
 {
@@ -28,22 +29,22 @@ class UserController extends Controller
         $users = User::orderby('id', 'ASC');
         $branches = Branch::orderby('id', 'ASC');
 
-        // if($currentUser->role_id == 2){
+        if($currentUser->branch != 1){ //Without Dhaka
+            $branches->where('id', $currentUser->branch);
+            $roles->where('id', 8); //Only Counselor
+        }
         $roles->where('id', '>' , $currentUser->role_id);
         $users->where('branch', $currentUser->branch);
-        // }
         $data['roles'] = $roles->get();
         $data['users'] = $users->get();
         $data['branches'] = $branches->get();
         $data['page_title'] = 'Add New User';
-        // return $data;
         return view('user.add')->with($data);
     }
 
     public function store(UserRequest $request)
     {
-        // return $request;3
-
+        // return $request;
         DB::beginTransaction();
         try {
             $user = User::create($request->all());
@@ -55,10 +56,22 @@ class UserController extends Controller
                 $user->profile_pic = $profilePic;
                 $user->save();
             }
+            if( $user->role_id == 4 ){
+                $wallets = [
+                    ['user_id' => null, 'name' => 'Cash', 'currency_id' => 1, 'balance' => 0, 'branch_id' => $user->branch], // BDT
+                    ['user_id' => null, 'name' => 'Bank', 'currency_id' => 1, 'balance' => 0, 'branch_id' => $user->branch], // BDT
+                    ['user_id' => null, 'name' => 'Bkash', 'currency_id' => 1, 'balance' => 0, 'branch_id' => $user->branch], // BDT
+                    ['user_id' => null, 'name' => 'Nagad', 'currency_id' => 1, 'balance' => 0, 'branch_id' => $user->branch], // BDT
+                ];
+
+                foreach ($wallets as $wallet) {
+                    Wallet::create($wallet);
+                }
+            }
             DB::commit();
             return redirect()->route('user-management.index')->with('success', 'Successfully Added');
         } catch (\Throwable $th) {
-            // $th->getMessage();
+            // return $th->getMessage();
             DB::rollback();
             //throw $th;
             return redirect()->back()->with('error', 'Operation Failed.');;

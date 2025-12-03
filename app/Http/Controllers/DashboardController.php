@@ -22,7 +22,7 @@ class DashboardController extends Controller
         $AdmissionCancel = Student::orderBy('id', 'DESC')->whereIn('intake', ['March-2024', 'September-2024'])->where('status', 'LIKE', '%Admission cancel%')->count();
         $totalStudents = $admittedToUs + $paperSubmitted + $Rejected + $AdmissionCancel;
         
-        $data['total_user'] = User::all()->count();
+        $data['total_user'] = User::where('branch', $currentUser->branch)->count();
         $data['total_todo'] = Todo::all()->count();
         $data['universities'] = Post::where('post_type', 'university')->count();
         $data['page_title'] = 'Dashboard - AR EDUCATION';

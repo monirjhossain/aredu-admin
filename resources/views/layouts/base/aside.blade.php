@@ -1,8 +1,8 @@
 <div class="aside aside-left aside-fixed d-flex flex-column flex-row-auto" id="kt_aside">
     <div class="brand flex-column-auto" id="kt_brand">
         <a href="{{ url('dashboard') }}" class="brand-logo">
-            <img alt="Logo" src="{{ asset('media/custom/logo-white.png') }}" height="45" class="mr-4"
-                style="border: 0px solid #8a8a8a; padding: 2px;" />
+            <img alt="Logo" src="{{ asset('media/custom/logo-white.png') }}" height="45" class="mr-4" style="border: 0px solid #8a8a8a; padding: 2px;" />
+            <p style="color:white;"> <b> {{ Auth::user()->branchInfo->name ?? '' }}</b></p>
         </a>
         <button class="brand-toggle btn btn-sm px-0" id="kt_aside_toggle">
             <span class="svg-icon svg-icon svg-icon-xl">

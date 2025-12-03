@@ -37,8 +37,8 @@ $allowedRoles = [1, 2, 3];
    <div class="col-md-3 mb-3">
       <div class="card-counter bg-danger">
          <a href="{{ route('todo.index') }}"><i class="fa fas fa-users text-white"></i></a>
-         <span class="count-numbers"><a href="{{ route('todo.index') }}">{{$allStudent}}</a></span>
-         <span class="count-name"><a href="{{ route('todo.index') }}">All Student</a></span>
+         <span class="count-numbers"><a href="{{ route('students.index') }}">{{$allStudent}}</a></span>
+         <span class="count-name"><a href="{{ route('students.index') }}">All Student</a></span>
       </div>
    </div>
    {{-- <div class="col-md-3 mb-3">
@@ -48,6 +48,7 @@ $allowedRoles = [1, 2, 3];
          <span class="count-name"><a href="{{ route('todo.index') }}">Total Student</a></span>
       </div>
    </div> --}}
+   @if (in_array(auth()->user()->role_id, $allowedRoles))
    <div class="col-md-3 mb-3">
       <div class="card-counter bg-success">
          <a href="{{ route('todo.index') }}"><i class="fa fas fa-home text-white"></i></a>
@@ -55,14 +56,15 @@ $allowedRoles = [1, 2, 3];
          <span class="count-name"><a href="{{ route('todo.index') }}">Universities</a></span>
       </div>
    </div>
-   {{-- <div class="col-md-3 mb-3">
+   @endif
+   <div class="col-md-3 mb-3">
       <div class="card-counter bg-primary">
          <a href="{{ route('user-management.index') }}"><i class="fa fas fa-users text-white"></i></a>
          <span class="count-numbers"><a href="{{ route('user-management.index') }}">{{$total_user}}</a></span>
          <span class="count-name"><a href="{{ route('user-management.index') }}">Total User</a></span>
       </div>
    </div>
-   <div class="col-md-3 mb-3">
+   {{-- <div class="col-md-3 mb-3">
       <div class="card-counter bg-success">
          <a href="{{ route('todo.index') }}"><i class="fa fas fa-layer-group text-white"></i></a>
          <span class="count-numbers"><a href="{{ route('todo.index') }}">{{$total_todo}}</a></span>
