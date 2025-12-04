@@ -7,7 +7,7 @@
             </div>
             <div class="card-toolbar">
                 <a href="{{ route('posts.create') }}" class="btn btn-sm btn-primary font-weight-bolder">
-                    <i class="la la-plus"></i>Add New User
+                    <i class="la la-plus"></i>Add New User dfsdfsd
                 </a>
             </div>
         </div>

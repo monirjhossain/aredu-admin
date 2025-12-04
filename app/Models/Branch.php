@@ -12,6 +12,12 @@ class Branch extends Model
 
     protected $fillable = [
         'name',
+        'logo',
+        'email',
+        'phone',
+        'address',
+        'details',
+        'remarks'
     ];
 
     public function users(){

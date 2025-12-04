@@ -15,6 +15,7 @@ use App\Models\Inquiry\Inquiry;
 
 use App\Models\Post\Post;
 use App\Models\Product;
+use App\Models\Branch;
 use App\Models\Student\Student;
 use App\Services\WalletService;
 use App\Traits\UploadAble;
@@ -220,7 +221,11 @@ class StudentInvoiceController extends Controller
     public function show(Invoice $invoice)
     {
         // return $invoice;
+        $currentUser = Auth::user();
+        $branch = Branch::where('id', $currentUser->branch);
+
         $student = Student::findOrFail($invoice->student_id);
+        $data['branch'] = $branch->first();
         $data['invoice'] = $invoice;
         $data['student'] = $student;
         $data['title'] = 'Invoices of ' . $student->first_name . ' ' . $student->last_name;
@@ -237,7 +242,7 @@ class StudentInvoiceController extends Controller
             $prevQuery->where('id', '<', $invoice->id);
         }
         $data['previousPaid'] = $prevQuery->sum('paid');
-
+        // return $data;
         return view('admin.invoices.invoice')->with($data);
     }
 

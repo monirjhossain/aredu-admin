@@ -34,7 +34,34 @@
                         </span>
                     </a>
                 </li>
-                
+                @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,4]))
+                    <li class="menu-item {{ request()->is('branches') ? 'menu-item-open' : '' }} {{ request()->is('branches/*') ? 'menu-item-open' : '' }}"
+                        aria-haspopup="true" data-menu-toggle="hover">
+                        <a href="javascript:;" class="menu-link menu-toggle">
+                            <span class="menu-text font-weight-bolder"><i class="fas fa-users"></i>branches</span>
+                            <i class="menu-arrow"></i>
+                        </a>
+                        <div class="menu-submenu">
+                            <i class="menu-arrow"></i>
+                            <ul class="menu-subnav">
+                                <li class="menu-item {{ request()->is('branches') ? 'menu-item-active' : '' }}""
+                                    aria-haspopup="true">
+                                    <a href="{{ url('branches') }}" class="menu-link">
+                                        <i class="menu-bullet menu-bullet-dot"><span></span></i>
+                                        <span class="menu-text font-weight-bolder">All Branch</span>
+                                    </a>
+                                </li>
+                                <li class="menu-item {{ request()->is('branches/create') ? 'menu-item-active' : '' }}"
+                                    aria-haspopup="true">
+                                    <a href="{{ route('branches.create') }}" class="menu-link">
+                                        <i class="menu-bullet menu-bullet-dot"><span></span></i>
+                                        <span class="menu-text font-weight-bolder">Add New</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                @endif
                 @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,4]))
                     <li class="menu-item {{ request()->is('user-management') ? 'menu-item-open' : '' }} {{ request()->is('user-management/*') ? 'menu-item-open' : '' }}"
                         aria-haspopup="true" data-menu-toggle="hover">

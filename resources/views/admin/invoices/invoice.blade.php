@@ -246,7 +246,8 @@ table th:last-child {
 
   <div class="invoice">
     <div style="display: flex; justify-content: space-between;">
-      <img src="{{ asset('media/custom/Logo-1.png') }}" class="logo" alt="Logo">
+      <!-- <img src="{{ asset('media/custom/Logo-1.png') }}" class="logo" alt="Logo"> -->
+      <img src="{{ asset($branch->logo) }}" class="logo" alt="Logo">
       <div class="title">
         <h1>Invoice</h1>
         <div><span class="bold-text">AR ID Number:</span> {{$invoice->invoice_no}}</div>
@@ -386,21 +387,25 @@ table th:last-child {
 <div class="footer-blocks">
   <div class="footer-box">
     <strong>Phone</strong><br>
-    +880 1768-820865<br>
+    <!-- {{ $branch->phone}} -->
+    {!! str_replace(',', '<br>', $branch->phone) !!}
+    <!-- +880 1768-820865<br>
     +880 1736-318321<br>
-    +880 1811-256545
+    +880 1811-256545 -->
   </div>
 
   <div class="footer-box">
     <strong>Address</strong><br>
-    Tropical Tower, 10th Floor,<br>
-    Bata Signal, Elephant Road
+    {{ $branch->address}}
+    <!-- Tropical Tower, 10th Floor,<br>
+    Bata Signal, Elephant Road -->
   </div>
 
   <div class="footer-box">
     <strong>Website</strong><br>
     <a href="https://areducation.net">areducation.net</a><br>
-    areducation16@gmail.com
+    {{$branch->email}}
+    <!-- areducation16@gmail.com -->
   </div>
 </div>
 
