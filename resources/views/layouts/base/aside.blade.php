@@ -442,6 +442,7 @@
                                     <span class="menu-text font-weight-bolder">All students</span>
                                 </a>
                             </li>
+                            @if(auth()->check() && in_array(auth()->user()->role_id, [1,2]))
                             @foreach($branches as $item)
                                 <li class="menu-item {{ request()->is('students') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                     <a href="{{ route('students.index') }}?branch_id={{$item->id}}" class="menu-link">
@@ -450,6 +451,7 @@
                                     </a>
                                 </li>
                             @endforeach
+                            @endif
                             <li class="menu-item {{ request()->is('') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="#" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
