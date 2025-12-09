@@ -34,11 +34,11 @@
                         </span>
                     </a>
                 </li>
-                @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,4]))
+                @if(auth()->check() && in_array(auth()->user()->role_id, [1,2]))
                     <li class="menu-item {{ request()->is('branches') ? 'menu-item-open' : '' }} {{ request()->is('branches/*') ? 'menu-item-open' : '' }}"
                         aria-haspopup="true" data-menu-toggle="hover">
                         <a href="javascript:;" class="menu-link menu-toggle">
-                            <span class="menu-text font-weight-bolder"><i class="fas fa-users"></i>branches</span>
+                            <span class="menu-text font-weight-bolder"><i class="fas fa-users"></i>Branches</span>
                             <i class="menu-arrow"></i>
                         </a>
                         <div class="menu-submenu">
