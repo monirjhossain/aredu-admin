@@ -104,9 +104,14 @@ class Student extends Model
     {
         return $this->belongsToMany(Subject::class);
     }
+    // public function studyLevel()
+    // {
+    //     return $this->hasOne(Study::class, 'id', 'study_level');
+    // }
     public function studyLevel()
     {
-        return $this->hasOne(Study::class, 'id', 'study_level');
+        // return $this->belongsTo(StudentStatus::class, 'status');
+        return $this->belongsTo(Study::class, 'study_id', 'id');
     }
     public function educationQualifications()
     {

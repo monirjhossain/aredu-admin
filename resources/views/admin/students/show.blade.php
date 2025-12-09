@@ -75,7 +75,8 @@
 
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Student Information</h4>
+            <h4 class="mb-0">Student Information <a href="{{ route('students.edit', [$student->id]) }}" class="text-warning" title="Edit">Edit</a></h4>
+            
         </div>
         <div class="card-body">
             <div class="row">

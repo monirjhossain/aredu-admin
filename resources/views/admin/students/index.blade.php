@@ -202,13 +202,13 @@
                                 <span><b>Phone:</b> {{ $item->mother_mobile_no }}</span><br>
                                 <span><b>Occupation:</b> {{ $item->mother_occoupation }}</span><br>
                             </td>
-                            <td>{{ $item->responsible_person }}</td>
+                            <td>{{ $item->responsiblePerson->full_name }}</td>
                             <td>{{ $item->note }}</td>
                             {{-- <td>
                                 <span class="badge {{ $item->status == '1'? 'badge-primary': 'badge-danger' }}">{{ $item->status == '1'? 'Active': 'Deactive' }} </span>
                             </td> --}}
                             <td>
-                                {{ $item->office_status }}
+                                {{ $item->student_status->name ??'' }}
                             </td>
                             <td>
                                 {{ $item->user->name ?? '' }}
