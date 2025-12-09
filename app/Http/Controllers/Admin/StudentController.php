@@ -42,8 +42,12 @@ class StudentController extends Controller
         $students = Student::orderBy('id', 'DESC');
         // dd($students);
     
-        $currentUser = Auth::user();
-        $students->where('branch_id', $currentUser->branch);
+        if ($request->input('branch_id')) {
+            $students->where('branch_id', $request->input('branch_id'));
+        }else{
+            $currentUser = Auth::user();
+            $students->where('branch_id', $currentUser->branch);
+        }
         if ($request->input('subject')) {
             $students->whereHas('subjects', function ($q) use ($request) {
                 $q->where('id', $request->input('subject'));

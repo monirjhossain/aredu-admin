@@ -144,16 +144,18 @@
                         <th>Responsible</th>
                         <th>Remarks</th>
                         <th>Office Status</th>
+                        <th>Branch</th>
                         <th>Add By</th>
                         <th style="width:100px; min-width:100px;" class="text-center text-danger"><i class="fa fa-bolt">
                             </i></th>
                     </tr>
                 </thead>
                 <tbody>
+                    @php $itemSl = $students->firstItem(); @endphp
                     @forelse ($students as $item)
                     
                         <tr>
-                            <td>{{ $item->id }}</td>
+                            <td>{{ $itemSl++ }}</td>
                             <td>{{ $item->full_name }}</td>
                             <td>{{ $item->studyLevel->name ?? '' }}</td>
                             <td>
@@ -202,13 +204,16 @@
                                 <span><b>Phone:</b> {{ $item->mother_mobile_no }}</span><br>
                                 <span><b>Occupation:</b> {{ $item->mother_occoupation }}</span><br>
                             </td>
-                            <td>{{ $item->responsible_person }}</td>
+                            <td>{{ $item->responsiblePerson->full_name ?? ''}}</td>
                             <td>{{ $item->note }}</td>
                             {{-- <td>
                                 <span class="badge {{ $item->status == '1'? 'badge-primary': 'badge-danger' }}">{{ $item->status == '1'? 'Active': 'Deactive' }} </span>
                             </td> --}}
                             <td>
-                                {{ $item->office_status }}
+                                {{ $item->student_status->name ??'' }}
+                            </td>
+                            <td>
+                                {{ $item->branchInfo->name ?? '' }}
                             </td>
                             <td>
                                 {{ $item->user->name ?? '' }}

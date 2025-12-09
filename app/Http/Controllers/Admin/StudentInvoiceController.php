@@ -110,7 +110,7 @@ class StudentInvoiceController extends Controller
         $data['documents'] = Document::select('id', 'name')->get();
         $data['currencies'] = Currency::select('id', 'code')->orderBy('id', 'asc')->get();
         $data['student'] = $student;
-        $data['students'] = $student ? null : Student::select('id', 'first_name', 'last_name', 'email', 'address', 'mobile_no', 'passport')->orderby('id', 'DESC')->get();
+        $data['students'] = $student ? null : Student::select('id', 'first_name', 'last_name', 'email', 'address', 'mobile_no', 'passport')->where('branch_id', $currentUser->branch)->orderby('id', 'DESC')->get();
         
         // Get first invoice's documents to auto-select for subsequent invoices
         $data['preselectedDocuments'] = [];

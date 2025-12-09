@@ -6,6 +6,7 @@ use App\Models\Document;
 use App\Models\EducationQualification;
 use App\Models\Post\Post;
 use App\Models\StudentStatus;
+use App\Models\Branch;
 use App\Models\Study;
 use App\Models\Subject;
 use App\Models\UniversityStatus;
@@ -104,9 +105,14 @@ class Student extends Model
     {
         return $this->belongsToMany(Subject::class);
     }
+    // public function studyLevel()
+    // {
+    //     return $this->hasOne(Study::class, 'id', 'study_level');
+    // }
     public function studyLevel()
     {
-        return $this->hasOne(Study::class, 'id', 'study_level');
+        // return $this->belongsTo(StudentStatus::class, 'status');
+        return $this->belongsTo(Study::class, 'study_id', 'id');
     }
     public function educationQualifications()
     {
@@ -120,5 +126,8 @@ class Student extends Model
                 $student->branch_id = Auth::user()->branch;
             }
         });
+    }
+    public function branchInfo() {
+        return $this->belongsTo(Branch::class, 'branch_id');
     }
 }
