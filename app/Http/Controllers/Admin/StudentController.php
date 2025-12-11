@@ -13,6 +13,7 @@ use App\Models\EducationQualification;
 use App\Models\Inquiry\Inquiry;
 use App\Models\Post\Post;
 use App\Models\Student\Student;
+use App\Models\Student\StudentUniversity;
 use App\Models\StudentStatus;
 use App\Models\Study;
 use App\Models\UniversityStatus;
@@ -39,13 +40,28 @@ class StudentController extends Controller
     public function index(Request $request)
     {
         // return $request;
+        $currentUser = Auth::user();
         $students = Student::orderBy('id', 'DESC');
-        // dd($students);
-    
+        if ($request->input('universitylist')) {
+            // $uni = StudentUniversity::orderBy('id', 'DESC')
+            //     ->select('university_id')
+            //     ->selectRaw('COUNT(*) as total_rows')
+            //     ->groupBy('university_id');
+            $uni = Post::has('students')
+                ->select('id', 'post_title')
+                ->withCount('students');
+                // ->get();
+
+            $data['title'] = 'University Ways Student List';
+            $data['type'] = 'report';
+            $data['url'] = 'finance_entries';
+            $data['universities'] = $uni->get();
+            // return $data;
+            return view('admin.students.university-list')->with($data);
+        }
         if ($request->input('branch_id')) {
             $students->where('branch_id', $request->input('branch_id'));
         }else{
-            $currentUser = Auth::user();
             $students->where('branch_id', $currentUser->branch);
         }
         if ($request->input('subject')) {
@@ -58,6 +74,11 @@ class StudentController extends Controller
                 $q->where('id', $request->input('university'));
             });
         }
+        // if ($request->input('university')) {
+        //     $students->whereHas('universitiesAppStatus', function ($q) use ($request) {
+        //         $q->where('university_id', $request->input('university'));
+        //     });
+        // }
         if ($request->input('study_level')) {
             // Temporarily commented out until study_level column is added to DB
             // $students->where('study_level', $request->input('study_level'));
@@ -65,9 +86,9 @@ class StudentController extends Controller
         if ($request->input('intake')) {
             $students->where('intake', $request->input('intake'));
         }
-        // if ($request->input('type')) {
-        //     $students->where('office_status', $request->input('type'));
-        // }
+        if ($request->input('student_statuses')) {
+            $students->where('status', $request->input('student_statuses'));
+        }
         // Passport Number Search
         if ($request->input('passport_search')) {
             $passport = $request->input('passport_search');
@@ -76,13 +97,18 @@ class StudentController extends Controller
             }
         }
         if ($request->input('search')) {
-            $students->where('first_name', 'like', '%' . $request->input('search') . '%')
+            $students->where(function ($q) use ($request) {
+            $q->where('first_name', 'like', '%' . $request->input('search') . '%')
                 ->orWhere('last_name', 'like', '%' . $request->input('search') . '%')
                 // ->orWhere('study_level', 'like', '%' . $request->input('search') . '%')
                 // ->orWhere('subject', 'like', '%' . $request->input('search') . '%')
+                ->orWhereHas('subjects', function ($q) use ($request) {
+                    $q->where('name', 'like', '%' . $request->input('search') . '%');
+                })
                 ->orWhere('preferred_country', 'like', '%' . $request->input('search') . '%')
                 // ->orWhere('preferred_subject', 'like', '%' . $request->input('search') . '%')
                 // ->orWhere('last_education', 'like', '%' . $request->input('search') . '%')
+                ->orWhere('intake', 'like', '%' . $request->input('search') . '%')
                 ->orWhere('passport', 'like', '%' . $request->input('search') . '%')
                 ->orWhere('email', 'like', '%' . $request->input('search') . '%')
                 ->orWhere('mobile_no', 'like', '%' . $request->input('search') . '%')
@@ -101,10 +127,17 @@ class StudentController extends Controller
                 ->orWhere('status', 'like', '%' . $request->input('search') . '%')
                 ->orWhereHas('universities', function ($q) use ($request) {
                     $q->where('post_title', 'like', '%' . $request->input('search') . '%');
+                
                 });
                 // ->orWhere('ssc_result', 'like', '%' . $request->input('search') . '%')
                 // ->orWhere('hsc_result', 'like', '%' . $request->input('search') . '%');
+            });
         }
+        // if ($request->input('branch_id')) {
+        //     $students->where('branch_id', $request->input('branch_id'));
+        // }else{
+        //     $students->where('branch_id', $currentUser->branch);
+        // }
 
         $totalStudent = $students->count();
         $data['request'] = $request;
@@ -117,6 +150,7 @@ class StudentController extends Controller
         $data['subjects'] = Subject::all();
         $data['intakes'] = $this->intakeCreate();
         $data['universities'] = Post::select('id', 'post_title')->where('post_type', 'university')->get();
+        $data['student_statuses'] = StudentStatus::select('id', 'name')->get();
         // return $data;
         if ($request->input('print') && $request->input('print') == 'yes') {
             $data['students'] = $students->get();
@@ -356,7 +390,7 @@ class StudentController extends Controller
     public function destroy(Student $student)
     {
         if ($student) {
-            $student->delete();
+            // $student->delete();
             Session::flash('success', 'student deleted successfully');
             return redirect()->route('students.index');
         }

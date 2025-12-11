@@ -94,6 +94,22 @@
                     <p class="h5"><b>Application Status:</b> <span class="badge badge-info p-2">{{ $student->student_status->name }}</span></p>
                     <p class="h5"><b>Remark:</b> {{ $student->note }}</p>
                 </div>
+                <div class="col-md-6">
+                    <span><b>Intake:</b> {{ $student->intake }}</span><br>
+                                <span><b>Passport:</b> {{ $student->passport }}</span><br>
+                                <span><b>Preferred Country:</b> {{ $student->preferred_country }}</span><br>
+                                <span><b>Last Education:</b> {{ $student->last_education }}</span><br>
+                                <span><b>Point:</b> {{ $student->last_education }}</span><br>
+                                <span><b>note:</b> {{ $student->note }}</span><br>
+                </div>
+                <div class="col-md-6">
+                    <span><b>Father:</b> {{ $student->father_name }}</span><br>
+                                <span><b>Phone:</b> {{ $student->father_mobile_no }}</span><br>
+                                <span><b>Occupation:</b> {{ $student->father_occoupation }}</span><br>
+                                <span><b>mother:</b> {{ $student->mother_name }}</span><br>
+                                <span><b>Phone:</b> {{ $student->mother_mobile_no }}</span><br>
+                                <span><b>Occupation:</b> {{ $student->mother_occoupation }}</span><br>
+                </div>
             </div>
         </div>
     </div>

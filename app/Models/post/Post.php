@@ -3,6 +3,7 @@
 namespace App\Models\Post;
 
 use App\Models\Category;
+use App\Models\Student\Student;
 use App\Models\Subject;
 use App\Models\Tag;
 use App\Models\User;
@@ -73,7 +74,10 @@ class Post extends Model
     {
         return $this->belongsTo(User::class, 'post_author');
     }
-
+    public function students()
+    {
+        return $this->belongsToMany(Student::class);
+    }
     public function subjects()
     {
         return $this->belongsToMany(Subject::class);

@@ -58,61 +58,59 @@
                 </div>
             </form> --}}
             <form id="searchForm" action="{{ route('students.index') }}" method="get">
-    <div class="row">
-        <div class="col mb-2">
-            <input type="text" name="search" placeholder="Search" class="form-control" value="{{ $request->search }}">
-        </div>
-        <div class="col mb-2">
-            <input type="text" name="passport_search" class="form-control" placeholder="Passport No." value="{{ request('passport_search') }}">
-        </div>
-        <div class="col mb-2">
-            <select class="form-control" name="study_level">
-                <option value="">-Select Study Level-</option>
-                @foreach ($study_levels as $item)
-                <option value="{{$item->id }}" {{ $request->study_level == $item->id ? 'selected' : ''}}>{{$item->name }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col mb-2">
-            <select class="form-control" name="subject">
-                <option value="">-Select Subject-</option>
-                @foreach ($subjects as $item)
-                <option value="{{$item->id }}" {{ $request->subject == $item->id ? 'selected' : ''}} >{{$item->name }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col mb-2">
-            <select class="form-control" name="university">
-                <option value="">-Select University-</option>
-                @foreach ($universities as $item)
-                <option value="{{$item->id }}" {{ $request->university == $item->id ? 'selected' : ''}} >{{$item->post_title }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col mb-2">
-            <select name="intake" class="form-control">
-                <option value="">-Select Intake-</option>
-                @foreach ($intakes as $item)
-                    <option {{ $request->intake == $item ? 'selected' : ''}} value="{{$item}}">{{$item}}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col mb-2">
-            <select name="type" class="form-control">
-                <option value="">-Select Status-</option>
-                <option>Inquery</option>
-                <option>Processing</option>
-                <option>Admitted to us</option>
-                <option>Paper Processing</option>
-                <option>Paper Ready</option>
-                <option>Paper Submitted</option>
-                <option>Rejected</option>
-                <option>Admission Cancel</option>
-            </select>
-        </div>
-        <input id="print" type="hidden" name="print" value="no">
-    </div>
-</form>
+                @if(request()->has('branch_id'))
+                    <input type="hidden" name="branch_id" value="{{ request('branch_id') }}">
+                @endif
+                <div class="row">
+                    <div class="col mb-2">
+                        <input type="text" name="search" placeholder="Search" class="form-control" value="{{ $request->search }}">
+                    </div>
+                    <div class="col mb-2">
+                        <input type="text" name="passport_search" class="form-control" placeholder="Passport No." value="{{ request('passport_search') }}">
+                    </div>
+                    <div class="col mb-2">
+                        <select class="form-control" name="study_level">
+                            <option value="">-Select Study Level-</option>
+                            @foreach ($study_levels as $item)
+                            <option value="{{$item->id }}" {{ $request->study_level == $item->id ? 'selected' : ''}}>{{$item->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col mb-2">
+                        <select class="form-control" name="subject">
+                            <option value="">-Select Subject-</option>
+                            @foreach ($subjects as $item)
+                            <option value="{{$item->id }}" {{ $request->subject == $item->id ? 'selected' : ''}} >{{$item->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col mb-2">
+                        <select class="form-control" name="university">
+                            <option value="">-Select University-</option>
+                            @foreach ($universities as $item)
+                            <option value="{{$item->id }}" {{ $request->university == $item->id ? 'selected' : ''}} >{{$item->post_title }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col mb-2">
+                        <select name="intake" class="form-control">
+                            <option value="">-Select Intake-</option>
+                            @foreach ($intakes as $item)
+                                <option {{ $request->intake == $item ? 'selected' : ''}} value="{{$item}}">{{$item}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col mb-2">
+                        <select name="student_statuses" class="form-control">
+                            <option value="">-Select Status-</option>
+                            @foreach ($student_statuses as $it)
+                                <option {{ $request->student_statuses == $it->id ? 'selected' : ''}} value="{{$it->id}}">{{$it->name}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <input id="print" type="hidden" name="print" value="no">
+                </div>
+            </form>
             <div class="card-toolbar">
                 <a onclick="submitDetailsForm('no')" class="btn btn-primary mr-1"> <i class="la la-search"></i>Search </a>
                 <a onclick="submitDetailsForm('yes')" class="btn btn-primary mr-1"> <i class="la la-print"></i>Print </a>
@@ -133,16 +131,16 @@
                 <thead class="thead-light ">
                     <tr>
                         <th style="width: 10px"> # </th>
-                        <th>Name</th>
+                        <th class="min-w-180px">Name</th>
                         <th>Study Level</th>
                         <th>Subject</th>
                         <th>University</th>
-                        <th>Documents</th>
-                        <th class="min-w-300px">Application Info</th>
-                        <th class="min-w-300px">Student Details</th>
-                        <th class="min-w-300px">Student Parents</th>
+                        {{-- <th>Documents</th> --}}
+                        <th class="min-w-180px">Application Info</th>
+                        {{-- <th class="min-w-300px">Student Details</th>
+                        <th class="min-w-300px">Student Parents</th> --}}
                         <th>Responsible</th>
-                        <th>Remarks</th>
+                        <th>Reference</th>
                         <th>Office Status</th>
                         <th>Branch</th>
                         <th>Add By</th>
@@ -153,12 +151,10 @@
                 <tbody>
                     @php 
                         $itemSl = $students->total() - ($students->currentPage() - 1) * $students->perPage();
-                        <!-- $itemSl = $students->firstItem(); -->
                     @endphp
                     @forelse ($students as $item)
                     
                         <tr>
-                            <!-- <td>{{ $itemSl++ }}</td> -->
                             <td>{{ $itemSl-- }}</td>
                             <td>{{ $item->full_name }}</td>
                             <td>{{ $item->studyLevel->name ?? '' }}</td>
@@ -175,39 +171,41 @@
                                     See Application Status
                                 </a> --}}
                             </td>
-                            <td>
+                            {{-- <td>
                                 @foreach($item->documents as $doc)
                                 <span class="badge badge-primary">{{ $doc->name }} </span>
                                 @endforeach
-                            </td>
+                            </td> --}}
                             {{-- <td>{{ $item->subject }}</td> --}}
                             <td>
                                 {{-- <span><b>Study Level:</b> {{ $item->study_level }}</span><br> --}}
                                 <span><b>Intake:</b> {{ $item->intake }}</span><br>
                                 <span><b>Passport:</b> {{ $item->passport }}</span><br>
-                                {{-- <span><b>Preferred Subject:</b> {{ $item->subject }}</span><br>
-                                <span><b>Preferred University:</b> {{ $item->university->post_title ?? '' }}</span><br> --}}
-                                <span><b>Preferred Country:</b> {{ $item->preferred_country }}</span><br>
-                                <span><b>Last Education:</b> {{ $item->last_education }}</span><br>
-                                <span><b>Point:</b> {{ $item->last_education }}</span><br>
-                                <span><b>note:</b> {{ $item->note }}</span><br>
+                                <span><b>Email:</b> {{ $item->email }}</span><br>
+                                {{-- <span><b>Father:</b> {{ $item->father_name }}</span><br> --}}
+                                {{-- <span><b>mother:</b> {{ $item->mother_name }}</span><br> --}}
+                                <span><b>Phone:</b> {{ $item->mobile_no }}</span><br>
+                                {{-- <span><b>Preferred Country:</b> {{ $item->preferred_country }}</span><br> --}}
+                                {{-- <span><b>Last Education:</b> {{ $item->last_education }}</span><br> --}}
+                                {{-- <span><b>Point:</b> {{ $item->last_education }}</span><br> --}}
+                                {{-- <span><b>note:</b> {{ $item->note }}</span><br> --}}
                             </td>
-                            <td>
+                            {{-- <td>
                                 <span><b>Email:</b> {{ $item->email }}</span><br>
                                 <span><b>Phone:</b> {{ $item->mobile_no }}</span><br>
                                 <span><b>Address:</b> {{ $item->address }}</span><br>
                                 <span><b>City:</b> {{ $item->city }}</span><br>
                                 <span><b>Country:</b> {{ $item->country }}</span><br>
                                 <span><b>ZIP:</b> {{ $item->zip }}</span><br>
-                            </td>
-                            <td>
+                            </td> --}}
+                            {{-- <td>
                                 <span><b>Father:</b> {{ $item->father_name }}</span><br>
                                 <span><b>Phone:</b> {{ $item->father_mobile_no }}</span><br>
                                 <span><b>Occupation:</b> {{ $item->father_occoupation }}</span><br>
                                 <span><b>mother:</b> {{ $item->mother_name }}</span><br>
                                 <span><b>Phone:</b> {{ $item->mother_mobile_no }}</span><br>
                                 <span><b>Occupation:</b> {{ $item->mother_occoupation }}</span><br>
-                            </td>
+                            </td> --}}
                             <td>{{ $item->responsiblePerson->full_name ?? ''}}</td>
                             <td>{{ $item->note }}</td>
                             {{-- <td>
