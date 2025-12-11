@@ -99,7 +99,7 @@ class StudentController extends Controller
                 // ->orWhere('responsible_person', 'like', '%' . $request->input('search') . '%')
                 ->orWhere('note', 'like', '%' . $request->input('search') . '%')
                 ->orWhere('status', 'like', '%' . $request->input('search') . '%')
-                ->orWhereHas('university', function ($q) use ($request) {
+                ->orWhereHas('universities', function ($q) use ($request) {
                     $q->where('post_title', 'like', '%' . $request->input('search') . '%');
                 });
                 // ->orWhere('ssc_result', 'like', '%' . $request->input('search') . '%')

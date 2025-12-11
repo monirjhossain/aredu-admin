@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Post\Post;
+use App\Models\post\Post;
 use App\Models\Student\Student;
 use App\Models\User;
 use App\Models\Todo;
