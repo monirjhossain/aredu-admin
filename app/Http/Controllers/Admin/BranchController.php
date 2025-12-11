@@ -42,22 +42,34 @@ class BranchController extends Controller
                 $branch->logo = $profilePic;
                 $branch->save();
             }
-            // if( $branch->role_id == 4 ){
-            //     $wallets = [
-            //         ['user_id' => null, 'name' => 'Cash', 'currency_id' => 1, 'balance' => 0, 'branch_id' => $branch->branch], // BDT
-            //         ['user_id' => null, 'name' => 'Bank', 'currency_id' => 1, 'balance' => 0, 'branch_id' => $branch->branch], // BDT
-            //         ['user_id' => null, 'name' => 'Bkash', 'currency_id' => 1, 'balance' => 0, 'branch_id' => $branch->branch], // BDT
-            //         ['user_id' => null, 'name' => 'Nagad', 'currency_id' => 1, 'balance' => 0, 'branch_id' => $branch->branch], // BDT
-            //     ];
-
-            //     foreach ($wallets as $wallet) {
-            //         Wallet::create($wallet);
-            //     }
-            // }
+            if($branch){
+                $user = User::create([
+                    'name' => $branch->name,
+                    'role_id' => 4,
+                    'related_to' => Auth::id(),
+                    'branch' => $branch->id,
+                    'mobile_no' => $branch->phone,
+                    'email' => $branch->email,
+                    'password' => 123123,
+                    'profile_pic' => $branch->logo,
+                ]);
+                if($user){
+                    $wallets = [
+                        ['user_id' => null, 'name' => 'Cash', 'currency_id' => 1, 'balance' => 0, 'branch_id' => $branch->branch], // BDT
+                        ['user_id' => null, 'name' => 'Bank', 'currency_id' => 1, 'balance' => 0, 'branch_id' => $branch->branch], // BDT
+                        ['user_id' => null, 'name' => 'Bkash', 'currency_id' => 1, 'balance' => 0, 'branch_id' => $branch->branch], // BDT
+                        ['user_id' => null, 'name' => 'Nagad', 'currency_id' => 1, 'balance' => 0, 'branch_id' => $branch->branch], // BDT
+                    ];
+    
+                    foreach ($wallets as $wallet) {
+                        Wallet::create($wallet);
+                    }
+                }
+            }
             DB::commit();
             return redirect()->route('branches.index')->with('success', 'Successfully Added');
         } catch (\Throwable $th) {
-            // return $th->getMessage();
+            return $th->getMessage();
             DB::rollback();
             //throw $th;
             return redirect()->back()->with('error', 'Operation Failed.');;

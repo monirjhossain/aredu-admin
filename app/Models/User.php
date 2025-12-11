@@ -22,7 +22,7 @@ class User extends Authenticatable
         'office_id',
         'mobile_no',
         'email',
-        'profile_image',
+        // 'profile_image',
         'email_verified_at',
         'password',
         'profile_pic',

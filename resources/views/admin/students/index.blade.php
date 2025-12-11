@@ -151,11 +151,15 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @php $itemSl = $students->firstItem(); @endphp
+                    @php 
+                        $itemSl = $students->total() - ($students->currentPage() - 1) * $students->perPage();
+                        <!-- $itemSl = $students->firstItem(); -->
+                    @endphp
                     @forelse ($students as $item)
                     
                         <tr>
-                            <td>{{ $itemSl++ }}</td>
+                            <!-- <td>{{ $itemSl++ }}</td> -->
+                            <td>{{ $itemSl-- }}</td>
                             <td>{{ $item->full_name }}</td>
                             <td>{{ $item->studyLevel->name ?? '' }}</td>
                             <td>

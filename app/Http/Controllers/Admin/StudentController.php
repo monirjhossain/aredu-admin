@@ -106,10 +106,10 @@ class StudentController extends Controller
                 // ->orWhere('hsc_result', 'like', '%' . $request->input('search') . '%');
         }
 
-        $data['request'] = $request;
         $totalStudent = $students->count();
+        $data['request'] = $request;
         $data['students'] = $students->paginate(20);
-        $data['title'] = 'Student List - ' . $totalStudent;
+        $data['title'] = 'Student List - Total: ' . $totalStudent;
         $data['type'] = 'student';
         $data['url'] = 'students';
         $data['print'] = $request->input('print');

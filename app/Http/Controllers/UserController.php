@@ -31,7 +31,7 @@ class UserController extends Controller
     public function create()
     {
         $currentUser = Auth::user();
-        $roles = Role::orderby('id', 'ASC');
+        $roles = Role::orderby('id', 'ASC')->where('id', '!=', 4);
         $users = User::orderby('id', 'ASC');
         $branches = Branch::orderby('id', 'ASC');
 
@@ -62,18 +62,6 @@ class UserController extends Controller
                 $user->profile_pic = $profilePic;
                 $user->save();
             }
-            if( $user->role_id == 4 ){
-                $wallets = [
-                    ['user_id' => null, 'name' => 'Cash', 'currency_id' => 1, 'balance' => 0, 'branch_id' => $user->branch], // BDT
-                    ['user_id' => null, 'name' => 'Bank', 'currency_id' => 1, 'balance' => 0, 'branch_id' => $user->branch], // BDT
-                    ['user_id' => null, 'name' => 'Bkash', 'currency_id' => 1, 'balance' => 0, 'branch_id' => $user->branch], // BDT
-                    ['user_id' => null, 'name' => 'Nagad', 'currency_id' => 1, 'balance' => 0, 'branch_id' => $user->branch], // BDT
-                ];
-
-                foreach ($wallets as $wallet) {
-                    Wallet::create($wallet);
-                }
-            }
             DB::commit();
             return redirect()->route('user-management.index')->with('success', 'Successfully Added');
         } catch (\Throwable $th) {
@@ -95,7 +83,7 @@ class UserController extends Controller
     {
         $data['user'] = User::findOrFail($id);
         $currentUser = User::findOrFail(Auth::id());
-        $roles = Role::orderby('id', 'ASC');
+        $roles = Role::orderby('id', 'ASC')->where('id', '!=', 4);
         $users = User::orderby('id', 'ASC');
         $branches = Branch::orderby('id', 'ASC');
 
@@ -118,7 +106,15 @@ class UserController extends Controller
         try {
             $user = User::findOrFail($id);
             $input = $request->all();
+            $barchManager = false;
+            if ($user->role_id == 4) {
+                $barchManager = true;
+            }
             $user->fill($input)->save();
+            if ($barchManager) {
+                $user->role_id = 4;
+                $user->save();
+            }
             if ($request->file('pro_pic')) {
                 $profilePic = $user->id . '_' . time() . '.' . $request->pro_pic->extension();
                 $request->pro_pic->move(public_path('uploads/profile'), $profilePic);
