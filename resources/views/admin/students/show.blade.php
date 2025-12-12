@@ -205,6 +205,7 @@
                 <thead class="thead-light ">
                     <tr>
                         <th style="width: 10px">No</th>
+                        <th>Application No</th>
                         <th>University</th>
                         <th>Subject</th>
                         <th>Status</th>
@@ -217,8 +218,9 @@
                     @forelse ($student->universitiesAppStatus as $item)
                         <tr>
                             <td>{{ $item->id }}</td>
+                            <td>{{ $item->application_no ?? '-' }}</td>
                             <td>{{ $item->university->post_title }}</td>
-                            <td>{{ $item->subject->name  }}</td>
+                            <td>{{ $item->subject->name ?? '-' }}</td>
                             {{-- <td>{{ $item->statusUni->name }} --}}
                             <td>
                                 <div class="progress-container">
@@ -232,8 +234,8 @@
                                     @endforeach
                                 </div>
                             </td>
-                            <td>{{ $item->note }}</td>
-                            <td>{{ $item->remarks }}</td>
+                            <td>{{ $item->note ?? '-'}}</td>
+                            <td>{{ $item->remarks ?? '-'}}</td>
                             <td>
                                 <div class="btn-group">
                                     <a href="{{ route($url.'.edit', [$item->id]) }}" class="btn btn-sm btn-info">

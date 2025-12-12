@@ -21,7 +21,7 @@ class StudentUniversity extends Model
 
     protected $table = 'student_university';
     protected $fillable = [
-
+        'application_no',
         'student_id',
         'university_id',
         'subject_id',

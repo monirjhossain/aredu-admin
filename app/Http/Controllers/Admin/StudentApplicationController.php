@@ -36,8 +36,20 @@ class StudentApplicationController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    // public function index(Request $request)
-    // {}
+    public function index(Request $request)
+    {
+        $uni = Post::has('students')
+                ->select('id', 'post_title')
+                ->withCount('students');
+                // ->get();
+
+            $data['title'] = 'University Ways Student List';
+            $data['type'] = 'report';
+            $data['url'] = 'finance_entries';
+            $data['universities'] = $uni->get();
+            // return $data;
+            return view('admin.students.university-list')->with($data);
+    }
 
     /**
      * Show the form for creating a new resource.
@@ -89,19 +101,27 @@ class StudentApplicationController extends Controller
      * @param  \App\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function show(StudentUniversity $application)
+    public function show(Request $request, $id)
     {
-        // Show details related to a student application (student_university record)
-        $student = Student::findOrFail($application->student_id);
-        $data['application'] = $application;
-        $data['student'] = $student;
-        $data['title'] = 'Application of ' . $student->first_name . ' ' . $student->last_name;
-        $data['type'] = 'application';
-        $data['url'] = 'student.application';
-        $data['user'] = Auth::user();
-        $data['documents'] = Document::all();
+        // return $id;
+        $students = Student::orderBy('id', 'DESC');
+        $students->whereHas('universities', function ($q) use ($id) {
+                $q->where('id', $id);
+            });
 
-        return view('admin.invoices.invoice')->with($data);
+        // Show details related to a student application (student_university record)
+        // $uni = Post::has('students')
+        //         ->select('id', 'post_title')
+        //         ->withCount('students');
+                // ->get();
+            $data['students'] = $students->get();
+
+            $data['title'] = 'University Ways Student List';
+            $data['type'] = 'report';
+            $data['url'] = 'finance_entries';
+            // $data['universities'] = $uni->get();
+            // return $data;
+            return view('admin.students.university-student-list')->with($data);
     }
 
     public function edit(StudentUniversity $application)
@@ -137,6 +157,9 @@ class StudentApplicationController extends Controller
             }
             if ($request->has('remarks')) {
                 $application->remarks = $request->remarks;
+            }
+            if ($request->has('application_no')) {
+                $application->application_no = $request->application_no;
             }
             $application->updated_by = Auth::id();
             $application->save();

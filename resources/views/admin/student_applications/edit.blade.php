@@ -43,6 +43,11 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="application_no">  Application No</label>
+                    <input type="text" value="{{ old('application_no', $application->application_no) }}" name="application_no" class="form-control" placeholder="Enter application no">
+                    {{-- <textarea name="application_no" id="application_no" rows="3" class="form-control" placeholder="Enter application no">{{ old('note', $application->application_no) }} --}}
+                </div>
+                <div class="form-group">
                     <label for="note">Note</label>
                     <textarea name="note" id="note" rows="3" class="form-control" placeholder="Add a note about this application status">{{ old('note', $application->note) }}</textarea>
                 </div>
