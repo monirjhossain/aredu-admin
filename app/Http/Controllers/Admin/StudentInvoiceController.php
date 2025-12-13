@@ -290,7 +290,7 @@ class StudentInvoiceController extends Controller
     public function destroy(Invoice $invoice)
     {
         if ($invoice) {
-            $invoice->delete();
+            // $invoice->delete();
             Session::flash('success', 'Invoice deleted successfully');
             return redirect()->to(route('student.invoices.index', ['student' => $invoice->student_id]));
         }

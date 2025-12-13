@@ -308,7 +308,7 @@ table th:last-child {
 
       {{-- Current invoice paid amount --}}
       @if ($invoice->paid != 0)
-      <p class="marginNull"><strong>File Opening Fee Paid: -{{number_format($invoice->paid)}}</strong></p>
+      <p class="marginNull"><strong>{{$invoice->is_readable == 1 ? "" : "(Non-refundable)"}} File Opening Fee Paid: -{{number_format($invoice->paid)}}</strong></p>
       @endif
       @if ($invoice->discount != 0)
       <p class="marginNull">Special discount: -{{number_format($invoice->discount)}}</p>
