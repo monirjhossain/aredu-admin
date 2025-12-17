@@ -169,7 +169,7 @@
                 </li>
                 @endif
 
-                @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,3,5,6]))
+                @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,3,4,5,6,7,8,9,10]))
                 <li class="menu-item {{ request()->is('universities') ? 'menu-item-open' : '' }} {{ request()->is('universities/*') ? 'menu-item-open' : '' }}"
                     aria-haspopup="true" data-menu-toggle="hover">
                     <a href="javascript:;" class="menu-link menu-toggle">
