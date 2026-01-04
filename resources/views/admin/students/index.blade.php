@@ -156,7 +156,11 @@
                     
                         <tr>
                             <td>{{ $itemSl-- }}</td>
-                            <td>{{ $item->full_name }}</td>
+                            <td>
+                                {{ $item->full_name }}
+                                <span class="badge badge-primary">{{ $item->student_status->name }} </span>
+                                <span class="badge badge-primary">{{ $item->intake }} </span>
+                            </td>
                             <td>{{ $item->studyLevel->name ?? '' }}</td>
                             <td>
                                 @foreach($item->subjects as $sub)
