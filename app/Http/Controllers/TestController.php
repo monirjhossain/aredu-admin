@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Imports\IncomeImport;
-use App\Imports\InquireImport;
+use App\Imports\InquireImport2;
 use App\Imports\StudentImportWithPayment;
 use App\Imports\StudentImportWithPaymentCost;
 use Illuminate\Http\Request;
@@ -60,10 +60,10 @@ class TestController extends Controller
         }
     }
         
-    public function importInquiry()
+    public function importInquiryRajshahi2()
     {
         try {
-            Excel::import(new InquireImport(), 'excel/SBStudentDataHSC2025.xlsx');
+            Excel::import(new InquireImport2(), 'excel/SBStudentDataHSC2025.xlsx');
             // return 'dd';
             return $this->respond([
                 'status' => 1,

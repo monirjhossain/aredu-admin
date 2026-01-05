@@ -57,38 +57,41 @@
                                                     <input type="date" id="datePicker" name="invoice_date" value="{{ $student->address }}" class="form-control" placeholder="Type here">
                                                 </div>
                                             </div> --}}
-                                            <div class="col-lg-12 col-md-12 col-sm-12">
-                                            Currency:
-                                            <select name="currency" disabled>
-                                                @foreach($currencies as $item)
-                                                <option value="{{$item->id}}">{{$item->code}}</option>
-                                                @endforeach
-                                                <input type="hidden" name="currency" value="1">
-                                            </select>
-                                            {{-- <select name="rate">
-                                                @foreach($currencies as $item)
-                                                <option value="{{$item->latestRate->rate}}">{{$item->latestRate->rate}}</option>
-                                                @endforeach
-                                            </select> --}}
-                                            </div>
-                                            <div class="col-lg-12 col-md-12 col-sm-12">
-                                            Payment Method:
-                                            <select name="wallet_id">
-                                                @foreach($wallets as $item)
-                                                <option value="{{$item->id}}">{{$item->name}}</option>
-                                                @endforeach
-                                                
-                                            </select>
-                                            
-                                            {{-- <select name="rate">
-                                                @foreach($currencies as $item)
-                                                <option value="{{$item->latestRate->rate}}">{{$item->latestRate->rate}}</option>
-                                                @endforeach
-                                            </select> --}}
-                                            </div>
-                                            <div class="col-lg-12 col-md-12 col-sm-12">
-                                                Refundable?
-                                                <input type="checkbox" name="is_refundable">
+
+                                            <div class="col-lg-12 col-md-12 col-sm-12 mb-3">
+                                                <div class="card p-3 shadow-sm border-0">
+                                                    <div class="row align-items-center">
+                                                        <div class="col-md-4 mb-2">
+                                                            <div class="form-group mb-0">
+                                                                <label for="currency" class="font-weight-bold mb-1">Currency</label>
+                                                                <select id="currency" name="currency" class="form-control" disabled>
+                                                                    @foreach($currencies as $item)
+                                                                        <option value="{{$item->id}}">{{$item->code}}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                                <input type="hidden" name="currency" value="1">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4 mb-2">
+                                                            <div class="form-group mb-0">
+                                                                <label for="payment_method" class="font-weight-bold mb-1">Payment Method</label>
+                                                                <select id="payment_method" name="wallet_id" class="form-control">
+                                                                    @foreach($wallets as $item)
+                                                                        <option value="{{$item->id}}">{{$item->name}}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4 mb-2 d-flex align-items-center">
+                                                            <div class="form-group mb-0">
+                                                                <div class="custom-control custom-checkbox">
+                                                                    <input type="checkbox" class="custom-control-input" id="refundable" name="is_refundable">
+                                                                    <label class="custom-control-label" for="refundable">Refundable?</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                             
                                             
