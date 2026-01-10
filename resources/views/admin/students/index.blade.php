@@ -133,8 +133,8 @@
                         <th style="width: 10px"> # </th>
                         <th class="min-w-180px">Name</th>
                         <th>Study Level</th>
-                        <th>Subject</th>
                         <th>University</th>
+                        <th>Subject</th>
                         {{-- <th>Documents</th> --}}
                         <th class="min-w-180px">Application Info</th>
                         {{-- <th class="min-w-300px">Student Details</th>
@@ -158,23 +158,43 @@
                             <td>{{ $itemSl-- }}</td>
                             <td>
                                 {{ $item->full_name }}
-                                <span class="badge badge-primary">{{ $item->student_status->name }} </span>
+                                <span class="badge {{ in_array($item->student_status->id, [7, 9, 11]) ? 'badge-success' : (in_array($item->student_status->id, [4, 12, 2]) ? 'badge-danger' : (in_array($item->student_status->id, [6, 8, 13]) ? 'badge-warning' : 'badge-primary')) }}">{{ $item->student_status->name }} </span>
                                 <span class="badge badge-primary">{{ $item->intake }} </span>
                             </td>
                             <td>{{ $item->studyLevel->name ?? '' }}</td>
+                            <td>
+                                @foreach($item->universities as $uni)
+                                    @php
+                                        $statusname = '';
+                                    @endphp
+                                    @foreach($item->universitiesAppStatus as $uniAppStatus)
+                                            @if ($uniAppStatus->university_id == $uni->id)
+                                                @foreach ($uniAppStatus->statusAll as $st)
+                                                    @if ($st->active == 1)
+                                                        @php
+                                                        $statusname = $st->statusUni->name;
+                                                        @endphp
+                                                    @endif
+                                                @endforeach     
+                                                
+                                            @endif
+                                    @endforeach
+                                    
+                                    <span class="badge badge-primary">{{ $uni->post_title }} </span>
+                                    @if ($statusname)
+                                    -<span class="badge badge-warning">{{ $statusname }} </span><br>
+                                    @endif
+                                    @php
+                                        $statusname = '';
+                                    @endphp
+                                @endforeach
+                            </td>
                             <td>
                                 @foreach($item->subjects as $sub)
                                 <span class="badge badge-primary">{{ $sub->name }} </span>
                                 @endforeach
                             </td>
-                            <td>
-                                @foreach($item->universities as $sub)
-                                <span class="badge badge-primary">{{ $sub->post_title }} </span>
-                                @endforeach
-                                {{-- <a href="{{ route($url . '.edit', [$item->id]) }}" class="btn btn-sm btn-outline-primary mx-1 rounded" title="Edit">
-                                    See Application Status
-                                </a> --}}
-                            </td>
+                            
                             {{-- <td>
                                 @foreach($item->documents as $doc)
                                 <span class="badge badge-primary">{{ $doc->name }} </span>
