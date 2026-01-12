@@ -27,6 +27,7 @@ use App\Http\Controllers\TestController;
 use App\Http\Controllers\TodoController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Admin\BranchController;
+use App\Http\Controllers\Admin\SuccessStoryController;
 use Illuminate\Support\Facades\Auth;
 
 
@@ -49,6 +50,7 @@ Auth::routes([
 Route::get('application-form', [StudentController::class, 'applicationForm']);
 Route::post('application-form', [StudentController::class, 'applicationFormSubmit'])->name('application-form.store');
 Route::get('application-show/{slug}', [StudentController::class, 'applicationShow'])->name('application.show');
+Route::get('success-story-of-areducation/{slug}', [SuccessStoryController::class, 'show'])->name('successstory.show');
 
 
 Route::get('/', [DashboardController::class, 'logincheck']);
