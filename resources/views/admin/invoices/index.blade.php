@@ -45,8 +45,6 @@
                         <th style="width:100px; min-width:100px;" class="text-center text-danger"><i class="fa fa-bolt"></i></th>
 
 
-
-
                     </tr>
                 </thead>
                 <tbody>

@@ -138,6 +138,7 @@ class StudentInvoiceController extends Controller
      */
     public function store(Request $request)
     {
+        dd($request->all());
         DB::beginTransaction();
         try {
             $invoice = new Invoice();
@@ -248,44 +249,65 @@ class StudentInvoiceController extends Controller
 
     public function edit(Invoice $invoice)
     {
-        return 'The invoice is not editable';
         $student = Student::find($invoice->student_id);
         $data['invoice'] = $invoice;
-
-        // $data['invoices'] = $invoices->paginate(20);
-        // $data['title'] = 'Invoices';
-        // $data['type'] = 'invoice';
-        // $data['student'] = $student;
-        // $data['url'] = 'invoices';
-
-
-
         $data['student'] = $student;
         $data['title'] = 'Invoice Edit';
         $data['type'] = 'student';
-        $data['url'] = 'students';
+        $data['url'] = 'student.invoices';
         $data['universities'] = Post::select('id', 'post_title')->orderby('id', 'DESC')->where('post_type', 'university')->get();
-        // return $data;
+        $data['studies'] = \App\Models\Study::all();
+        $data['documents'] = \App\Models\Document::all();
         return view('admin.invoices.edit')->with($data);
     }
 
-    public function update(StudentRequest $request, Student $student)
+    // public function update(StudentRequest $request, Student $student)
+    // {
+    //     // return $request;
+    //     DB::beginTransaction();
+    //     try {
+    //         // $student = new Student();
+    //         $studentFillableData = $request->only($student->getFillable());
+    //         $student->fill($studentFillableData)->save();
+    //         DB::commit();
+    //         Session::flash('success', 'Update successfully');
+    //         return redirect()->route('students.index');
+    //     } catch (\Throwable $th) {
+    //         DB::rollback();
+    //         Session::flash('error', 'Something went wrong!');
+    //         return redirect()->back();
+    //     }
+    // }
+
+        public function update(Request $request, Invoice $invoice)
     {
-        // return $request;
         DB::beginTransaction();
         try {
-            // $student = new Student();
-            $studentFillableData = $request->only($student->getFillable());
-            $student->fill($studentFillableData)->save();
+            // Update invoice documents
+            if ($request->has('documents')) {
+                $invoice->documents = $request->input('documents');
+            } else {
+                $invoice->documents = [];
+            }
+            $invoice->save();
+
+            // Update related student's study_id
+            $student = Student::find($invoice->student_id);
+            if ($student && $request->has('study_id')) {
+                $student->study_id = $request->input('study_id');
+                $student->save();
+            }
+
             DB::commit();
-            Session::flash('success', 'Update successfully');
-            return redirect()->route('students.index');
+            Session::flash('success', 'Invoice and student updated successfully');
+            return redirect()->route('student.invoices.index', ['student' => $student->id]);
         } catch (\Throwable $th) {
             DB::rollback();
-            Session::flash('error', 'Something went wrong!');
-            return redirect()->back();
+            // Show the actual error for debugging
+            return response()->json(['error' => $th->getMessage(), 'trace' => $th->getTraceAsString()], 500);
         }
     }
+    
 
     public function destroy(Invoice $invoice)
     {

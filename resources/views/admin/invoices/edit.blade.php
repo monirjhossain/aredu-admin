@@ -35,7 +35,7 @@
                     <div class="card-body p-0">
                         <div class="row">
                             <div class="col-12">
-                                <form action="{{ route($url.'.update', [$student->id]) }}" method="POST" enctype="multipart/form-data">
+                                <form action="{{ route($url.'.update', [$invoice->id]) }}" method="POST" enctype="multipart/form-data">
                                     @csrf
                                     @method('PUT')
                                     <div class="card-body">
@@ -43,16 +43,16 @@
                                         <div class="row">
                                             <div class="col-lg-4 col-md-4 col-sm-12">
                                                 <div class="form-group">
-                                                    <label for="study_level">Study Level</label>
-                                                <input type="text" name="study_level" value="{{ $student->study_level }}" class="form-control" placeholder="Type here">
-                                                    <select name="study_level" class="form-control"  id="">
-                                                        <option {{$student->study_level == 'BSC' ? 'selected': ''}}>BSC</option>
-                                                        <option {{$student->study_level == 'MSC' ? 'selected': ''}}>MSC</option>
-                                                        <option {{$student->study_level == 'PHD' ? 'selected': ''}}>PHD</option>
-                                                        <option {{$student->study_level == 'Diploma' ? 'selected': ''}}>Diploma</option>
-                                                        <option {{$student->study_level == 'Pharmacy' ? 'selected': ''}}>Pharmacy</option>
-                                                        <option {{$student->study_level == 'MBBS' ? 'selected': ''}}>MBBS</option>
+                                                    <label for="study_id">Study Level</label>
+                                                    <select name="study_id" class="form-control" required>
+                                                        <option value="">Select Study Level</option>
+                                                        @foreach($studies as $study)
+                                                            <option value="{{ $study->id }}" {{ isset($student->study_id) && $student->study_id == $study->id ? 'selected' : '' }}>
+                                                                {{ $study->name }}
+                                                            </option>
+                                                        @endforeach
                                                     </select>
+                                                    <input type="hidden" name="study_id" value="{{ $student->study_id }}">
                                                 </div>
                                             </div>
                                             <div class="col-lg-4 col-md-4 col-sm-12">
@@ -252,6 +252,27 @@
                                                 <div class="form-group">
                                                     <label for="note">Note</label>
                                                     <textarea name="note" id=""  rows="1" class="form-control">{{ $student->note}}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <h4>Attached Documents</h4>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="table-responsive">
+                                                    <table class="table input_fields_wrap">
+                                                        <tr>
+                                                            <td>
+                                                                <div class="form-group">
+                                                                    @foreach ($documents as $item)
+                                                                    <div class="custom-control custom-checkbox" style="margin-right: 20px">
+                                                                        <input class="custom-control-input" name="documents[]" type="checkbox" id="document{{ $item->id }}" value="{{ $item->id }}" @if(is_array($invoice->documents) && in_array($item->id, $invoice->documents)) checked @endif>
+                                                                        <label for="document{{ $item->id }}" class="custom-control-label">{{ $item->name }}</label>
+                                                                    </div>
+                                                                    @endforeach
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
                                                 </div>
                                             </div>
                                         </div>
