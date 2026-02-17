@@ -21,7 +21,7 @@ class ReportsController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = request()->get('perpage', 15);
+        $perPage = request()->get('perpage', 20);
         $type = request()->get('type', '');
         $typeStudent = request()->get('student', '');
         $category_id = request()->get('category_id', '');
@@ -152,7 +152,7 @@ class ReportsController extends Controller
         }
             
         // return $data['entries'] = $financeEntry->get();
-        $data['entries'] = $financeEntry->get();
+        $data['entries'] = $financeEntry->paginate($perPage);
         // Ensure categories is always set for expense_summary and income_summary
         if ($type == 'expense_summary' && !isset($data['categories'])) {
             $data['categories'] = Expense::all();

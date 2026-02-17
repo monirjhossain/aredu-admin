@@ -146,6 +146,11 @@
                                         <td colspan="9" class="text-center">No Finance Entries found.</td>
                                     </tr>
                                 @endforelse
+                                </tbody>
+                            </table>
+                            <div class="d-flex justify-content-center">
+                                {{ $entries->appends(request()->except('page'))->links() }}
+                            </div>
                                 <tr>
                                     <td colspan="4">#</td>
                                     
