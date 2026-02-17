@@ -25,21 +25,76 @@
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap">
                             <h3 class="card-title">{{$title}}</h3>
-                            <h2>AR Education</h2>
                             <div class="d-flex align-items-center">
-                                @php
-                                    // if($type == 'expense')
-
-                                @endphp
+                                <form method="GET" action="{{ route('finance_entries.export') }}" class="mr-2">
+                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                    <input type="hidden" name="student_id" value="{{ request('student_id') }}">
+                                    <input type="hidden" name="category_id" value="{{ request('category_id') }}">
+                                    <input type="hidden" name="type" value="{{ request('type') }}">
+                                    <input type="hidden" name="created_by" value="{{ request('created_by') }}">
+                                    <button type="submit" class="btn btn-success">Export Report</button>
+                                </form>
+                                <!-- existing filter form below -->
+                            </div>
+                            <form method="GET" action="{{ route('finance_entries.index') }}" class="w-100 mt-3 mb-2 p-3 bg-light rounded shadow-sm border">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-md-2 mb-2">
+                                        <label for="start_date" class="form-label font-weight-bold">From</label>
+                                        <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request('start_date') }}">
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <label for="end_date" class="form-label font-weight-bold">To</label>
+                                        <input type="date" name="end_date" id="end_date" class="form-control" value="{{ request('end_date') }}">
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <label for="student_id" class="form-label font-weight-bold">Student</label>
+                                        <select name="student_id" id="student_id" class="form-control">
+                                            <option value="">All</option>
+                                            @foreach($students ?? [] as $student)
+                                                <option value="{{ $student->id }}" {{ request('student_id') == $student->id ? 'selected' : '' }}>{{ $student->full_name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <label for="category_id" class="form-label font-weight-bold">Category</label>
+                                        <select name="category_id" id="category_id" class="form-control">
+                                            <option value="">All</option>
+                                            @foreach(($products ?? []) as $product)
+                                                <option value="product_{{ $product->id }}" {{ request('category_id') == 'product_' . $product->id ? 'selected' : '' }}>{{ $product->name }}</option>
+                                            @endforeach
+                                            @foreach(($expenses ?? []) as $expense)
+                                                <option value="expense_{{ $expense->id }}" {{ request('category_id') == 'expense_' . $expense->id ? 'selected' : '' }}>{{ $expense->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <label for="type" class="form-label font-weight-bold">Type</label>
+                                        <select name="type" id="type" class="form-control">
+                                            <option value="">All</option>
+                                            <option value="income" {{ request('type') == 'income' ? 'selected' : '' }}>Income</option>
+                                            <option value="expense" {{ request('type') == 'expense' ? 'selected' : '' }}>Expense</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <label for="created_by" class="form-label font-weight-bold">Created By</label>
+                                        <select name="created_by" id="created_by" class="form-control">
+                                            <option value="">All</option>
+                                            @foreach($users ?? [] as $user)
+                                                <option value="{{ $user->id }}" {{ request('created_by') == $user->id ? 'selected' : '' }}>{{ $user->full_name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2 mb-2 d-flex">
+                                        <button type="submit" class="btn btn-primary flex-fill mr-2">Filter</button>
+                                        <a href="{{ route('finance_entries.index') }}" class="btn btn-secondary flex-fill mr-2">Reset</a>
+                                    </div>
+                                </div>
+                            </form>
+                            <div class="d-flex align-items-center">
                                 <form method="GET" action="{{ route('finance_entries.index') }}" class="mr-2">
-                                    @if($type == 'expense')
-                                        <input type="hidden" name="type" value="{{$type}}">
-                                    @endif
-                                    @if($type == 'student')
-                                        <input type="hidden" name="student" value="{{$student_id}}">
-                                    @endif
                                     <select name="perpage" class="form-control" onchange="this.form.submit()">
                                         <option value="5" {{ request('perpage') == 5 ? 'selected' : '' }}>5</option>
                                         <option value="10" {{ request('perpage') == 10 ? 'selected' : '' }}>10</option>
@@ -54,7 +109,6 @@
                                     <a href="{{ route('finance_entries.create', ['type' => $type]) }}" class="btn btn-primary">Create Entry</a>
                                 @endif
                             </div>
-                            {{-- <a href="{{ route('finance_entries.create') }}" class="btn btn-primary">Create Entry</a> --}}
                         </div>
                     </div>
 

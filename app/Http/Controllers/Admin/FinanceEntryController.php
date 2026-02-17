@@ -15,31 +15,120 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 
+
 class FinanceEntryController extends Controller
 {
+
+    /**
+     * Export filtered finance entries to Excel.
+     */
+    public function export(Request $request)
+    {
+        // You must have maatwebsite/excel installed for this to work
+        // composer require maatwebsite/excel
+        $type = $request->get('type', '');
+        $studentId = $request->get('student_id', '');
+        $categoryId = $request->get('category_id', '');
+        $categoryType = null;
+        $categoryRealId = null;
+        if ($categoryId && strpos($categoryId, '_') !== false) {
+            [$categoryType, $categoryRealId] = explode('_', $categoryId, 2);
+        }
+        $createdBy = $request->get('created_by', '');
+        $startDate = $request->get('start_date', '');
+        $endDate = $request->get('end_date', '');
+
+        $entries = FinanceEntry::orderBy('transaction_date', $type == 'expense' ? 'desc' : 'asc')
+            ->when($type === 'expense' || $type === 'income', function ($query) use ($type) {
+                $query->where('type', $type);
+            })
+            ->when($studentId, function ($query) use ($studentId) {
+                $query->where('student_id', $studentId);
+            })
+            ->when($categoryRealId, function ($query) use ($categoryRealId) {
+                $query->where('category_id', $categoryRealId);
+            })
+            ->when($createdBy, function ($query) use ($createdBy) {
+                $query->where('created_by', $createdBy);
+            })
+            ->when($startDate, function ($query) use ($startDate) {
+                $query->whereDate('transaction_date', '>=', $startDate);
+            })
+            ->when($endDate, function ($query) use ($endDate) {
+                $query->whereDate('transaction_date', '<=', $endDate);
+            })
+            ->get();
+
+        $exportData = $entries->map(function($entry) {
+            return [
+                'ID' => $entry->id,
+                'Date' => $entry->transaction_date,
+                'Type' => $entry->type,
+                'Student' => $entry->student->full_name ?? '',
+                'Category' => $entry->expense->name ?? $entry->income->name ?? '',
+                'Description' => $entry->description,
+                'Reference' => $entry->reference,
+                'Amount' => $entry->amount,
+                'Currency' => $entry->currency,
+                'Created By' => $entry->creator->name ?? '',
+            ];
+        });
+
+        // Use Laravel Excel 3.x+ to export
+        // If not installed: composer require maatwebsite/excel
+        // Create a simple export class on the fly
+        $export = new class($exportData) implements \Maatwebsite\Excel\Concerns\FromCollection, \Maatwebsite\Excel\Concerns\WithHeadings {
+            protected $data;
+            public function __construct($data) { $this->data = $data; }
+            public function collection() { return collect($this->data); }
+            public function headings(): array { return array_keys($this->data->first() ?? []); }
+        };
+        return \Maatwebsite\Excel\Facades\Excel::download($export, 'FinanceEntriesReport.xlsx');
+    }
     public function index(Request $request)
     {
+        // For filter dropdowns
+        $data['students'] = \App\Models\Student\Student::orderBy('first_name')->get();
+        $data['users'] = \App\Models\User::orderBy('name')->get();
         // return $request->student;  
-        $perPage = request()->get('perpage', 15);
-        $type = request()->get('type', '');
-        $typeStudent = request()->get('student', '');
+        $perPage = $request->get('perpage', 15);
+        $type = $request->get('type', '');
+        $studentId = $request->get('student_id', '');
+        $categoryId = $request->get('category_id', '');
+        $categoryType = null;
+        $categoryRealId = null;
+        if ($categoryId && strpos($categoryId, '_') !== false) {
+            [$categoryType, $categoryRealId] = explode('_', $categoryId, 2);
+        }
+        $createdBy = $request->get('created_by', '');
+        $startDate = $request->get('start_date', '');
+        $endDate = $request->get('end_date', '');
 
         $order = 'asc';
         if($type == 'expense'){
             $order = 'desc';
         }
         $data['entries'] = FinanceEntry::orderBy('transaction_date', $order)
-            ->when($type === 'expense', function ($query) {
-                $query->where('type', 'expense');
+            ->when($type === 'expense' || $type === 'income', function ($query) use ($type) {
+                $query->where('type', $type);
+            })
+            ->when($studentId, function ($query) use ($studentId) {
+                $query->where('student_id', $studentId);
+            })
+            ->when($categoryRealId, function ($query) use ($categoryRealId) {
+                $query->where('category_id', $categoryRealId);
+            })
+            ->when($createdBy, function ($query) use ($createdBy) {
+                $query->where('created_by', $createdBy);
+            })
+            ->when($startDate, function ($query) use ($startDate) {
+                $query->whereDate('transaction_date', '>=', $startDate);
+            })
+            ->when($endDate, function ($query) use ($endDate) {
+                $query->whereDate('transaction_date', '<=', $endDate);
             });
-
-        if($request->student){
-            $student = Student::findOrFail($request->student);
-            $data['entries'] = $data['entries']->where('student_id', $request->student);
-        }
         $currentUser = Auth::user();
         $data['entries'] = $data['entries']->where('branch_id', $currentUser->branch);
-            
         $data['entries'] = $data['entries']->paginate($perPage);
         $data['openingBalanceBDT']=0;
         $data['openingBalanceRMB']=0;
@@ -78,14 +167,14 @@ class FinanceEntryController extends Controller
                     return $carry + ($entry->type === 'income' ? $amount : -$amount);
                 }, 0);
         }
-        $data['expenses'] = Expense::orderBy('id', 'desc')->get();
-        $data['products'] = Product::orderBy('id', 'desc')->get();
-        $data['title'] = $typeStudent ? 'Transaction of  ' . $student->full_name : ($type != 'expense'? 'Finance List' : 'Expense List');
-        $data['type'] = $typeStudent? 'student' : $type;
+        $data['expenses'] = Expense::orderBy('name', 'asc')->get();
+        $data['products'] = Product::orderBy('name', 'asc')->get();
+        $data['title'] = 'Finance List';
+        $data['type'] = $type;
         $data['url'] = 'finance_entries';
         $data['perPage'] = $perPage;
-        if($request->student){
-            $data['student_id'] = $student->id;
+        if($studentId){
+            $data['student_id'] = $studentId;
         }
         // return $data;
         return view('admin.account.index')->with($data);

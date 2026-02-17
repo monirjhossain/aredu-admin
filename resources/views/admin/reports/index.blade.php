@@ -6,7 +6,7 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0 text-dark">{{$title}}</h1>
+                {{-- <h1 class="m-0 text-dark">{{$title}}</h1> --}}
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
@@ -23,66 +23,122 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h3 class="card-title">{{$title}}</h3>
-                            <div class="d-flex align-items-center">
-                                @php
-                                    // if($type == 'expense')
-
-                                @endphp
-                                <form method="GET" action="{{ route('finance_entries.index') }}" class="mr-2">
-                                    @if($type == 'expense')
-                                        <input type="hidden" name="type" value="{{$type}}">
-                                    @endif
-                                    @if($type == 'student')
-                                        <input type="hidden" name="student" value="{{$student_id}}">
-                                    @endif
-                                    <select name="perpage" class="form-control" onchange="this.form.submit()">
-                                        <option value="5" {{ request('perpage') == 5 ? 'selected' : '' }}>5</option>
-                                        <option value="10" {{ request('perpage') == 10 ? 'selected' : '' }}>10</option>
-                                        <option value="25" {{ request('perpage') == 25 ? 'selected' : '' }}>25</option>
-                                        <option value="50" {{ request('perpage') == 50 ? 'selected' : '' }}>50</option>
-                                        <option value="100" {{ request('perpage') == 100 ? 'selected' : '' }}>100</option>
-                                        <option value="200" {{ request('perpage') == 200 ? 'selected' : '' }}>200</option>
-                                        <option value="500" {{ request('perpage') == 500 ? 'selected' : '' }}>500</option>
-                                    </select>
-                                </form>
-                                @if($type == 'expense')
-                                    <a href="{{ route('finance_entries.create', ['type' => $type]) }}" class="btn btn-primary">Create Entry</a>
-                                @endif
-                            </div>
-                            {{-- <a href="{{ route('finance_entries.create') }}" class="btn btn-primary">Create Entry</a> --}}
-                        </div>
+                <div class="card shadow-lg border-0 rounded-lg">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0 font-weight-bold">
+                            @if($type == 'income_summary')
+                                Income Reports
+                            @else
+                                Category-wise Expense Reports
+                            @endif
+                        </h3>
                     </div>
-
-                    <div class="card-body" style="overflow: scroll;">
-                        <table class="table table-hover mb-6">
+                    <div class="card-body bg-light">
+                        <div class="mb-4 p-3 bg-white rounded shadow-sm border">
+                            <form method="GET" action="{{ route($url.'.reports.index') }}" class="w-100">
+                                <div class="row align-items-end g-2">
+                                    <input type="hidden" name="type" value="{{ $type }}">
+                                    <div class="col-12 col-md-3 mb-2">
+                                        <label for="start_date" class="form-label font-weight-bold">From</label>
+                                        <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request('start_date') }}">
+                                    </div>
+                                    <div class="col-12 col-md-3 mb-2">
+                                        <label for="end_date" class="form-label font-weight-bold">To</label>
+                                        <input type="date" name="end_date" id="end_date" class="form-control" value="{{ request('end_date') }}">
+                                    </script>
+                                    <script>
+                                    // Format date input values as dd-mm-yyyy for display
+                                    function formatDateInput(inputId) {
+                                        const input = document.getElementById(inputId);
+                                        if (input && input.value) {
+                                            const parts = input.value.split('-');
+                                            if (parts.length === 3) {
+                                                input.value = parts[2] + '-' + parts[1] + '-' + parts[0];
+                                            }
+                                        }
+                                    }
+                                    formatDateInput('start_date');
+                                    formatDateInput('end_date');
+                                    </script>
+                                    </div>
+                                    <div class="col-12 col-md-3 mb-2">
+                                        <label for="category_id" class="form-label font-weight-bold">
+                                            @if($type == 'income_summary') Product @else Category @endif
+                                        </label>
+                                        <select name="category_id" id="category_id" class="form-control">
+                                            <option value="">All</option>
+                                            @foreach($categories as $cat)
+                                                <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>
+                                                    @if($type == 'income_summary')
+                                                        {{ $cat->name }}
+                                                    @else
+                                                        {{ $cat->name }}
+                                                    @endif
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-3 mb-2 d-flex">
+                                        <button type="submit" class="btn btn-primary flex-fill me-2" style="margin-right:8px;">Filter</button>
+                                        <a href="{{ route($url.'.reports.index', array_merge(request()->all(), ['export' => 'excel'])) }}" class="btn btn-success flex-fill">Export Excel</a>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div style="overflow: scroll;">
+                            <table class="table table-hover mb-6">
                             <thead class="thead-light">
                                 <tr>
                                     <th>#</th>
-                                    <th>Categories</th>
-                                    {{-- <th>Description</th>
-                                    <th>Reference</th> --}}
+                                    <th>@if($type == 'income_summary') Product @else Categories @endif</th>
                                     <th>BDT</th>
                                     <th>RMB</th>
+                                    <th>Transaction Date</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @php $bdt = 0; $rmb = 0; @endphp
-                                @forelse ($entries as $key=>$entry)
-                                    <tr>
-                                        <td>{{ $key+1 }}</td>
-                                        <td>
-                                            <a href="{{ route($url . '.reports.index', ['type' => $type, 'category_id' => $entry->category_id ]) }}">
-                                                {{ $type == 'expense_summary' ? $entry->expense->name : ($type == 'income_summary' ? $entry->income->name : '')  }}</td>
-                                            </a>
-                                        {{-- <td>{{ number_format($entry->total_amount, 2) . ' ' . $entry->currency }}</td> --}}
-                                        <td>{{ $entry->currency == 'BDT' ? number_format($entry->total_amount, 2) . ' ' . $entry->currency : '-' }}</td>
-                                        <td>{{ $entry->currency == 'RMB' ? number_format($entry->total_amount, 2) . ' ' . $entry->currency : '-' }}</td>
-                                    
-                                    </tr>
+                                                                @forelse ($entries as $key=>$entry)
+                                                                        <tr>
+                                                                                <td>{{ $key+1 }}</td>
+                                                                                <td>
+                                                                                    <a href="{{ route($url . '.reports.index', ['type' => $type, 'category_id' => $entry->category_id ]) }}">
+                                                                                        @if($type == 'income_summary')
+                                                                                            {{ $entry->income->name ?? '' }}
+                                                                                        @else
+                                                                                            {{ $entry->expense->name ?? '' }}
+                                                                                        @endif
+                                                                                    </a>
+                                                                                <td>{{ $entry->currency == 'BDT' ? number_format($entry->total_amount, 2) . ' ' . $entry->currency : '-' }}</td>
+                                                                                <td>{{ $entry->currency == 'RMB' ? number_format($entry->total_amount, 2) . ' ' . $entry->currency : '-' }}</td>
+                                                                                <td>{{ $entry->transaction_date ? \Carbon\Carbon::parse($entry->transaction_date)->format('d-m-Y') : '-' }}</td>
+                                                                                <td>
+                                                                                        <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#detailsModal{{ $entry->category_id }}">View Details</button>
+                                                                                        <!-- Modal -->
+                                                                                        <div class="modal fade" id="detailsModal{{ $entry->category_id }}" tabindex="-1" role="dialog" aria-labelledby="detailsModalLabel{{ $entry->category_id }}" aria-hidden="true">
+                                                                                            <div class="modal-dialog" role="document">
+                                                                                                <div class="modal-content">
+                                                                                                    <div class="modal-header">
+                                                                                                        <h5 class="modal-title" id="detailsModalLabel{{ $entry->category_id }}">Details for @if($type == 'income_summary'){{ $entry->income->name ?? '' }}@else{{ $entry->expense->name ?? '' }}@endif</h5>
+                                                                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                                                            <span aria-hidden="true">&times;</span>
+                                                                                                        </button>
+                                                                                                    </div>
+                                                                                                    <div class="modal-body">
+                                                                                                        <p><strong>@if($type == 'income_summary')Product:@else Category:@endif</strong> @if($type == 'income_summary'){{ $entry->income->name ?? '' }}@else{{ $entry->expense->name ?? '' }}@endif</p>
+                                                                                                        <p><strong>Total Amount:</strong> {{ number_format($entry->total_amount, 2) }} {{ $entry->currency }}</p>
+                                                                                                        <p><strong>Transaction Date:</strong> {{ $entry->transaction_date ?? '-' }}</p>
+                                                                                                        <!-- Add more details here as needed -->
+                                                                                                    </div>
+                                                                                                    <div class="modal-footer">
+                                                                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                </td>
+                                                                        </tr>
                                     @php 
                                         if($entry->currency == 'BDT'){
                                             $bdt += $entry->total_amount;
@@ -103,6 +159,11 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 mt-4 d-flex justify-content-start">
+                        <a href="{{ url()->previous() }}" class="btn btn-light btn-sm" style="display:inline-flex;align-items:center;gap:4px;">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </a>
                     </div>
 
                     <div class="card-footer d-flex justify-content-center">

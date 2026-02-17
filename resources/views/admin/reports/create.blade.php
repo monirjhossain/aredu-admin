@@ -32,33 +32,42 @@
     <div class="container-fluid">
         <form action="{{ route('finance_entries.store') }}" method="POST">
             @csrf
-            <div class="card">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="">{{ $title }}</h3>
-                        {{-- <a href="{{ route($url.'.index',['type' => 'expense']) }}" class="btn btn-primary">Go Back to {{ $type }} List</a> --}}
-                    </div>
-                </div>
-                <div class="card-body">
-                    @include('includes.errors')
-                    <div class="row">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <a href="{{ route($url . '.reports.index', ['type' => 'expense_summary']) }}" class="btn btn-primary w-100">Category-wise Cost</a>
-                            </div>
-                            <div class="col-md-3">
-                                <a href="{{ route($url . '.reports.index', ['type' => 'income_summary']) }}" class="btn btn-success w-100">Income Report</a>
-                            </div>
-                            <div class="col-md-3">
-                                <a href="{{ route($url . '.reports.index', ['type' => 'student_summary']) }}" class="btn btn-warning w-100">Student-wise income Cost Report</a>
-                            </div>
-                            <div class="col-md-3">
-                                <a href="{{ route($url . '.create') }}" class="btn btn-info w-100">Total Summary</a>
-                            </div>
-                            <div class="col-md-3 mt-2">
-                                <a href="{{ route($url . '.create') }}" class="btn btn-dark w-100">Student Summary</a>
-                            </div>
-                        </div>
+			<div class="card shadow-lg border-0 rounded-lg">
+				<div class="card-header bg-primary text-white">
+					<h3 class="mb-0 font-weight-bold">All Reports</h3>
+				</div>
+				<div class="card-body bg-light">
+					@include('includes.errors')
+					<div class="row justify-content-center">
+						<div class="col-12 col-md-10">
+							<div class="row g-4">
+								<div class="col-12 col-md-6 col-lg-4 mb-3">
+									<a href="{{ route($url . '.reports.index', ['type' => 'expense_summary']) }}" class="btn btn-primary w-100 d-flex align-items-center justify-content-center py-3 px-2 h-100">
+										<i class="fas fa-chart-pie me-2"></i> Category-wise Expense Report
+									</a>
+								</div>
+								<div class="col-12 col-md-6 col-lg-4 mb-3">
+									<a href="{{ route($url . '.reports.index', ['type' => 'income_summary']) }}" class="btn btn-success w-100 d-flex align-items-center justify-content-center py-3 px-2 h-100">
+										<i class="fas fa-file-invoice-dollar me-2"></i> Income Report
+									</a>
+								</div>
+								<div class="col-12 col-md-6 col-lg-4 mb-3">
+									<a href="{{ route($url . '.reports.index', ['type' => 'student_summary']) }}" class="btn btn-warning w-100 d-flex align-items-center justify-content-center py-3 px-2 h-100">
+										<i class="fas fa-user-graduate me-2"></i> Student-wise Income Cost
+									</a>
+								</div>
+								<div class="col-12 col-md-6 col-lg-4 mb-3">
+									<a href="{{ url('/finance_entries') }}" class="btn btn-info w-100 d-flex align-items-center justify-content-center py-3 px-2 h-100">
+										<i class="fas fa-list-alt me-2"></i> Total Summary
+									</a>
+								</div>
+								<div class="col-12 col-md-6 col-lg-4 mb-3">
+									<a href="{{ route($url . '.create') }}" class="btn btn-dark w-100 d-flex align-items-center justify-content-center py-3 px-2 h-100">
+										<i class="fas fa-users me-2"></i> Student Summary
+									</a>
+								</div>
+							</div>
+						</div>
                     </div>
                 </div>
             </div>

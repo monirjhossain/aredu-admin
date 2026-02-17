@@ -15,34 +15,102 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ReportsController extends Controller
 {
     public function index(Request $request)
-    // return $request->student;  
     {
         $perPage = request()->get('perpage', 15);
         $type = request()->get('type', '');
         $typeStudent = request()->get('student', '');
         $category_id = request()->get('category_id', '');
 
+        // Excel export logic
+        if ($request->has('export') && $request->get('export') === 'excel') {
+            if ($type === 'expense_summary' || $type === 'income_summary') {
+                $financeEntry = FinanceEntry::orderBy('category_id', 'ASC');
+                if($type && $category_id){
+                    $financeEntry->where('category_id', $category_id)->where('type', $type == 'income_summary' ? 'income' : 'expense');
+                }
+                $start_date = $request->get('start_date');
+                $end_date = $request->get('end_date');
+                if ($start_date) {
+                    $financeEntry->whereDate('transaction_date', '>=', $start_date);
+                }
+                if ($end_date) {
+                    $financeEntry->whereDate('transaction_date', '<=', $end_date);
+                }
+                if ($type === 'expense_summary') {
+                    $entries = $financeEntry->select(
+                        'category_id',
+                        DB::raw('SUM(amount) as total_amount'),
+                        'currency',
+                        DB::raw('MAX(transaction_date) as transaction_date')
+                    )
+                    ->groupBy('category_id')
+                    ->where('type', 'expense')
+                    ->with('expense')
+                    ->get();
+                    return Excel::download(new \App\Exports\ExpenseSummaryExport($entries), 'CategoryCost_summery.xlsx');
+                } elseif ($type === 'income_summary') {
+                    $entries = $financeEntry->select(
+                        'category_id',
+                        DB::raw('SUM(amount) as total_amount'),
+                        'currency',
+                        DB::raw('MAX(transaction_date) as transaction_date')
+                    )
+                    ->groupBy('category_id')
+                    ->where('type', 'income')
+                    ->with('income')
+                    ->get();
+                    return Excel::download(new \App\Exports\IncomeSummaryExport($entries), 'CategoryIncome_summery.xlsx');
+                }
+            } else if ($type === 'student_summary') {
+                $financeEntry = FinanceEntry::orderBy('student_id', 'ASC');
+                $start_date = $request->get('start_date');
+                $end_date = $request->get('end_date');
+                $student_id = $request->get('student_id');
+                if ($start_date) {
+                    $financeEntry->whereDate('transaction_date', '>=', $start_date);
+                }
+                if ($end_date) {
+                    $financeEntry->whereDate('transaction_date', '<=', $end_date);
+                }
+                if ($student_id) {
+                    $financeEntry->where('student_id', $student_id);
+                }
+                $entries = $financeEntry
+                    ->select('description', 'reference', 'student_id','category_id', 'currency', 
+                        DB::raw("SUM(CASE WHEN type = 'income' AND currency = 'BDT' THEN amount ELSE 0 END) as income_bdt"),
+                        DB::raw("SUM(CASE WHEN type = 'income' AND currency = 'RMB' THEN amount ELSE 0 END) as income_rmb"),
+                        DB::raw("SUM(CASE WHEN type = 'expense' AND currency = 'BDT' THEN amount ELSE 0 END) as expense_bdt"),
+                        DB::raw("SUM(CASE WHEN type = 'expense' AND currency = 'RMB' THEN amount ELSE 0 END) as expense_rmb")
+                    )
+                    ->groupBy('student_id')
+                    ->with('student')
+                    ->get();
+                return Excel::download(new \App\Exports\StudentSummaryExport($entries), 'StudentSummary.xlsx');
+            }
+        }
+
         $order = 'asc';
         if($type == 'expense'){
             $order = 'desc';
         }
         $financeEntry = FinanceEntry::orderBy('category_id', 'ASC');
+        // If filtering by category, just filter the summary, don't redirect to single_category
         if($type && $category_id){
-            if($type == 'income_summary'){
-                $category = Product::findOrFail($category_id);
-            }else{
-                $category = Expense::findOrFail($category_id);
-            }
             $financeEntry->where('category_id', $category_id)->where('type', $type == 'income_summary' ? 'income' : 'expense');
-            $data['title'] = $category->name;
-            $data['type'] = 'report';
-            $data['url'] = 'finance_entries';
-            $data['entries'] = $financeEntry->get();
-            return view('admin.reports.single_category')->with($data);
+        }
+        // Date filter logic
+        $start_date = $request->get('start_date');
+        $end_date = $request->get('end_date');
+        if ($start_date) {
+            $financeEntry->whereDate('transaction_date', '>=', $start_date);
+        }
+        if ($end_date) {
+            $financeEntry->whereDate('transaction_date', '<=', $end_date);
         }
 
 
@@ -59,20 +127,39 @@ class ReportsController extends Controller
                 
         }
         if($type == 'income_summary'){
-            $financeEntry->select('category_id', DB::raw('SUM(amount) as total_amount'), 'currency')
-                        ->groupBy('category_id')
-                        ->where('type', 'income')
-                        ->with('income'); // assuming relation Payment -> belongsTo(Category::class)
+            $financeEntry->select(
+                'category_id',
+                DB::raw('SUM(amount) as total_amount'),
+                'currency',
+                DB::raw('MAX(transaction_date) as transaction_date')
+            )
+            ->groupBy('category_id')
+            ->where('type', 'income')
+            ->with('income');
         }
         if($type == 'expense_summary'){
-            $financeEntry->select('category_id', DB::raw('SUM(amount) as total_amount'), 'currency')
-                        ->groupBy('category_id')
-                        ->where('type', 'expense')
-                        ->with('expense'); // assuming relation Payment -> belongsTo(Category::class)
+            $financeEntry->select(
+                'category_id',
+                DB::raw('SUM(amount) as total_amount'),
+                'currency',
+                DB::raw('MAX(transaction_date) as transaction_date')
+            )
+            ->groupBy('category_id')
+            ->where('type', 'expense')
+            ->with('expense');
+            // Pass all expense categories for filter dropdown
+            $data['categories'] = Expense::all();
         }
             
         // return $data['entries'] = $financeEntry->get();
         $data['entries'] = $financeEntry->get();
+        // Ensure categories is always set for expense_summary and income_summary
+        if ($type == 'expense_summary' && !isset($data['categories'])) {
+            $data['categories'] = Expense::all();
+        }
+        if ($type == 'income_summary' && !isset($data['categories'])) {
+            $data['categories'] = \App\Models\Product::all();
+        }
 
         // $data['openingBalanceBDT']=0;
         // $data['openingBalanceRMB']=0;
@@ -122,6 +209,9 @@ class ReportsController extends Controller
         // }
         // return $data;
         if($type == 'student_summary'){
+            // Fetch students for the filter dropdown
+            $students = \App\Models\Student\Student::orderBy('id', 'desc')->select('id', 'first_name', 'last_name', 'passport')->get();
+            $data['students'] = $students;
             return view('admin.reports.single_student_list')->with($data);
         }
         return view('admin.reports.index')->with($data);
