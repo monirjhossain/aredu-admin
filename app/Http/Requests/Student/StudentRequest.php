@@ -18,25 +18,15 @@ class StudentRequest extends FormRequest
     {
         $rules = [
             "study_id" =>  'required',
-            // "subject" =>  'required',
-            // "last_education" =>  'required',
             "first_name" =>  'required',
             "last_name" =>  'required',
-            // "email" =>  'required',
             "passport" =>  'required',
             "mobile_no" =>  'required',
-            // "address" =>  'required',
-            // "city" =>  'required',
-            // "country" =>  'required',
-            // "zip" =>  'required',
-            // "father_name" =>  'required',
-            // "father_mobile_no" =>  'required',
-            // "father_occupation" =>  'required',
-            // "mother_name" =>  'required',
-            // "mother_mobile_no" =>  'required',
-            // "mother_occupation" =>  'required',
-            // "assighen_" =>  'required',
-            // "note" =>  'required',
+            // Last Education Qualification validation
+            'educations.education_level_id.*' => 'required', // Degree
+            'educations.attend_from.*' => 'required|date',   // Year (From)
+            'educations.attend_to.*' => 'required|date',     // Year (To)
+            'educations.result.*' => 'required',             // Result
         ];
         return $rules;
     }
@@ -69,9 +59,10 @@ class StudentRequest extends FormRequest
     public function messages()
     {
         return [
-            // 'video_url.different' => __('the_main_video_and_demo_video_must_be_different'),
-            // 'video_url.regex' => __('support_only_vimeo_url'),
-            // 'lesson.demo.regex' => __('support_only_vimeo_url'),
+            'educations.education_level_id.*.required' => 'The Degree field is required.',
+            'educations.attend_from.*.required' => 'The Year Attended (From) field is required.',
+            'educations.attend_to.*.required' => 'The Year Attended (To) field is required.',
+            'educations.result.*.required' => 'The Result field is required.',
         ];
     }
 }

@@ -48,7 +48,7 @@ class StudentController extends Controller
             //     ->selectRaw('COUNT(*) as total_rows')
             //     ->groupBy('university_id');
             $uni = Post::has('students')
-                ->select('id', 'post_title')
+                ->select('id', 'post_title')    
                 ->withCount('students');
                 // ->get();
 

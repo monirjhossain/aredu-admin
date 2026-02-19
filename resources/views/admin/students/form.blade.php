@@ -94,15 +94,26 @@
         </div>
         <div class="col-lg-4 col-md-4 col-sm-12">
             <div class="form-group">
-                <label for="last_name">Last Name</label>
-                <input type="text" name="last_name" value="{{ old('last_name', $student->last_name ?? '')}}" class="form-control" placeholder="Type here">
+                @if(old('last_name') && !$errors->has('last_name'))
+                    <span class="text-success" style="font-size:18px;"><i class="fa fa-check-circle" style="color:red"></i></span>
+                @endif
+                <label for="last_name">Last Name <span style="color:red">*</span></label>
+                <input type="text" name="last_name" value="{{ old('last_name', $student->last_name ?? '')}}" class="form-control @error('last_name') is-invalid @enderror" placeholder="Type here">
+                @error('last_name')
+                    <span class="text-danger">{{ $message }}</span>
+                @enderror
             </div>
         </div>
         <div class="col-lg-4 col-md-4 col-sm-12">
             <div class="form-group">
-                <label for="first_name">First Name</label>
-                <input type="text" name="first_name" value="{{ old('first_name', $student->first_name ?? '') }}" class="form-control"
-                    placeholder="Type here">
+                @if(old('first_name') && !$errors->has('first_name'))
+                    <span class="text-success" style="font-size:18px;"><i class="fa fa-check-circle" style="color:red"></i></span>
+                @endif
+                <label for="first_name">First Name <span style="color:red">*</span></label>
+                <input type="text" name="first_name" value="{{ old('first_name', $student->first_name ?? '') }}" class="form-control @error('first_name') is-invalid @enderror" placeholder="Type here">
+                @error('first_name')
+                    <span class="text-danger">{{ $message }}</span>
+                @enderror
             </div>
         </div>
         <div class="col-lg-4 col-md-4 col-sm-12">
@@ -114,17 +125,26 @@
         </div>
         <div class="col-lg-4 col-md-4 col-sm-12">
             <div class="form-group">
-                <label for="passport">Passport</label>
-                <input type="text" name="passport" value="{{ old('passport', $student->passport ?? '') }}"
-                    class="form-control" placeholder="Type here">
+                @if(old('passport') && !$errors->has('passport'))
+                    <span class="text-success" style="font-size:18px;"><i class="fa fa-check-circle" style="color:red"></i></span>
+                @endif
+                <label for="passport">Passport <span style="color:red">*</span></label>
+                <input type="text" name="passport" value="{{ old('passport', $student->passport ?? '') }}" class="form-control @error('passport') is-invalid @enderror" placeholder="Type here">
+                @error('passport')
+                    <span class="text-danger">{{ $message }}</span>
+                @enderror
             </div>
         </div>
         <div class="col-lg-4 col-md-4 col-sm-12">
             <div class="form-group">
-                <label for="mobile_no">Phone No</label>
-                <input type="text" name="mobile_no"
-                    value="{{ old('mobile_no', $student->mobile_no ?? '') }}" class="form-control"
-                    placeholder="Type here">
+                @if(old('mobile_no') && !$errors->has('mobile_no'))
+                    <span class="text-success" style="font-size:18px;"><i class="fa fa-check-circle" style="color:red"></i></span>
+                @endif
+                <label for="mobile_no">Phone No <span style="color:red">*</span></label>
+                <input type="text" name="mobile_no" value="{{ old('mobile_no', $student->mobile_no ?? '') }}" class="form-control @error('mobile_no') is-invalid @enderror" placeholder="Type here">
+                @error('mobile_no')
+                    <span class="text-danger">{{ $message }}</span>
+                @enderror
             </div>
         </div>
         <div class="col-lg-4 col-md-4 col-sm-12">
@@ -173,24 +193,30 @@
             <input type="hidden" name="educations[id][]" value="{{ $education->id }}">
              <div class="col-lg-4 col-md-4 col-sm-12">
                 <div class="form-group">
-                    <label for="country">Degree</label>
-                    <select name="educations[education_level_id][]" class="form-control" id="">
+                    @if(old('educations.education_level_id.' . $loop->index) && !$errors->has('educations.education_level_id.' . $loop->index))
+                        <span class="text-success" style="font-size:18px;"><i class="fa fa-check-circle" style="color:red"></i></span>
+                    @endif
+                    <label for="country"><b>Degree <span style="color:red;font-size:18px;font-weight:bold;vertical-align:middle;">*</span></b></label>
+                    <select name="educations[education_level_id][]" class="form-control @error('educations.education_level_id.' . $loop->index) is-invalid @enderror" id="">
                         <option value="">----Select----</option>
                         @foreach($education_levels as $item)
                             <option value="{{$item->id}}" {{$education->education_level_id == $item->id ? 'selected' : ''}}>{{$item->name}}</option>
                         @endforeach
                     </select>
+                    @error('educations.education_level_id.' . $loop->index)
+                        <span class="text-danger">{{ $message }}</span>
+                    @enderror
                 </div>
             </div>
             <div class="col-lg-4 col-md-4 col-sm-12">
                 <div class="form-group">
-                    <label for="attend_from">Year Attended (From)</label>
+                    <label for="attend_from"><b>Year Attended (From) <span style="color:red;font-size:18px;font-weight:bold;vertical-align:middle;">*</span></b></label>
                     <input type="date" value="{{$education->attend_from}}" id="datePicker" name="educations[attend_from][]" class="form-control" placeholder="Type here">
                 </div>
             </div>
             <div class="col-lg-4 col-md-4 col-sm-12">
                 <div class="form-group">
-                    <label for="email">Year Attended (To)</label>
+                    <label for="email"><b>Year Attended (To) <span style="color:red;font-size:18px;font-weight:bold;vertical-align:middle;">*</span></b></label>
                     <input type="date" value="{{$education->attend_to }}" id="datePicker" name="educations[attend_to][]" class="form-control" placeholder="Type here">
                 </div>
             </div>
@@ -210,8 +236,14 @@
 
             <div class="col-lg-4 col-md-4 col-sm-12">
                 <div class="form-group">
-                    <label>Result</label>
-                    <input type="text" name="educations[result][]"  value="{{ old('educations.result.' . $loop->index, $education->result) }}"  class="form-control" placeholder="Type here">
+                    @if(old('educations.result.' . $loop->index) && !$errors->has('educations.result.' . $loop->index))
+                        <span class="text-success" style="font-size:18px;"><i class="fa fa-check-circle" style="color:red"></i></span>
+                    @endif
+                    <label><b>Result <span style="color:red;font-size:18px;font-weight:bold;vertical-align:middle;">*</span></b></label>
+                    <input type="text" name="educations[result][]"  value="{{ old('educations.result.' . $loop->index, $education->result) }}"  class="form-control @error('educations.result.' . $loop->index) is-invalid @enderror" placeholder="Type here">
+                    @error('educations.result.' . $loop->index)
+                        <span class="text-danger">{{ $message }}</span>
+                    @enderror
                 </div>
             </div>
 
@@ -226,25 +258,43 @@
         @if($educations->isEmpty())
             <div class="col-lg-4 col-md-4 col-sm-12">
                 <div class="form-group">
-                    <label for="country">Degree</label>
-                    <select name="educations[education_level_id][]" class="form-control" id="">
+                    @if(old('educations.education_level_id.0') && !$errors->has('educations.education_level_id.0'))
+                        <span class="text-success" style="font-size:18px;"><i class="fa fa-check-circle" style="color:red"></i></span>
+                    @endif
+                    <label for="country"><b>Degree <span style="color:red;font-size:18px;font-weight:bold;vertical-align:middle;">*</span></b></label>
+                    <select name="educations[education_level_id][]" class="form-control @error('educations.education_level_id.0') is-invalid @enderror" id="">
                         <option value="">----Select----</option>
                         @foreach($education_levels as $item)
                             <option value="{{$item->id}}">{{$item->name}}</option>
                         @endforeach
                     </select>
+                    @error('educations.education_level_id.0')
+                        <span class="text-danger">{{ $message }}</span>
+                    @enderror
                 </div>
             </div>
             <div class="col-lg-4 col-md-4 col-sm-12">
                 <div class="form-group">
-                    <label for="first_name">Year Attended (From)</label>
-                    <input type="date" id="datePicker" name="educations[attend_from][]" class="form-control" placeholder="Type here">
+                    @if(old('educations.attend_from.0') && !$errors->has('educations.attend_from.0'))
+                        <span class="text-success" style="font-size:18px;"><i class="fa fa-check-circle" style="color:red"></i></span>
+                    @endif
+                    <label for="first_name"><b>Year Attended (From) <span style="color:red;font-size:18px;font-weight:bold;vertical-align:middle;">*</span></b></label>
+                    <input type="date" id="datePicker" name="educations[attend_from][]" class="form-control @error('educations.attend_from.0') is-invalid @enderror" placeholder="Type here">
+                    @error('educations.attend_from.0')
+                        <span class="text-danger">{{ $message }}</span>
+                    @enderror
                 </div>
             </div>
             <div class="col-lg-4 col-md-4 col-sm-12">
                 <div class="form-group">
-                    <label for="email">Year Attended (To)</label>
-                    <input type="date" id="datePicker" name="educations[attend_to][]" class="form-control" placeholder="Type here">
+                    @if(old('educations.attend_to.0') && !$errors->has('educations.attend_to.0'))
+                        <span class="text-success" style="font-size:18px;"><i class="fa fa-check-circle" style="color:red"></i></span>
+                    @endif
+                    <label for="email"><b>Year Attended (To) <span style="color:red;font-size:18px;font-weight:bold;vertical-align:middle;">*</span></b></label>
+                    <input type="date" id="datePicker" name="educations[attend_to][]" class="form-control @error('educations.attend_to.0') is-invalid @enderror" placeholder="Type here">
+                    @error('educations.attend_to.0')
+                        <span class="text-danger">{{ $message }}</span>
+                    @enderror
                 </div>
             </div>
             <div class="col-lg-4 col-md-4 col-sm-12">
@@ -267,8 +317,14 @@
             </div>
             <div class="col-lg-4 col-md-4 col-sm-12">
                 <div class="form-group">
-                    <label for="result">Result</label>
-                    <input type="text" name="educations[result][]" value="{{ old('result', $student->height ?? '') }}" class="form-control" placeholder="Type here">
+                    @if(old('educations.result.0') && !$errors->has('educations.result.0'))
+                        <span class="text-success" style="font-size:18px;"><i class="fa fa-check-circle" style="color:red"></i></span>
+                    @endif
+                    <label for="result"><b>Result <span style="color:red;font-size:18px;font-weight:bold;vertical-align:middle;">*</span></b></label>
+                    <input type="text" name="educations[result][]" value="{{ old('result', $student->height ?? '') }}" class="form-control @error('educations.result.0') is-invalid @enderror" placeholder="Type here">
+                    @error('educations.result.0')
+                        <span class="text-danger">{{ $message }}</span>
+                    @enderror
                 </div>
             </div>
             <div class="col-lg-4 col-md-4 col-sm-12">
