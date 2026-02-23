@@ -1,6 +1,6 @@
-<div class="dropdown d-none">
+{{-- <div class="dropdown d-none"> --}}
     <!--begin::Toggle-->
-    <div class="topbar-item" data-toggle="dropdown" data-offset="10px,0px">
+    {{-- <div class="topbar-item" data-toggle="dropdown" data-offset="10px,0px">
         <div class="btn btn-icon btn-clean btn-dropdown btn-lg mr-1 pulse pulse-primary">
             <span class="svg-icon svg-icon-xl svg-icon-primary">
                 <!--begin::Svg Icon | path:media/svg/icons/Code/Compiling.svg-->
@@ -15,7 +15,7 @@
             </span>
             <span class="pulse-ring"></span>
         </div>
-    </div>
+    </div> --}}
     <!--end::Toggle-->
     <!--begin::Dropdown-->
     <div class="dropdown-menu p-0 m-0 dropdown-menu-right dropdown-menu-anim-up dropdown-menu-lg">
@@ -453,4 +453,4 @@
         </form>
     </div>
     <!--end::Dropdown-->
-</div>
+{{-- </div> --}}
