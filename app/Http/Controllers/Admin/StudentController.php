@@ -6,12 +6,14 @@ use Illuminate\Support\Facades\Session;
 use App\Models\Category;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Student\StudentRequest;
+use App\Mail\MailSystem;
 use App\Models\Branch;
 use App\Models\Document;
 use App\Models\EducationLevel;
 use App\Models\EducationQualification;
 use App\Models\Inquiry\Inquiry;
 use App\Models\Post\Post;
+use App\Models\SmsTemplate;
 use App\Models\Student\Student;
 use App\Models\Student\StudentUniversity;
 use App\Models\StudentStatus;
@@ -24,6 +26,7 @@ use App\Traits\UploadAble;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use PhpParser\Node\Stmt\Return_;
 
 class StudentController extends Controller
@@ -200,6 +203,13 @@ class StudentController extends Controller
      */
     public function store(StudentRequest $request)
     {
+        // $template = SmsTemplate::where('name', '[File Open]')->firstOrFail();
+        // $body = "Minar khan 1995";
+        // $subject = 'AR EDUCATION – File Processing Notification';
+        // $name = 'Monir';
+        // $email = 'minarkhan1995@gmail.com';
+        // return $res = Mail::to($email)->send(new MailSystem($name, $body, $subject));
+        
         // return $request;
         DB::beginTransaction();
         try {
@@ -230,6 +240,25 @@ class StudentController extends Controller
                 $education->group_subject      = $educations['group_subject'][$i] ?? null;
                 $education->student_id         = $student->id; // if linked to a student
                 $education->save();
+            }
+
+
+            if(isset($student->email)){
+                $template = SmsTemplate::where('name', '[File Open]')->firstOrFail();
+                $placeholders = [
+                    '[Student Name]'   => $student->full_name,
+                    '[Counselor Name]' => $student->jncounselor->name . ' - ' . $student->jncounselor->mobile_no,
+                ];
+               
+                $body = str_replace(
+                    array_keys($placeholders),
+                    array_values($placeholders),
+                    $template->message
+                );
+                $subject = 'AR EDUCATION – File Processing Notification';
+                $name = $student->full_name;
+                $email = $student->email;
+                $res = Mail::to($email)->send(new MailSystem($name, $body, $subject));
             }
 
             DB::commit();
