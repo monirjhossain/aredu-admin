@@ -247,9 +247,8 @@ class StudentController extends Controller
             if (isset($student->user_id)) {
                 $actor = Auth::user();
                 $studentUser = $student->user;
-                $statusName = optional($student->student_status)->name;
                 $actorName = $actor ? $actor->name : 'System';
-                $notification = new \App\Notifications\StatusChangedNotification($student, null, $statusName, 'student', $actorName);
+                $notification = new \App\Notifications\StatusChangedNotification($student, null, 'New Student Created Successfully', 'student', $actorName);
                 if ($actor && (!$studentUser || $actor->id !== $studentUser->id) && method_exists($actor, 'notify')) {
                     $actor->notify($notification);
                 }
