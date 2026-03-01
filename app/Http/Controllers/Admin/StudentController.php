@@ -243,22 +243,19 @@ class StudentController extends Controller
             }
 
 
-            if(isset($student->email)){
-                $template = SmsTemplate::where('name', '[File Open]')->firstOrFail();
-                $placeholders = [
-                    '[Student Name]'   => $student->full_name,
-                    '[Counselor Name]' => $student->jncounselor->name . ' - ' . $student->jncounselor->mobile_no,
-                ];
-               
-                $body = str_replace(
-                    array_keys($placeholders),
-                    array_values($placeholders),
-                    $template->message
-                );
-                $subject = 'AR EDUCATION – File Processing Notification';
-                $name = $student->full_name;
-                $email = $student->email;
-                $res = Mail::to($email)->send(new MailSystem($name, $body, $subject));
+            // Send notification to student after creation
+            if (isset($student->user_id)) {
+                $actor = Auth::user();
+                $studentUser = $student->user;
+                $statusName = optional($student->student_status)->name;
+                $actorName = $actor ? $actor->name : 'System';
+                $notification = new \App\Notifications\StatusChangedNotification($student, null, $statusName, 'student', $actorName);
+                if ($actor && (!$studentUser || $actor->id !== $studentUser->id) && method_exists($actor, 'notify')) {
+                    $actor->notify($notification);
+                }
+                if ($studentUser) {
+                    $studentUser->notify($notification);
+                }
             }
 
             DB::commit();
