@@ -165,6 +165,7 @@ class StudentApplicationController extends Controller
             }
             $application->updated_by = Auth::id();
             $application->save();
+            $application->refresh(); // Ensure latest status
 
             // Status change notification logic
             if ($oldStatus != $application->status_id) {
