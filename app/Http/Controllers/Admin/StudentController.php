@@ -242,6 +242,23 @@ class StudentController extends Controller
                 $education->save();
             }
 
+            if(isset($student->email)){
+                $template = SmsTemplate::where('name', '[File Open]')->firstOrFail();
+                $placeholders = [
+                    '[Student Name]'   => $student->full_name,
+                    '[Counselor Name]' => $student->jncounselor->name . ' - ' . $student->jncounselor->mobile_no,
+                ];
+               
+                $body = str_replace(
+                    array_keys($placeholders),
+                    array_values($placeholders),
+                    $template->message
+                );
+                $subject = 'AR EDUCATION – File Processing Notification';
+                $name = $student->full_name;
+                $email = $student->email;
+                $res = Mail::to($email)->send(new MailSystem($name, $body, $subject));
+            }
 
             // Send notification to student after creation
             if (isset($student->user_id)) {
