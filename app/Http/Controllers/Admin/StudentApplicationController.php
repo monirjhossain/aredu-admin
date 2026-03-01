@@ -151,6 +151,8 @@ class StudentApplicationController extends Controller
 
         DB::beginTransaction();
         try {
+            $oldStatus = $application->status_id;
+            $oldStatusName = optional($application->statusUni)->name;
             $application->status_id = $request->status_id;
             if ($request->has('note')) {
                 $application->note = $request->note;
@@ -163,6 +165,22 @@ class StudentApplicationController extends Controller
             }
             $application->updated_by = Auth::id();
             $application->save();
+
+            // Status change notification logic
+            if ($oldStatus != $application->status_id) {
+                $actor = Auth::user();
+                $student = Student::find($application->student_id);
+                $studentUser = $student ? $student->user : null; // Assuming Student model has user() relation
+                $newStatusName = optional($application->statusUni)->name;
+                $actorName = $actor ? $actor->name : 'System';
+                $notification = new \App\Notifications\StatusChangedNotification($application, $oldStatusName, $newStatusName, 'university', $actorName);
+                if ($actor && (!$studentUser || $actor->id !== $studentUser->id) && method_exists($actor, 'notify')) {
+                    $actor->notify($notification);
+                }
+                if ($studentUser) {
+                    $studentUser->notify($notification);
+                }
+            }
 
             // record the status change
             UniversityApplicationStatus::where('student_university_id', $application->id)->update(['active' => 0]);

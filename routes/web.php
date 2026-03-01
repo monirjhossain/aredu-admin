@@ -29,7 +29,13 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\Admin\BranchController;
 use App\Http\Controllers\Admin\SuccessStoryController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\NotificationController;
 
+// Notification read and redirect
+Route::get('notifications/{id}/read-redirect', [NotificationController::class, 'readAndRedirect'])->name('notifications.readRedirect');
+
+// Notification AJAX read route
+Route::post('notifications/{id}/ajax-read', [App\Http\Controllers\NotificationController::class, 'ajaxRead'])->name('notifications.ajaxRead');
 
 // test Route
 
@@ -212,3 +218,5 @@ Route::get('/all_cache_clear/{key?}', [
         }
     }
 ]);
+
+

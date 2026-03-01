@@ -6,7 +6,10 @@
             <div class="topbar-item">
             </div>
             <div class="topbar-item" data-toggle="dropdown" data-offset="10px,0px">
-                <div class="btn btn-icon btn-clean btn-dropdown btn-lg mr-1 pulse pulse-primary">
+                @php
+                    $unreadCount = Auth::user()->unreadNotifications->count();
+                @endphp
+                <div class="btn btn-icon btn-clean btn-dropdown btn-lg mr-1 pulse pulse-primary position-relative">
                     <span class="svg-icon svg-icon-xl svg-icon-primary">
                         <!--begin::Svg Icon | path:media/svg/icons/Code/Compiling.svg-->
                         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -19,6 +22,7 @@
                         <!--end::Svg Icon-->
                     </span>
                     <span class="pulse-ring"></span>
+                    <span id="notification-badge" class="badge badge-danger position-absolute" style="top:0; right:0;">{{ $unreadCount > 0 ? $unreadCount : '' }}</span>
                 </div>
                 @include('layouts.partials.notifications')
 

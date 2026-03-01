@@ -324,11 +324,28 @@ class StudentController extends Controller
         // return $request;
         DB::beginTransaction();
         try {
+            $oldStatus = $student->status;
+            $oldStatusName = optional($student->student_status)->name;
             // $student = new Student();
             $studentFillableData = $request->only($student->getFillable());
             $student->fill($studentFillableData)->save();
             $student->user_id = Auth::user()->id;
             $student->save();
+
+            // Status change notification logic
+            if ($oldStatus !== $student->status) {
+                $actor = Auth::user();
+                $studentUser = $student->user; // Assuming Student model has user() relation
+                $newStatusName = optional($student->student_status)->name;
+                $actorName = $actor ? $actor->name : 'System';
+                $notification = new \App\Notifications\StatusChangedNotification($student, $oldStatusName, $newStatusName, 'student', $actorName);
+                if ($actor && (!$studentUser || $actor->id !== $studentUser->id) && method_exists($actor, 'notify')) {
+                    $actor->notify($notification);
+                }
+                if ($studentUser) {
+                    $studentUser->notify($notification);
+                }
+            }
 
             $student->subjects()->sync($request->subjects);
             $student->documents()->sync($request->documents);
