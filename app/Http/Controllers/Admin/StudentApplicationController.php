@@ -181,6 +181,27 @@ class StudentApplicationController extends Controller
                 if ($studentUser) {
                     $studentUser->notify($notification);
                 }
+
+                // Send email to student on university status change using '[Status Change]' template
+                if($student && isset($student->email)){
+                    $template = \App\Models\SmsTemplate::where('name', '[Status Change]')->first();
+                    if ($template) {
+                        $placeholders = [
+                            '[Student Name]'   => $student->full_name,
+                            '[Status Name]'    => $newStatusName,
+                            '[Actor Name]'     => $actorName,
+                        ];
+                        $body = str_replace(
+                            array_keys($placeholders),
+                            array_values($placeholders),
+                            $template->message
+                        );
+                        $subject = 'AR EDUCATION – University Status Changed';
+                        $name = $student->full_name;
+                        $email = $student->email;
+                        \Mail::to($email)->send(new \App\Mail\MailSystem($name, $body, $subject));
+                    }
+                }
             }
 
             // record the status change

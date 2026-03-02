@@ -246,7 +246,7 @@ class StudentController extends Controller
                 $template = SmsTemplate::where('name', '[File Open]')->firstOrFail();
                 $placeholders = [
                     '[Student Name]'   => $student->full_name,
-                    '[Counselor Name]' => $student->jncounselor->name . ' - ' . $student->jncounselor->mobile_no,
+                    '[Counselor Name]' => $student->jncounselor ? ($student->jncounselor->name . ' - ' . $student->jncounselor->mobile_no) : '',
                 ];
                
                 $body = str_replace(
@@ -357,6 +357,27 @@ class StudentController extends Controller
                 }
                 if ($studentUser) {
                     $studentUser->notify($notification);
+                }
+
+                // Send email to student on status change using '[Student Status]' template
+                if(isset($student->email)){
+                    $template = \App\Models\SmsTemplate::where('name', '[Student Status]')->first();
+                    if ($template) {
+                        $placeholders = [
+                            '[Student Name]'   => $student->full_name,
+                            '[Status Name]'    => $newStatusName,
+                            '[Actor Name]'     => $actorName,
+                        ];
+                        $body = str_replace(
+                            array_keys($placeholders),
+                            array_values($placeholders),
+                            $template->message
+                        );
+                        $subject = 'AR EDUCATION – Student Status Changed';
+                        $name = $student->full_name;
+                        $email = $student->email;
+                        \Mail::to($email)->send(new \App\Mail\MailSystem($name, $body, $subject));
+                    }
                 }
             }
 
