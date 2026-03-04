@@ -73,6 +73,7 @@
         <i class="fas fa-arrow-left"></i> Back to Students
     </a>
 
+
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h4 class="mb-0">Student Information</h4>
@@ -82,35 +83,81 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <!-- Left Box -->
-                <div class="col-md-6 border-right">
-                    <p class="h5"><b>Full Name:</b> {{ $student->full_name }}</p>
-                    <p class="h5"><b>Email:</b> {{ $student->email }}</p>
-                    <p class="h5"><b>Phone:</b> {{ $student->mobile_no }}</p>
-                    <p class="h5"><b>Address:</b> {{ $student->address }}, {{ $student->city }}</p>
+                <!-- Personal Info -->
+                <div class="col-md-6 border-right mb-3">
+                    <h5 class="text-secondary mb-3"><i class="fas fa-user mr-1"></i> Personal Information</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <span class="fw-bold text-primary ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-user-circle me-2 pe-1"></i></span><span class="ms-3">Name:</span></span>
+                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->full_name }}</span>
+                        </li>
+                        <li class="list-group-item">
+                            <span class="fw-bold text-success ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-envelope me-2 pe-1"></i></span><span class="ms-3">Email:</span></span>
+                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->email }}</span>
+                        </li>
+                        <li class="list-group-item">
+                            <span class="fw-bold text-info ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-phone-alt me-2 pe-1"></i></span><span class="ms-3">Phone:</span></span>
+                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->mobile_no }}</span>
+                        </li>
+                        <li class="list-group-item">
+                            <span class="fw-bold text-secondary ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-map-marker-alt me-2 pe-1"></i></span><span class="ms-3">Address:</span></span>
+                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->address }}, {{ $student->city }}</span>
+                        </li>
+                        <li class="list-group-item">
+                            <span class="fw-bold text-warning ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-calendar-alt me-2 pe-1"></i></span><span class="ms-3">Intake:</span></span>
+                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->intake }}</span>
+                        </li>
+                        <li class="list-group-item">
+                            <span class="fw-bold text-danger ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-flag me-2 pe-1"></i></span><span class="ms-3">Preferred Country:</span></span>
+                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->preferred_country }}</span>
+                        </li>
+                    </ul>
                 </div>
 
-                <!-- Right Box -->
-                <div class="col-md-6">
-                    <p class="h5"><b>Passport Number:</b> {{ $student->passport }}</p>
-                    <p class="h5"><b>Application Status:</b> <span class="badge badge-info p-2">{{ $student->student_status->name }}</span></p>
-                    <p class="h5"><b>Remark:</b> {{ $student->note }}</p>
+                <!-- Academic Info -->
+                <div class="col-md-6 mb-3">
+                    <h5 class="text-secondary mb-3"><i class="fas fa-graduation-cap mr-1"></i> Academic & Application</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <span class="fw-bold text-secondary ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-passport me-2 pe-1"></i></span><span class="ms-3">Passport Number:</span></span>
+                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->passport }}</span>
+                        </li>
+                        <li class="list-group-item">
+                            <span class="fw-bold text-info ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-info-circle me-2 pe-1"></i></span><span class="ms-3">Application Status:</span></span>
+                            <span class="ms-3" style="font-size:1.18rem;"><span class="badge badge-info p-2">{{ $student->student_status->name }}</span></span>
+                        </li>
+                        <li class="list-group-item">
+                            <span class="fw-bold text-success ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-university me-2 pe-1"></i></span><span class="ms-3">Last Education:</span></span>
+                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->last_education }}</span>
+                        </li>
+                        <li class="list-group-item">
+                            <span class="fw-bold text-primary ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-star me-2 pe-1"></i></span><span class="ms-3">Point:</span></span>
+                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->last_education }}</span>
+                        </li>
+                        <li class="list-group-item">
+                            <span class="fw-bold text-muted ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-comment-dots me-2 pe-1"></i></span><span class="ms-3">Remark:</span></span>
+                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->note }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <!-- Family Info -->
+                <div class="col-md-6 border-right">
+                    <h5 class="text-secondary mb-3"><i class="fas fa-male mr-1"></i> Father Information</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><b>Name:</b> <span class="ms-3">{{ $student->father_name }}</span></li>
+                        <li class="list-group-item"><b>Phone:</b> <span class="ms-3">{{ $student->father_mobile_no }}</span></li>
+                        <li class="list-group-item"><b>Occupation:</b> <span class="ms-3">{{ $student->father_occoupation }}</span></li>
+                    </ul>
                 </div>
                 <div class="col-md-6">
-                    <span><b>Intake:</b> {{ $student->intake }}</span><br>
-                                <span><b>Passport:</b> {{ $student->passport }}</span><br>
-                                <span><b>Preferred Country:</b> {{ $student->preferred_country }}</span><br>
-                                <span><b>Last Education:</b> {{ $student->last_education }}</span><br>
-                                <span><b>Point:</b> {{ $student->last_education }}</span><br>
-                                <span><b>note:</b> {{ $student->note }}</span><br>
-                </div>
-                <div class="col-md-6">
-                    <span><b>Father:</b> {{ $student->father_name }}</span><br>
-                                <span><b>Phone:</b> {{ $student->father_mobile_no }}</span><br>
-                                <span><b>Occupation:</b> {{ $student->father_occoupation }}</span><br>
-                                <span><b>mother:</b> {{ $student->mother_name }}</span><br>
-                                <span><b>Phone:</b> {{ $student->mother_mobile_no }}</span><br>
-                                <span><b>Occupation:</b> {{ $student->mother_occoupation }}</span><br>
+                    <h5 class="text-secondary mb-3"><i class="fas fa-female mr-1"></i> Mother Information</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><b>Name:</b> <span class="ms-3">{{ $student->mother_name }}</span></li>
+                        <li class="list-group-item"><b>Phone:</b> <span class="ms-3">{{ $student->mother_mobile_no }}</span></li>
+                        <li class="list-group-item"><b>Occupation:</b> <span class="ms-3">{{ $student->mother_occoupation }}</span></li>
+                    </ul>
                 </div>
             </div>
         </div>
