@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Notifications\Notifiable;
 use App\Http\Controllers\Admin\BulkSmsController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CommonController;
@@ -213,6 +215,22 @@ Route::get('/all_cache_clear/{key?}', [
                 echo '<br/>All all cache cleared';
             } catch (Exception $e) {
                 Response::make($e->getMessage(), 500);
+            }
+        } else {
+            App::abort(404);
+        }
+    }
+]);
+
+// Storage symlink route (for admin use only, remove after use)
+Route::get('/link_storage/{key?}', [
+    function($key = null) {
+        if ($key == "m!n@r") {
+            try {
+                \Artisan::call('storage:link');
+                echo 'Storage symlink created!';
+            } catch (Exception $e) {
+                return response($e->getMessage(), 500);
             }
         } else {
             App::abort(404);
