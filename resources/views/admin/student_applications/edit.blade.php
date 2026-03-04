@@ -26,7 +26,7 @@
                 </div>
             </div>
 
-            <form action="{{ route($url.'.update', $application->id) }}" method="POST">
+            <form action="{{ route($url.'.update', $application->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="student_id" value="{{ $student->id }}">
@@ -55,6 +55,51 @@
                 <div class="form-group">
                     <label for="remarks">Remarks</label>
                     <textarea name="remarks" id="remarks" rows="3" class="form-control" placeholder="Add any additional remarks">{{ old('remarks', $application->remarks) }}</textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card mb-3 shadow-sm">
+                            <div class="card-body py-2">
+                                <label for="admission_notice" class="font-weight-bold">Admission Notice</label>
+                                <input type="file" name="admission_notice" id="admission_notice" class="form-control-file mb-1" accept=".pdf,.jpg,.jpeg,.png">
+                                @if($application->admission_notice)
+                                    <div>
+                                        <a href="{{ asset('storage/student_applications/' . $application->admission_notice) }}" target="_blank" class="btn btn-sm btn-outline-primary mt-1">View/Download</a>
+                                    </div>
+                                @endif
+                                <small class="text-muted">PDF, JPG, JPEG, PNG</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-3 shadow-sm">
+                            <div class="card-body py-2">
+                                <label for="jw_copy" class="font-weight-bold">JW Copy</label>
+                                <input type="file" name="jw_copy" id="jw_copy" class="form-control-file mb-1" accept=".pdf,.jpg,.jpeg,.png">
+                                @if($application->jw_copy)
+                                    <div>
+                                        <a href="{{ asset('storage/student_applications/' . $application->jw_copy) }}" target="_blank" class="btn btn-sm btn-outline-primary mt-1">View/Download</a>
+                                    </div>
+                                @endif
+                                <small class="text-muted">PDF, JPG, JPEG, PNG</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-3 shadow-sm">
+                            <div class="card-body py-2">
+                                <label for="visa_copy" class="font-weight-bold">Visa Copy</label>
+                                <input type="file" name="visa_copy" id="visa_copy" class="form-control-file mb-1" accept=".pdf,.jpg,.jpeg,.png">
+                                @if($application->visa_copy)
+                                    <div>
+                                        <a href="{{ asset('storage/student_applications/' . $application->visa_copy) }}" target="_blank" class="btn btn-sm btn-outline-primary mt-1">View/Download</a>
+                                    </div>
+                                @endif
+                                <small class="text-muted">PDF, JPG, JPEG, PNG</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group">

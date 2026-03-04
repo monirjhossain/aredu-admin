@@ -213,6 +213,9 @@
                         <th>Status</th>
                         <th>Note</th>
                         <th>Remarks</th>
+                        <th>Admission Notice</th>
+                        <th>JW Copy</th>
+                        <th>Visa Copy</th>
                         <th style="width:100px; min-width:100px;" class="text-center text-danger"><i class="fa fa-bolt"></i></th>
                     </tr>
                 </thead>
@@ -223,7 +226,6 @@
                             <td>{{ $item->application_no ?? '-' }}</td>
                             <td>{{ $item->university->post_title }}</td>
                             <td>{{ $item->subject->name ?? '-' }}</td>
-                            {{-- <td>{{ $item->statusUni->name }} --}}
                             <td>
                                 <div class="progress-container">
                                     <div class="progress-line"></div>
@@ -238,6 +240,42 @@
                             </td>
                             <td>{{ $item->note ?? '-'}}</td>
                             <td>{{ $item->remarks ?? '-'}}</td>
+                            <td class="text-center">
+                                @if($item->admission_notice)
+                                    <a href="{{ asset('storage/student_applications/' . $item->admission_notice) }}" target="_blank" class="btn btn-light btn-sm p-2 border shadow-sm mx-1 file-link" title="View or Download Admission Notice">
+                                        <i class="fas fa-file-pdf fa-lg text-danger"></i>
+                                    </a>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
+                            <td class="text-center">
+                                @if($item->jw_copy)
+                                    <a href="{{ asset('storage/student_applications/' . $item->jw_copy) }}" target="_blank" class="btn btn-light btn-sm p-2 border shadow-sm mx-1 file-link" title="View or Download JW Copy">
+                                        <i class="fas fa-file-pdf fa-lg text-primary"></i>
+                                    </a>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
+                            <td class="text-center">
+                                @if($item->visa_copy)
+                                    <a href="{{ asset('storage/student_applications/' . $item->visa_copy) }}" target="_blank" class="btn btn-light btn-sm p-2 border shadow-sm mx-1 file-link" title="View or Download Visa Copy">
+                                        <i class="fas fa-file-pdf fa-lg text-success"></i>
+                                    </a>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            @push('styles')
+                            <style>
+                                .file-link:hover {
+                                    background: #f0f0f0;
+                                    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                                    text-decoration: none;
+                                }
+                            </style>
+                            @endpush
+                            </td>
                             <td>
                                 <div class="btn-group">
                                     <a href="{{ route($url.'.edit', [$item->id]) }}" class="btn btn-sm btn-info">

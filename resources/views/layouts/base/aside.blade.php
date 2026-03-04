@@ -34,7 +34,7 @@
                         </span>
                     </a>
                 </li>
-                @if(auth()->check() && in_array(auth()->user()->role_id, [1,2]))
+                @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,3]))
                     <li class="menu-item {{ request()->is('branches') ? 'menu-item-open' : '' }} {{ request()->is('branches/*') ? 'menu-item-open' : '' }}"
                         aria-haspopup="true" data-menu-toggle="hover">
                         <a href="javascript:;" class="menu-link menu-toggle">
@@ -442,7 +442,7 @@
                                     <span class="menu-text font-weight-bolder">All students</span>
                                 </a>
                             </li>
-                            @if(auth()->check() && in_array(auth()->user()->role_id, [1,2]))
+                            @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,3]))
                             @foreach($branches as $item)
                                 <li class="menu-item {{ request()->is('students') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                     <a href="{{ route('students.index') }}?branch_id={{$item->id}}" class="menu-link">

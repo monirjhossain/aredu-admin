@@ -26,6 +26,9 @@ class StudentUniversity extends Model
         'university_id',
         'subject_id',
         'status_id',
+        'admission_notice',
+        'jw_copy',
+        'visa_copy',
         'updated_by',
         'note',
         'remarks'	          

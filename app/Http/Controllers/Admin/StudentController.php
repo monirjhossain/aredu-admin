@@ -244,11 +244,12 @@ class StudentController extends Controller
 
             if(isset($student->email)){
                 $template = SmsTemplate::where('name', '[File Open]')->firstOrFail();
+                $juniorCounselorName = $student->jncounselor ? $student->jncounselor->name : '';
+                $juniorCounselorMobile = $student->jncounselor ? $student->jncounselor->mobile_no : '';
                 $placeholders = [
                     '[Student Name]'   => $student->full_name,
-                    '[Counselor Name]' => $student->jncounselor ? ($student->jncounselor->name . ' - ' . $student->jncounselor->mobile_no) : '',
+                    '[Counselor Name]' => $juniorCounselorName . ($juniorCounselorMobile ? ' - ' . $juniorCounselorMobile : ''),
                 ];
-               
                 $body = str_replace(
                     array_keys($placeholders),
                     array_values($placeholders),
@@ -363,10 +364,12 @@ class StudentController extends Controller
                 if(isset($student->email)){
                     $template = \App\Models\SmsTemplate::where('name', '[Student Status]')->first();
                     if ($template) {
+                        $juniorCounselorName = $student->jncounselor ? $student->jncounselor->name : '';
+                        $juniorCounselorMobile = $student->jncounselor ? $student->jncounselor->mobile_no : '';
                         $placeholders = [
                             '[Student Name]'   => $student->full_name,
                             '[Status Name]'    => $newStatusName,
-                            '[Actor Name]'     => $actorName,
+                            '[Counselor Name]' => $juniorCounselorName . ($juniorCounselorMobile ? ' - ' . $juniorCounselorMobile : ''),
                         ];
                         $body = str_replace(
                             array_keys($placeholders),

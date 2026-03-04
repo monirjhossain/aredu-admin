@@ -58,11 +58,19 @@ class StatusChangedNotification extends Notification
         // Get the template for status change (create a new template in settings with name '[Status Change]')
         $template = \App\Models\SmsTemplate::where('name', '[Status Change]')->first();
         $body = '';
+        // Try to get junior counselor info from model (student or application)
+        $juniorCounselorName = '';
+        $juniorCounselorMobile = '';
+        if (isset($this->model->jncounselor) && $this->model->jncounselor) {
+            $juniorCounselorName = $this->model->jncounselor->name;
+            $juniorCounselorMobile = $this->model->jncounselor->mobile_no;
+        }
+        $counselorValue = $juniorCounselorName . ($juniorCounselorMobile ? ' - ' . $juniorCounselorMobile : '');
         if ($template) {
             $placeholders = [
                 '[Student Name]'   => $notifiable->name,
                 '[Status Name]'    => $this->newStatus,
-                '[Actor Name]'     => $this->actorName,
+                '[Counselor Name]' => $counselorValue,
             ];
             $body = str_replace(
                 array_keys($placeholders),
@@ -70,7 +78,7 @@ class StatusChangedNotification extends Notification
                 $template->message
             );
         } else {
-            $body = 'Dear ' . $notifiable->name . ',<br>Your status has been updated by <b>' . $this->actorName . '</b> to <b>' . $this->newStatus . '</b>.';
+            $body = 'Dear ' . $notifiable->name . ',<br>Your status has been updated by <b>' . $counselorValue . '</b> to <b>' . $this->newStatus . '</b>.';
         }
         $body .= '<br><a href="' . $this->url . '">View Details</a>';
         $subject = 'Student Status Update';
@@ -85,14 +93,31 @@ class StatusChangedNotification extends Notification
      */
     public function toArray($notifiable)
     {
+        $note = '';
+        $remarks = '';
+        if (isset($this->model->note) && $this->model->note) {
+            $note = $this->model->note;
+        }
+        if (isset($this->model->remarks) && $this->model->remarks) {
+            $remarks = $this->model->remarks;
+        }
+        $extra = '';
+        if ($note) {
+            $extra .= ' Note: ' . $note . '.';
+        }
+        if ($remarks) {
+            $extra .= ' Remarks: ' . $remarks . '.';
+        }
         return [
-            'message' => ucfirst($this->type) . " status changed by {$this->actorName} to {$this->newStatus}.",
+            'message' => ucfirst($this->type) . " status changed from {$this->oldStatus} to {$this->newStatus} by {$this->actorName}." . $extra,
             'url' => $this->url,
             'type' => $this->type,
             'old_status' => $this->oldStatus,
             'new_status' => $this->newStatus,
             'actor' => $this->actorName,
             'model_id' => $this->model->id,
+            'note' => $note,
+            'remarks' => $remarks,
         ];
     }
 }

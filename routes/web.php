@@ -201,6 +201,7 @@ Route::get('/run_migration_rollback/{key?}', [
 ]);
 
 Route::get('/all_cache_clear/{key?}', [
+    // /all_cache_clear/m!n@r
     function($key = null) {
         if ($key == "m!n@r") {
             try {
