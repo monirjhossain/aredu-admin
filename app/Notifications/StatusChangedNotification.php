@@ -109,7 +109,7 @@ class StatusChangedNotification extends Notification
             $extra .= ' Remarks: ' . $remarks . '.';
         }
         return [
-            'message' => ucfirst($this->type) . " status changed from {$this->oldStatus} to {$this->newStatus} by {$this->actorName}." . $extra,
+            'message' => $notifiable->name . ' - ' . ucfirst($this->type) . " status changed from {$this->oldStatus} to {$this->newStatus} by {$this->actorName}." . $extra,
             'url' => $this->url,
             'type' => $this->type,
             'old_status' => $this->oldStatus,
