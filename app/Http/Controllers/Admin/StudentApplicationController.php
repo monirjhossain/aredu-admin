@@ -110,6 +110,20 @@ class StudentApplicationController extends Controller
                 }
             }
 
+            // Send notification on university application add
+            if ($student) {
+                $actor = Auth::user();
+                $studentUser = $student->user;
+                $actorName = $actor ? $actor->name : 'System';
+                $notification = new \App\Notifications\StatusChangedNotification($stUni, null, $newStatusName, 'university', $actorName);
+                if ($actor && (!$studentUser || $actor->id !== $studentUser->id) && method_exists($actor, 'notify')) {
+                    $actor->notify($notification);
+                }
+                if ($studentUser) {
+                    $studentUser->notify($notification);
+                }
+            }
+
             DB::commit();
             Session::flash('success', 'Added successfully');
             return redirect()->to(route('students.show', $request->student_id));

@@ -108,8 +108,32 @@ class StatusChangedNotification extends Notification
         if ($remarks) {
             $extra .= ' Remarks: ' . $remarks . '.';
         }
+
+        // Build message with Student Name - University Name - old to new Status changed - by Actor
+        $studentName = '';
+        $universityName = '';
+        if ($this->type === 'university') {
+            $student = \App\Models\Student\Student::find($this->model->student_id);
+            $studentName = $student ? $student->full_name : 'Unknown';
+            $universityName = optional($this->model->university)->post_title ?? '';
+        } else {
+            $studentName = $this->model->full_name ?? ($this->model->first_name . ' ' . $this->model->last_name);
+        }
+
+        if (empty($this->oldStatus) && $universityName) {
+            // New university application added
+            $message = "{$studentName} - {$universityName} - {$this->newStatus} - by {$this->actorName}.";
+        } elseif (empty($this->oldStatus)) {
+            // New student created
+            $message = "{$studentName} - {$this->newStatus} - by {$this->actorName}.";
+        } elseif ($universityName) {
+            $message = "{$studentName} - {$universityName} - {$this->oldStatus} to {$this->newStatus} Status changed - by {$this->actorName}.";
+        } else {
+            $message = "{$studentName} - {$this->oldStatus} to {$this->newStatus} Status changed - by {$this->actorName}.";
+        }
+
         return [
-            'message' => $notifiable->name . ' - ' . ucfirst($this->type) . " status changed from {$this->oldStatus} to {$this->newStatus} by {$this->actorName}." . $extra,
+            'message' => $message . $extra,
             'url' => $this->url,
             'type' => $this->type,
             'old_status' => $this->oldStatus,

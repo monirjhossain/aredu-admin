@@ -347,9 +347,10 @@ class StudentController extends Controller
             $student->save();
 
             // Status change notification logic
-            if ($oldStatus !== $student->status) {
+            if ($oldStatus != $student->status) {
                 $actor = Auth::user();
                 $studentUser = $student->user; // Assuming Student model has user() relation
+                $student->load('student_status'); // Reload relationship to get new status name
                 $newStatusName = optional($student->student_status)->name;
                 $actorName = $actor ? $actor->name : 'System';
                 $notification = new \App\Notifications\StatusChangedNotification($student, $oldStatusName, $newStatusName, 'student', $actorName);
