@@ -32,6 +32,8 @@ use App\Http\Controllers\Admin\BranchController;
 use App\Http\Controllers\Admin\SuccessStoryController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\MessageController;
+use Symfony\Component\HttpFoundation\Response;
 
 // Notification read and redirect
 Route::get('notifications/{id}/read-redirect', [NotificationController::class, 'readAndRedirect'])->name('notifications.readRedirect');
@@ -144,6 +146,19 @@ Route::middleware('auth')->group(function () {
         Route::post('/image/update', [MyProfileController::class, 'imageUpdate'])->name('image_update');
         Route::get('/change-password', [MyProfileController::class, 'changePassword'])->name('changepassword');
         Route::post('/update-password', [MyProfileController::class, 'updatePassword'])->name('updatepassword');
+    });
+
+    // Messaging System
+    Route::prefix('messages')->group(function () {
+        Route::get('/', [MessageController::class, 'index'])->name('messages.index');
+        Route::get('/unread-count', [MessageController::class, 'unreadCount'])->name('messages.unreadCount');
+        Route::get('/search-users', [MessageController::class, 'searchUsers'])->name('messages.searchUsers');
+        Route::get('/recent', [MessageController::class, 'recent'])->name('messages.recent');
+        Route::post('/start', [MessageController::class, 'startConversation'])->name('messages.start');
+        Route::get('/{conversation}', [MessageController::class, 'show'])->name('messages.show');
+        Route::post('/{conversation}', [MessageController::class, 'store'])->name('messages.store');
+        Route::post('/{conversation}/read', [MessageController::class, 'markAsRead'])->name('messages.read');
+        Route::get('/{conversation}/poll', [MessageController::class, 'poll'])->name('messages.poll');
     });
 });
 

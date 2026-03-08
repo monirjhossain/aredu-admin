@@ -9,6 +9,8 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Str;
+use App\Models\Messaging\Conversation;
+use App\Models\Messaging\Message;
 
 class User extends Authenticatable
 {
@@ -54,6 +56,17 @@ class User extends Authenticatable
     public function todos() {
         return $this->hasMany(Todo::class, 'user_id', 'id');
     }
+
+    public function conversations() {
+        return $this->belongsToMany(Conversation::class, 'conversation_participants')
+            ->withPivot('last_read_at')
+            ->withTimestamps();
+    }
+
+    public function sentMessages() {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
     protected static function boot()
     {
         parent::boot();

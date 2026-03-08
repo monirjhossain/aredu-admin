@@ -5,11 +5,34 @@
         <div class="topbar">
             <div class="topbar-item">
             </div>
-            <div class="topbar-item" data-toggle="dropdown" data-offset="10px,0px">
+            {{-- Message Inbox Icon --}}
+            <div class="topbar-item dropdown d-flex align-items-center" id="messageDropdownWrapper">
+                @php
+                    $msgUnreadCount = \App\Models\Messaging\ConversationParticipant::where('user_id', Auth::id())
+                        ->get()
+                        ->sum(function ($p) {
+                            $q = \App\Models\Messaging\Message::where('conversation_id', $p->conversation_id)
+                                ->where('sender_id', '!=', Auth::id());
+                            if ($p->last_read_at) $q->where('created_at', '>', $p->last_read_at);
+                            return $q->count();
+                        });
+                @endphp
+                <div class="btn btn-icon btn-clean btn-dropdown btn-lg mr-1 position-relative" data-toggle="dropdown" data-offset="10px,0px" aria-haspopup="true" aria-expanded="false">
+                    <span class="svg-icon svg-icon-xl svg-icon-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="#3699FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                    <span id="message-badge" class="badge badge-primary position-absolute" style="top:0; right:0; font-size:10px;">{{ $msgUnreadCount > 0 ? $msgUnreadCount : '' }}</span>
+                </div>
+                @include('layouts.partials.message-dropdown')
+            </div>
+            {{-- Notification Icon --}}
+            <div class="topbar-item dropdown d-flex align-items-center" id="notificationDropdownWrapper">
                 @php
                     $unreadCount = Auth::user()->unreadNotifications->count();
                 @endphp
-                <div class="btn btn-icon btn-clean btn-dropdown btn-lg mr-1 pulse pulse-primary position-relative">
+                <div class="btn btn-icon btn-clean btn-dropdown btn-lg mr-1 pulse pulse-primary position-relative" data-toggle="dropdown" data-offset="10px,0px" aria-haspopup="true" aria-expanded="false">
                     <span class="svg-icon svg-icon-xl svg-icon-primary">
                         <!--begin::Svg Icon | path:media/svg/icons/Code/Compiling.svg-->
                         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
