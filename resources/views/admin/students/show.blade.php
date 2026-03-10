@@ -138,6 +138,18 @@
                             <span class="fw-bold text-muted ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-comment-dots me-2 pe-1"></i></span><span class="ms-3">Remark:</span></span>
                             <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->note }}</span>
                         </li>
+                        <li class="list-group-item">
+                            <span class="fw-bold text-primary ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-user-tie me-2 pe-1"></i></span><span class="ms-3">Assign Employee:</span></span>
+                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->responsiblePerson->name ?? '' }}</span>
+                        </li>
+                        <li class="list-group-item">
+                            <span class="fw-bold text-primary ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-user-graduate me-2 pe-1"></i></span><span class="ms-3">Senior Counselor:</span></span>
+                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->sncounselor->name ?? '' }}</span>
+                        </li>
+                        <li class="list-group-item">
+                            <span class="fw-bold text-primary ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-user-tie me-2 pe-1"></i></span><span class="ms-3">Senior Counselor:</span></span>
+                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->jncounselor->name ?? '' }}</span>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -167,10 +179,10 @@
     <div class="row">
         <div class="col-md-4">
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-success text-white"><h3 class="card-title">Subjects</h3></div>
+                <div class="card-header bg-success text-white"><h3 class="card-title" style="font-size:2rem;">Subjects</h3></div>
                 <div class="card-body">
                     @forelse($student->subjects as $sub)
-                        <span class="badge badge-primary mb-1 p-2">{{ $sub->name }}</span><br>
+                        <span class="badge badge-primary mb-1 p-2" style="font-size:1rem;">{{ $sub->name }}</span><br>
                     @empty
                         <p class="text-muted">No subjects assigned</p>
                     @endforelse
@@ -180,10 +192,10 @@
 
         <div class="col-md-4">
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-warning text-white"><h3 class="card-title">Universities</h3></div>
+                <div class="card-header bg-warning text-white"><h3 class="card-title" style="font-size:2rem;">Universities</h3></div>
                 <div class="card-body">
                     @forelse($student->universities as $uni)
-                        <span class="badge badge-success mb-1 p-2">{{ $uni->post_title }}</span><br>
+                        <span class="badge badge-success mb-1 p-2" style="font-size:1rem;">{{ $uni->post_title }}</span><br>
                     @empty
                         <p class="text-muted">No universities selected</p>
                     @endforelse
@@ -193,10 +205,10 @@
 
         <div class="col-md-4">
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-info text-white"><h3 class="card-title">Documents</h3></div>
+                <div class="card-header bg-info text-white"><h3 class="card-title" style="font-size:2rem;">Documents</h3></div>
                 <div class="card-body">
                     @forelse($student->documents as $doc)
-                        <span class="badge badge-info mb-1 p-2">{{ $doc->name }}</span><br>
+                        <span class="badge badge-info mb-1 p-2" style="font-size:1rem;">{{ $doc->name }}</span><br>
                     @empty
                         <p class="text-muted">No documents uploaded</p>
                     @endforelse
