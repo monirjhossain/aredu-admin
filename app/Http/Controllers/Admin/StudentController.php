@@ -354,11 +354,28 @@ class StudentController extends Controller
                 $newStatusName = optional($student->student_status)->name;
                 $actorName = $actor ? $actor->name : 'System';
                 $notification = new \App\Notifications\StatusChangedNotification($student, $oldStatusName, $newStatusName, 'student', $actorName);
+
+                // Notify actor (if not the student user)
                 if ($actor && (!$studentUser || $actor->id !== $studentUser->id) && method_exists($actor, 'notify')) {
                     $actor->notify($notification);
                 }
+                // Notify student user
                 if ($studentUser) {
                     $studentUser->notify($notification);
+                }
+
+                // Notify all users with specific roles
+                $roleNames = ['Admin', 'Super Admin', 'Assign Employee', 'Senior Counselor', 'Junior Counselor'];
+                $roles = \App\Models\Role::whereIn('user_type', $roleNames)->pluck('id');
+                $usersToNotify = \App\Models\User::whereIn('role_id', $roles)->get();
+                foreach ($usersToNotify as $user) {
+                    // Avoid duplicate notification to actor or student user
+                    if (($actor && $user->id === $actor->id) || ($studentUser && $user->id === $studentUser->id)) {
+                        continue;
+                    }
+                    if (method_exists($user, 'notify')) {
+                        $user->notify($notification);
+                    }
                 }
 
                 // Send email to student on status change using '[Student Status]' template
