@@ -261,7 +261,7 @@ class StudentController extends Controller
                 $res = Mail::to($email)->send(new MailSystem($name, $body, $subject));
             }
 
-            // Send notification to student after creation
+            // Send notification to student, actor, and all users with specific roles after creation
             if (isset($student->user_id)) {
                 $actor = Auth::user();
                 $studentUser = $student->user;
@@ -272,6 +272,20 @@ class StudentController extends Controller
                 }
                 if ($studentUser) {
                     $studentUser->notify($notification);
+                }
+
+                // Notify all users with specific roles
+                $roleNames = ['Admin', 'Super Admin', 'Assign Employee', 'Senior Counselor', 'Junior Counselor'];
+                $roles = \App\Models\Role::whereIn('user_type', $roleNames)->pluck('id');
+                $usersToNotify = \App\Models\User::whereIn('role_id', $roles)->get();
+                foreach ($usersToNotify as $user) {
+                    // Avoid duplicate notification to actor or student user
+                    if (($actor && $user->id === $actor->id) || ($studentUser && $user->id === $studentUser->id)) {
+                        continue;
+                    }
+                    if (method_exists($user, 'notify')) {
+                        $user->notify($notification);
+                    }
                 }
             }
 
