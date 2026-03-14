@@ -36,6 +36,10 @@ class Invoice extends Model
         'documents' => 'array',
         'is_refundable' => 'boolean',
     ];
+    public function getFormattedPaidAttribute()
+    {
+        return number_format($this->paid, 2);
+    }
     public function setIsRefundableAttribute($value)
     {
         $this->attributes['is_refundable'] = $value === 'on' ? 1 : 0;

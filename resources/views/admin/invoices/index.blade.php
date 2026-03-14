@@ -3,7 +3,7 @@
 @section('content')
     <div class="row">
         <div class="col-sm-6">
-            <h1 class="m-0 text-dark">{{ $title }}</h1>
+            <h1 class="m-0 text-dark">{{ $title }} - {{ $totalAmount }}</h1>
         </div><!-- /.col -->
         <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
@@ -40,6 +40,7 @@
                         <th>Total</th>
                         <th>Paid</th>
                         <th>Due</th>
+                        <th>Currency</th>
                         <th>Date</th>
                         <th>Add By</th>
                         <th style="width:100px; min-width:100px;" class="text-center text-danger"><i class="fa fa-bolt"></i></th>
@@ -56,9 +57,9 @@
                             <td>
                                 {{-- @dd($item->products['student']['email']) --}}
                                 <span><b>Name:</b> {{ $item->products['student']['full_name'] ?? '' }}</span><br>
-                                <span><b>Email:</b> {{ $item->products['student']['email'] ?? '' }}</span><br>
+                                {{-- <span><b>Email:</b> {{ $item->products['student']['email'] ?? '' }}</span><br> --}}
                                 <span><b>Phone:</b> {{ $item->products['student']['mobile_no'] ?? '' }}</span><br>
-                                <span><b>Address:</b> {{ $item->products['student']['address'] ?? '' }}</span><br>
+                                {{-- <span><b>Address:</b> {{ $item->products['student']['address'] ?? '' }}</span><br> --}}
                                 {{-- <span><b>City:</b> {{ $item->student->city ?? '' }}</span><br>
                                 <span><b>Country:</b> {{ $item->student->country ?? '' }}</span><br>
                                 <span><b>ZIP:</b> {{ $item->student->zip ?? '' }}</span><br> --}}
@@ -66,9 +67,9 @@
                             @else
                             <td>
                                 <span><b>Name:</b> {{ $item->student->full_name ?? '' }}</span><br>
-                                <span><b>Email:</b> {{ $item->student->email ?? '' }}</span><br>
+                                {{-- <span><b>Email:</b> {{ $item->student->email ?? '' }}</span><br> --}}
                                 <span><b>Phone:</b> {{ $item->student->mobile_no ?? '' }}</span><br>
-                                <span><b>Address:</b> {{ $item->student->address ?? '' }}</span><br>
+                                {{-- <span><b>Address:</b> {{ $item->student->address ?? '' }}</span><br> --}}
                                 {{-- <span><b>City:</b> {{ $item->student->city ?? '' }}</span><br>
                                 <span><b>Country:</b> {{ $item->student->country ?? '' }}</span><br>
                                 <span><b>ZIP:</b> {{ $item->student->zip ?? '' }}</span><br> --}}
@@ -76,11 +77,12 @@
                             @endif
                             {{-- <td>{{ $item->student->study_level ?? '' }}</td>
                             <td>{{ $item->student->subject ?? '' }}</td> --}}
-                            <td>{{ $item->subtotal . ' ' . $item->currency}}</td>
-                            <td>{{ $item->discount . ' ' . $item->currency }}</td>
-                            <td>{{ $item->grandtotal . ' ' . $item->currency }}</td>
-                            <td>{{ $item->paid . ' ' . $item->currency }}</td>
-                            <td>{{ $item->due . ' ' . $item->currency }}</td>
+                            <td>{{ $item->subtotal}}</td>
+                            <td>{{ $item->discount }}</td>
+                            <td>{{ $item->grandtotal }}</td>
+                            <td><b>{{ $item->formatted_paid }}</b></td>
+                            <td>{{ $item->due }}</td>
+                            <td>{{ $item->currency }}</td>
                             <td>{{ $item->invoice_date }}</td>
                             <td>
                                 {{ $item->user->name ?? '' }}

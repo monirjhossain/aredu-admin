@@ -82,8 +82,39 @@ class StudentInvoiceController extends Controller
         //     ->orWhere('hsc_result', 'like', '%'.$request->input('search').'%')
         //     ;
         // }
-        $data['request'] = $request;
         $data['invoices'] = $invoices->paginate(20);
+        $data['totalAmount'] = number_format($data['invoices']->sum('paid'), 2);
+        $data['openingBalanceBDT']=0;
+         if(count($data['invoices']) !=0){
+            $firstRow = $data['invoices']->first();
+            // Calculate opening balance (before first row)
+            $financeEntry = Invoice::where(function($q) use ($firstRow) {
+                    $q->where('id', '<', $firstRow->id)
+                    ->orWhere(function($q2) use ($firstRow) {
+                        $q2->where('id', $firstRow->id)
+                            ->where('id', '<', $firstRow->id);
+                    });
+                });
+                // if($request->student){
+                //     $financeEntry->where('student_id', $request->student);
+                // }
+                $currentUser = Auth::user();
+                if($currentUser->role_id == 4){
+                    $financeEntry = $financeEntry->where('created_by', $currentUser->id);
+                }
+                $financeEntry = $financeEntry->get();
+                $data['openingBalanceBDT'] = $financeEntry
+                ->reduce(function($carry, $entry) {
+                    $amount = $entry->currency == 'BDT' ? $entry->amount : 0;
+                    return $carry + ($entry->type === 'income' ? $amount : -$amount);
+                }, 0);
+        }
+
+
+
+
+        $data['request'] = $request;
+        // $data['invoices'] = $invoices->paginate(20);
         $data['title'] = 'Invoices';
         $data['type'] = 'invoice';
         $data['student'] = $student;

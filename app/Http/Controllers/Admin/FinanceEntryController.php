@@ -85,6 +85,7 @@ class FinanceEntryController extends Controller
         };
         return \Maatwebsite\Excel\Facades\Excel::download($export, 'FinanceEntriesReport.xlsx');
     }
+    
     public function index(Request $request)
     {
         // For filter dropdowns
