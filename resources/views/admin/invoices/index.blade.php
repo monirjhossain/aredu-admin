@@ -25,6 +25,22 @@
                 <a onclick="submitDetailsForm()" class="btn btn-primary mr-1"> <i class="la la-search"></i>Search </a>
                 <a href="{{ route($url.'.create') }}{{$request->student ? '?student='.$request->student :'' }}" class="btn btn-primary"> <i class="la la-plus"></i> Create {{ $type }}</a>
             </div>
+            <div class="d-flex align-items-center">
+                                        <form method="GET" action="{{ route('finance_entries.invoices.index') }}" class="mr-2">
+                                            <select name="perpage" class="form-control" onchange="this.form.submit()">
+                                                <option value="5" {{ request('perpage') == 5 ? 'selected' : '' }}>5</option>
+                                                <option value="10" {{ request('perpage') == 10 ? 'selected' : '' }}>10</option>
+                                                <option value="25" {{ request('perpage') == 25 ? 'selected' : '' }}>25</option>
+                                                <option value="50" {{ request('perpage') == 50 ? 'selected' : '' }}>50</option>
+                                                <option value="100" {{ request('perpage') == 100 ? 'selected' : '' }}>100</option>
+                                                <option value="200" {{ request('perpage') == 200 ? 'selected' : '' }}>200</option>
+                                                <option value="500" {{ request('perpage') == 500 ? 'selected' : '' }}>500</option>
+                                            </select>
+                                        </form>
+                                        @if($type == 'expense')
+                                            <a href="{{ route('finance_entries.create', ['type' => $type]) }}" class="btn btn-primary">Create Entry</a>
+                                        @endif
+                                    </div>
         </div>
         <div class="card-body" style="overflow: scroll; ">
             <table class="table table-hover">
@@ -113,7 +129,8 @@
             </table>
         </div>
         <div class="card-footer">
-            {!! $invoices->links() !!}
+            {{-- {!! $invoices->links() !!} --}}
+            {{ $invoices->appends(['perpage' => $perPage])->links() }}
         </div>
     </div>
 @endsection
