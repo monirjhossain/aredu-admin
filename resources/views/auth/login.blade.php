@@ -94,7 +94,7 @@
                 <div class="d-flex justify-content-lg-start justify-content-center align-items-end py-7 py-lg-0">
                     <div class="text-dark-50 font-size-lg font-weight-bolder mt-40 ">
                         <span class="mr-1">{{date("Y")}} ©</span>
-                        <a href="https://areducation.net/" target="_blank" class="text-dark-75 text-hover-primary"> Orangetoolz | All rights reserved</a>
+                        <a href="https://areducation.net/" target="_blank" class="text-dark-75 text-hover-primary"> AR EDUCATION | All rights reserved</a>
                         <a href="https://areducation.net/" class="text-primary ml-2 font-weight-bolder font-size-lg">Contact Us</a>
                     </div>
                 </div>
