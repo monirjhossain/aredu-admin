@@ -37,6 +37,7 @@ class StudentInvoiceController extends Controller
     public function index(Request $request)
     {
         $invoices = Invoice::orderBy('id', 'DESC')->with(['student', 'user']);
+        $perPage = $request->get('perpage', 15);
         $student = '';
         if ($request->input('student')) {
             $student_id = $request->input('student');
@@ -82,8 +83,12 @@ class StudentInvoiceController extends Controller
         //     ->orWhere('hsc_result', 'like', '%'.$request->input('search').'%')
         //     ;
         // }
+        $data['invoices'] = $invoices->paginate($perPage);
+        $data['perPage'] = $perPage;
+        $data['totalAmount'] = number_format($data['invoices']->sum('paid'), 2);
+        $data['openingBalanceBDT']=0;
         $data['request'] = $request;
-        $data['invoices'] = $invoices->paginate(20);
+        // $data['invoices'] = $invoices->paginate(20);
         $data['title'] = 'Invoices';
         $data['type'] = 'invoice';
         $data['student'] = $student;

@@ -6,7 +6,7 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0 text-dark">{{$title}}</h1>
+                <h1 class="m-0 text-dark">{{$title}} - {{$totalAmount}} </h1>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
@@ -95,6 +95,9 @@
                             </form>
                             <div class="d-flex align-items-center">
                                 <form method="GET" action="{{ route('finance_entries.index') }}" class="mr-2">
+                                    @foreach(request()->except(['perpage','page']) as $key => $value)
+                                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                                    @endforeach
                                     <select name="perpage" class="form-control" onchange="this.form.submit()">
                                         <option value="5" {{ request('perpage') == 5 ? 'selected' : '' }}>5</option>
                                         <option value="10" {{ request('perpage') == 10 ? 'selected' : '' }}>10</option>

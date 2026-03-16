@@ -85,6 +85,7 @@ class FinanceEntryController extends Controller
         };
         return \Maatwebsite\Excel\Facades\Excel::download($export, 'FinanceEntriesReport.xlsx');
     }
+    
     public function index(Request $request)
     {
         // For filter dropdowns
@@ -130,6 +131,7 @@ class FinanceEntryController extends Controller
         $currentUser = Auth::user();
         $data['entries'] = $data['entries']->where('branch_id', $currentUser->branch);
         $data['entries'] = $data['entries']->paginate($perPage);
+        $data['totalAmount'] = number_format($data['entries']->sum('amount'), 2);
         $data['openingBalanceBDT']=0;
         $data['openingBalanceRMB']=0;
         $data['openingBalanceUSD']=0;
