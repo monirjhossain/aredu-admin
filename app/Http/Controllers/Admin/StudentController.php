@@ -142,6 +142,29 @@ class StudentController extends Controller
         //     $students->where('branch_id', $currentUser->branch);
         // }
 
+        // Counselor filter
+        $counselorIds = Student::query()
+            ->selectRaw('DISTINCT senior_counselor as counselor_id')
+            ->whereNotNull('senior_counselor')
+            ->pluck('counselor_id')
+            ->merge(
+                Student::query()
+                    ->selectRaw('DISTINCT junior_counselor as counselor_id')
+                    ->whereNotNull('junior_counselor')
+                    ->pluck('counselor_id')
+            )
+            ->unique()
+            ->filter();
+        $counselors = User::whereIn('id', $counselorIds)->orderBy('name')->get(['id', 'name']);
+
+        // Filter by counselor
+        if ($request->input('counselor')) {
+            $students->where(function($q) use ($request) {
+                $q->where('senior_counselor', $request->input('counselor'))
+                  ->orWhere('junior_counselor', $request->input('counselor'));
+            });
+        }
+
         $totalStudent = $students->count();
         $data['request'] = $request;
         $data['students'] = $students->paginate(20);
@@ -154,6 +177,7 @@ class StudentController extends Controller
         $data['intakes'] = $this->intakeCreate();
         $data['universities'] = Post::select('id', 'post_title')->where('post_type', 'university')->get();
         $data['student_statuses'] = StudentStatus::select('id', 'name')->get();
+        $data['counselors'] = $counselors;
         // return $data;
         if ($request->input('print') && $request->input('print') == 'yes') {
             $data['students'] = $students->get();

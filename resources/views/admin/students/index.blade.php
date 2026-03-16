@@ -66,6 +66,14 @@
                         <input type="text" name="search" placeholder="Search" class="form-control" value="{{ $request->search }}">
                     </div>
                     <div class="col mb-2">
+                        <select class="form-control" name="counselor">
+                            <option value="">-Select Counselor-</option>
+                            @foreach ($counselors as $counselor)
+                                <option value="{{ $counselor->id }}" {{ $request->counselor == $counselor->id ? 'selected' : '' }}>{{ $counselor->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col mb-2">
                         <input type="text" name="passport_search" class="form-control" placeholder="Passport No." value="{{ request('passport_search') }}">
                     </div>
                     <div class="col mb-2">
