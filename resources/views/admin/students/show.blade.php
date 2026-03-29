@@ -147,7 +147,7 @@
                             <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->sncounselor->name ?? '' }}</span>
                         </li>
                         <li class="list-group-item">
-                            <span class="fw-bold text-primary ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-user-tie me-2 pe-1"></i></span><span class="ms-3">Senior Counselor:</span></span>
+                            <span class="fw-bold text-primary ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-user-tie me-2 pe-1"></i></span><span class="ms-3">Junior Counselor:</span></span>
                             <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->jncounselor->name ?? '' }}</span>
                         </li>
                     </ul>
@@ -221,7 +221,7 @@
         @csrf
         <input type="hidden" name="student_id" value="{{$student->id}}">
         <input type="hidden" name="status_id" value="1">
-        
+
         <div class="card-header bg-primary text-white">
             <h4 class="mb-0">Add Application</h4>
         </div>
@@ -377,7 +377,7 @@
                 confirmButtonText: 'Yes, delete it!'
             }).then((result) => {
                 console.log('dfsdafds');
-                
+
                 if (result.isConfirmed) {
                     document.getElementById('deleteForm' + id).submit();
                 }

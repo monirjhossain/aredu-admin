@@ -14,9 +14,9 @@ class AddStudentApplicationFilesToStudentUniversityTable extends Migration
 public function up()
 {
     Schema::table('student_university', function (Blueprint $table) {
-        $table->string('admission_notice')->nullable();
-        $table->string('jw_copy')->nullable();
-        $table->string('visa_copy')->nullable();
+        // $table->string('admission_notice')->nullable();
+        // $table->string('jw_copy')->nullable();
+        // $table->string('visa_copy')->nullable();
     });
 }
 

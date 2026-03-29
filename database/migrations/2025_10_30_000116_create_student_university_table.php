@@ -19,9 +19,9 @@ class CreateStudentUniversityTable extends Migration
             $table->unsignedBigInteger('university_id')->nullable();
             $table->unsignedBigInteger('subject_id')->nullable();
             $table->unsignedBigInteger('status_id')->nullable();
-            $table->string('admission_notice')->nullable();
-            $table->string('jw_copy')->nullable();
-            $table->string('visa_copy')->nullable();
+            $table->string('admission_notice')->nullable(); 
+            $table->string('jw_copy')->nullable(); 
+            $table->string('visa_copy')->nullable(); 
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->text('note')->nullable();
             $table->text('remarks')->nullable();
