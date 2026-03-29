@@ -136,7 +136,7 @@
                         </li>
                         <li class="list-group-item">
                             <span class="fw-bold text-muted ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-comment-dots me-2 pe-1"></i></span><span class="ms-3">Remark:</span></span>
-                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->note }}</span>
+                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{!! nl2br(e($student->note)) !!}</span>
                         </li>
                         <li class="list-group-item">
                             <span class="fw-bold text-primary ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-user-tie me-2 pe-1"></i></span><span class="ms-3">Assign Employee:</span></span>

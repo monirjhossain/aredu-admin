@@ -158,11 +158,11 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @php 
+                    @php
                         $itemSl = $students->total() - ($students->currentPage() - 1) * $students->perPage();
                     @endphp
                     @forelse ($students as $item)
-                    
+
                         <tr>
                             <td>{{ $itemSl-- }}</td>
                             <td>
@@ -184,11 +184,11 @@
                                                         $statusname = $st->statusUni->name;
                                                         @endphp
                                                     @endif
-                                                @endforeach     
-                                                
+                                                @endforeach
+
                                             @endif
                                     @endforeach
-                                    
+
                                     <span class="badge badge-primary">{{ $uni->post_title }} </span>
                                     @if ($statusname)
                                     -<span class="badge badge-warning">{{ $statusname }} </span><br>
@@ -203,7 +203,7 @@
                                 <span class="badge badge-primary">{{ $sub->name }} </span>
                                 @endforeach
                             </td>
-                            
+
                             {{-- <td>
                                 @foreach($item->documents as $doc)
                                 <span class="badge badge-primary">{{ $doc->name }} </span>
@@ -240,7 +240,7 @@
                                 <span><b>Occupation:</b> {{ $item->mother_occoupation }}</span><br>
                             </td> --}}
                             <td>{{ $item->responsiblePerson->full_name ?? ''}}</td>
-                            <td>{{ $item->note }}</td>
+                            <td>{{ \Illuminate\Support\Str::words($item->note, 10, '...') }}</td>
                             {{-- <td>
                                 <span class="badge {{ $item->status == '1'? 'badge-primary': 'badge-danger' }}">{{ $item->status == '1'? 'Active': 'Deactive' }} </span>
                             </td> --}}
