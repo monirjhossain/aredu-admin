@@ -291,7 +291,7 @@
             </table>
         </div>
         <div class="card-footer">
-            {!! $students->links() !!}
+            {!! $students->appends(request()->query())->links() !!}
         </div>
         <!-- Modal-->
         <div class="modal fade" id="exampleModalLong" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdrop" aria-hidden="true">

@@ -51,7 +51,7 @@ class StudentController extends Controller
             //     ->selectRaw('COUNT(*) as total_rows')
             //     ->groupBy('university_id');
             $uni = Post::has('students')
-                ->select('id', 'post_title')    
+                ->select('id', 'post_title')
                 ->withCount('students');
                 // ->get();
 
@@ -103,7 +103,7 @@ class StudentController extends Controller
             $students->where(function ($q) use ($request) {
             $q->where('first_name', 'like', '%' . $request->input('search') . '%')
                 ->orWhere('last_name', 'like', '%' . $request->input('search') . '%')
-                // ->orWhere('study_level', 'like', '%' . $request->input('search') . '%')
+                ->orWhere('study_level', 'like', '%' . $request->input('search') . '%')
                 // ->orWhere('subject', 'like', '%' . $request->input('search') . '%')
                 ->orWhereHas('subjects', function ($q) use ($request) {
                     $q->where('name', 'like', '%' . $request->input('search') . '%');
@@ -130,7 +130,7 @@ class StudentController extends Controller
                 ->orWhere('status', 'like', '%' . $request->input('search') . '%')
                 ->orWhereHas('universities', function ($q) use ($request) {
                     $q->where('post_title', 'like', '%' . $request->input('search') . '%');
-                
+
                 });
                 // ->orWhere('ssc_result', 'like', '%' . $request->input('search') . '%')
                 // ->orWhere('hsc_result', 'like', '%' . $request->input('search') . '%');
@@ -233,7 +233,7 @@ class StudentController extends Controller
         // $name = 'Monir';
         // $email = 'minarkhan1995@gmail.com';
         // return $res = Mail::to($email)->send(new MailSystem($name, $body, $subject));
-        
+
         // return $request;
         DB::beginTransaction();
         try {
@@ -372,7 +372,7 @@ class StudentController extends Controller
     }
 
     public function update(StudentRequest $request, Student $student)
-    {   
+    {
         // return $request;
         DB::beginTransaction();
         try {
