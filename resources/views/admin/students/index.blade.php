@@ -19,10 +19,10 @@
                 <div class="card-title">
                     <input type="text" name="search" placeholder="Search" class="form-control" value="{{ $request->search }}">
                     <input type="text" name="passport_search" class="form-control" placeholder="Passport No." value="{{ request('passport_search') }}">
-                    <select class="form-control" name="study_level" id="">
+                    <select class="form-control" name="study_id" id="">
                         <option value="">Select Stydy Level</option>
                         @foreach ($study_levels as $item)
-                        <option value="{{$item->id }}" {{ $request->study_level == $item->id ? 'selected' : ''}}>{{$item->name }}</option>
+                        <option value="{{$item->id }}" {{ $request->study_id == $item->id ? 'selected' : ''}}>{{$item->name }}</option>
                         @endforeach
                     </select>
                     <select class="form-control col-md-2" name="subject" id="">
@@ -77,10 +77,10 @@
                         <input type="text" name="passport_search" class="form-control" placeholder="Passport No." value="{{ request('passport_search') }}">
                     </div>
                     <div class="col mb-2">
-                        <select class="form-control" name="study_level">
+                        <select class="form-control" name="study_id">
                             <option value="">-Select Study Level-</option>
                             @foreach ($study_levels as $item)
-                            <option value="{{$item->id }}" {{ $request->study_level == $item->id ? 'selected' : ''}}>{{$item->name }}</option>
+                            <option value="{{$item->id }}" {{ $request->study_id == $item->id ? 'selected' : ''}}>{{$item->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -167,7 +167,12 @@
                             <td>{{ $itemSl-- }}</td>
                             <td>
                                 {{ $item->full_name }}
-                                <span class="badge {{ in_array($item->student_status->id, [7, 9, 11]) ? 'badge-success' : (in_array($item->student_status->id, [4, 12, 2]) ? 'badge-danger' : (in_array($item->student_status->id, [6, 8, 13]) ? 'badge-warning' : 'badge-primary')) }}">{{ $item->student_status->name }} </span>
+                                <span class="badge
+                                    {{ ($item->student_status && in_array($item->student_status->id, [7, 9, 11])) ? 'badge-success'
+                                    : ($item->student_status && in_array($item->student_status->id, [4, 12, 2]) ? 'badge-danger'
+                                    : ($item->student_status && in_array($item->student_status->id, [6, 8, 13]) ? 'badge-warning' : 'badge-primary')) }}">
+                                    {{ $item->student_status->name ?? '' }}
+                                </span>
                                 <span class="badge badge-primary">{{ $item->intake }} </span>
                             </td>
                             <td>{{ $item->studyLevel->name ?? '' }}</td>
@@ -211,7 +216,7 @@
                             </td> --}}
                             {{-- <td>{{ $item->subject }}</td> --}}
                             <td>
-                                {{-- <span><b>Study Level:</b> {{ $item->study_level }}</span><br> --}}
+                                {{-- <span><b>Study Level:</b> {{ $item->studyLevel->name ?? '' }}</span><br> --}}
                                 <span><b>Intake:</b> {{ $item->intake }}</span><br>
                                 <span><b>Passport:</b> {{ $item->passport }}</span><br>
                                 <span><b>Email:</b> {{ $item->email }}</span><br>
@@ -245,7 +250,7 @@
                                 <span class="badge {{ $item->status == '1'? 'badge-primary': 'badge-danger' }}">{{ $item->status == '1'? 'Active': 'Deactive' }} </span>
                             </td> --}}
                             <td>
-                                {{ $item->student_status->name ??'' }}
+                                {{ $item->student_status->name ?? '' }}
                             </td>
                             <td>
                                 {{ $item->branchInfo->name ?? '' }}

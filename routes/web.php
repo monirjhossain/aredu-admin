@@ -47,7 +47,7 @@ Route::get('filemanager', [FileManagerController::class, 'index']);
 Route::post('filemanager/create-directory', [FileManagerController::class, 'createDirectory']);
 Route::get('filemanager/initialize', [FileManagerController::class, 'initialize']);
 
-// end test route 
+// end test route
 
 Auth::routes([
     'login'    => true,
@@ -96,7 +96,7 @@ Route::middleware('auth')->group(function () {
     Route::get('test-income-cost', [TestController::class, 'testIncomeCost']);
     Route::get('test-income', [TestController::class, 'testIncome']);
     Route::get('import-inquiry', [TestController::class, 'importInquiry']);
-    Route::get('import-inquiry-rajshahi2', [TestController::class, 'importInquiryRajshahi2']); 
+    Route::get('import-inquiry-rajshahi2', [TestController::class, 'importInquiryRajshahi2']);
 
 
     Route::group(['prefix'=>'setting', 'as' => 'setting.'], function(){
@@ -109,13 +109,13 @@ Route::middleware('auth')->group(function () {
         Route::resource('student_status', SettingController::class);
         Route::resource('university_status', SettingController::class);
         Route::resource('sms_template', SettingController::class);
-        
+
     });
 
     Route::resource('currencies', CurrencyController::class);
     Route::get('currencies/{currency}/rates', [CurrencyController::class, 'rates'])->name('currencies.rates');
     Route::post('currencies/{currency}/rates', [CurrencyController::class, 'addRate'])->name('currencies.rates.store');
-    
+
     // Wallets
     Route::resource('wallets', WalletController::class);
 

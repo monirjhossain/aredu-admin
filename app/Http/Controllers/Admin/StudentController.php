@@ -82,9 +82,8 @@ class StudentController extends Controller
         //         $q->where('university_id', $request->input('university'));
         //     });
         // }
-        if ($request->input('study_level')) {
-            // Temporarily commented out until study_level column is added to DB
-            // $students->where('study_level', $request->input('study_level'));
+        if ($request->input('study_id')) {
+            $students->where('study_id', $request->input('study_id'));
         }
         if ($request->input('intake')) {
             $students->where('intake', $request->input('intake'));
