@@ -52,8 +52,9 @@
                             </td>
                             <td>
                                 <form id="deleteForm" action="{{ route('user-management.destroy', $row->id) }}" method="POST">
-                                <a href="{{ route('user-management.show', $row->id) }}" class="btn btn-primary btn-shadow btn-sm font-weight-bold pt-1 pb-1 mb-1">Details</a>
-                                <a href="{{ route('user-management.edit', $row->id) }}" class="btn btn-success btn-shadow btn-sm font-weight-bold pt-1 pb-1 mb-1">Edit</a>
+                                    <a href="{{ route('students.index') }}?counselor={{ $row->id }}" class="btn btn-primary btn-shadow btn-sm font-weight-bold pt-1 pb-1 mb-1">Students</a>
+                                    <a href="{{ route('user-management.show', $row->id) }}" class="btn btn-primary btn-shadow btn-sm font-weight-bold pt-1 pb-1 mb-1">Details</a>
+                                    <a href="{{ route('user-management.edit', $row->id) }}" class="btn btn-success btn-shadow btn-sm font-weight-bold pt-1 pb-1 mb-1">Edit</a>
                                     @csrf
                                     @method('DELETE')
                                     <button id="submitButton" type="button" class="btn btn-danger btn-shadow btn-sm font-weight-bold pt-1 pb-1 mb-1">Delete</button>
