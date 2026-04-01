@@ -164,9 +164,14 @@ class StudentController extends Controller
             });
         }
 
+        $perPage = (int) $request->input('perpage', 20);
+        if ($perPage <= 0) {
+            $perPage = 20;
+        }
+
         $totalStudent = $students->count();
         $data['request'] = $request;
-        $data['students'] = $students->paginate(20);
+        $data['students'] = $students->paginate($perPage);
         $data['title'] = 'Student List - Total: ' . $totalStudent;
         $data['type'] = 'student';
         $data['url'] = 'students';

@@ -61,6 +61,7 @@
                 @if(request()->has('branch_id'))
                     <input type="hidden" name="branch_id" value="{{ request('branch_id') }}">
                 @endif
+                <input type="hidden" name="perpage" value="{{ request('perpage', 20) }}">
                 <div class="row">
                     <div class="col mb-2">
                         <input type="text" name="search" placeholder="Search" class="form-control" value="{{ $request->search }}">
@@ -120,6 +121,20 @@
                 </div>
             </form>
             <div class="card-toolbar">
+                <form method="GET" action="{{ route('students.index') }}" class="mr-1">
+                    @foreach(request()->except(['perpage', 'page']) as $key => $value)
+                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                    @endforeach
+                    <select name="perpage" class="form-control" onchange="this.form.submit()">
+                        <option value="5" {{ request('perpage', 20) == 5 ? 'selected' : '' }}>5</option>
+                        <option value="10" {{ request('perpage', 20) == 10 ? 'selected' : '' }}>10</option>
+                        <option value="25" {{ request('perpage', 20) == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ request('perpage', 20) == 50 ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ request('perpage', 20) == 100 ? 'selected' : '' }}>100</option>
+                        <option value="200" {{ request('perpage', 20) == 200 ? 'selected' : '' }}>200</option>
+                        <option value="500" {{ request('perpage', 20) == 500 ? 'selected' : '' }}>500</option>
+                    </select>
+                </form>
                 <a onclick="submitDetailsForm('no')" class="btn btn-primary mr-1"> <i class="la la-search"></i>Search </a>
                 <a href="{{ route('students.index') }}" class="btn btn-primary mr-1"> <i class="la la-undo"></i>Reset </a>
                 <a onclick="submitDetailsForm('yes')" class="btn btn-primary mr-1"> <i class="la la-print"></i>Print </a>
