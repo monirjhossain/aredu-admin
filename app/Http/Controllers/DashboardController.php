@@ -21,6 +21,11 @@ class DashboardController extends Controller
         $paperSubmitted = Student::orderBy('id', 'DESC')->whereIn('intake', ['March-2024', 'September-2024'])->where('status', 'LIKE', '%Paper submitted%')->count();
         $AdmissionCancel = Student::orderBy('id', 'DESC')->whereIn('intake', ['March-2024', 'September-2024'])->where('status', 'LIKE', '%Admission cancel%')->count();
         $totalStudents = $admittedToUs + $paperSubmitted + $Rejected + $AdmissionCancel;
+
+        $students = Student::orderBy('id', 'DESC');
+        // $students->where('resp_person_id', $currentUser->id);
+        // $students->orwhere('senior_counselor', $currentUser->id);
+        $students->orwhere('junior_counselor', $currentUser->id);
         
         $data['total_user'] = User::where('branch', $currentUser->branch)->count();
         $data['total_todo'] = Todo::all()->count();
@@ -28,6 +33,7 @@ class DashboardController extends Controller
         $data['page_title'] = 'Dashboard - AR EDUCATION';
         $data['admittedToUs'] = $admittedToUs;
         $data['totalStudents'] = $totalStudents;
+        $data['myStudents'] = $students->count();
         $data['allStudent'] = $allStudent;
         $data['paperSubmitted'] = $paperSubmitted;
         $data['Rejected'] = $Rejected;

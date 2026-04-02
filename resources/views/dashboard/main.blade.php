@@ -11,8 +11,25 @@ $allowedRoles = [1, 2, 3];
 <!--begin::Dashboard-->
 
 <div class="row mb-5">
+   <div class="col-md-3 mb-3">
+      <div class="card-counter bg-danger">
+         {{-- <a href="{{ route('todo.index') }}"><i class="fa fas fa-users text-white"></i></a> --}}
+         <span class="count-numbers"><a href="{{ route('students.index') }}?counselor={{ auth()->user()->id }}&perpage=500">{{$myStudents}}</a></span>
+         <span class="count-name"><a href="{{ route('students.index') }}?counselor={{ auth()->user()->id }}&perpage=500">My Students</a></span>
+
+         {{-- <a href="{{ route('students.index') }}?counselor={{ $row->id }}&perpage=500">Students</a> --}}
+
+      </div>
+   </div>
    @if (in_array(auth()->user()->role_id, $allowedRoles))
-      <div class="col-md-3 mb-3">
+   <div class="col-md-3 mb-3">
+      <div class="card-counter bg-danger">
+         <a href="{{ route('todo.index') }}"><i class="fa fas fa-users text-white"></i></a>
+         <span class="count-numbers"><a href="{{ route('students.index') }}">{{$allStudent}}</a></span>
+         <span class="count-name"><a href="{{ route('students.index') }}">All Student</a></span>
+      </div>
+   </div>
+   <div class="col-md-3 mb-3">
       <div class="card-counter bg-success">
          <a href="{{ route('todo.index') }}"><i class="fa fas fa-layer-group text-white"></i></a>
          <span class="count-numbers"><a href="{{ route('todo.index') }}">{{$paperSubmitted}}</a></span>
@@ -34,13 +51,7 @@ $allowedRoles = [1, 2, 3];
       </div>
    </div>
    @endif
-   <div class="col-md-3 mb-3">
-      <div class="card-counter bg-danger">
-         <a href="{{ route('todo.index') }}"><i class="fa fas fa-users text-white"></i></a>
-         <span class="count-numbers"><a href="{{ route('students.index') }}">{{$allStudent}}</a></span>
-         <span class="count-name"><a href="{{ route('students.index') }}">All Student</a></span>
-      </div>
-   </div>
+   
    {{-- <div class="col-md-3 mb-3">
       <div class="card-counter bg-warning">
          <a href="{{ route('todo.index') }}"><i class="fa fas fa-users text-white"></i></a>
