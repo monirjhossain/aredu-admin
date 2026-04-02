@@ -77,9 +77,12 @@
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h4 class="mb-0">Student Information</h4>
-            <a href="{{ route('students.edit', [$student->id]) }}" class="btn btn-warning btn-sm rounded-pill font-weight-bold d-flex align-items-center" title="Edit">
-                <i class="fas fa-edit mr-1"></i> Edit
-            </a>
+                <a href="{{ route('student.invoices.index') }}?student={{ $student->id }}" class="btn btn-dark btn-sm rounded-pill font-weight-bold d-flex align-items-center" title="Edit">
+                    <i class="fas fa-file-invoice mr-1"></i> Invoice List
+                </a>
+                <a href="{{ route('students.edit', [$student->id]) }}" class="btn btn-dark btn-sm rounded-pill font-weight-bold d-flex align-items-center" title="Edit">
+                    <i class="fas fa-edit mr-1"></i> Edit
+                </a>
         </div>
         <div class="card-body">
             <div class="row">

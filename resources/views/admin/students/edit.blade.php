@@ -29,7 +29,11 @@
                     <div class="card-header">
                         <div class="d-flex justify-content-between align-items-center">
                             <h3 class="">{{$title}}</h3>
-                            <a href="{{ route($url.'.index') }}" class="btn btn-primary">Go Back to {{$type}} List</a>
+                            <div>
+                                <a href="{{ route('students.show', $student->id) }}" class="btn btn-primary"> <i class="fas fa-eye"></i>Details</a>
+                                <a href="{{ route('student.invoices.index') }}?student={{ $student->id }}" class="btn btn-primary"" title="Invoice List"><i class="fas fa-file-invoice mr-1"></i>Invoice List</a>
+                                <a href="{{ route($url.'.index') }}" class="btn btn-primary">Go Back to {{$type}} List</a>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body p-0">

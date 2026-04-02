@@ -23,6 +23,13 @@
             </div>
             <div class="card-toolbar">
                 <a onclick="submitDetailsForm()" class="btn btn-primary mr-1"> <i class="la la-search"></i>Search </a>
+                
+                @if ($student)
+                <a href="{{ route('students.show', $student->id) }}" class="btn btn-primary mr-1"> <i class="fas fa-eye"></i>Details</a>
+                <a href="{{ route('students.edit', [$student->id]) }}" class="btn btn-primary mr-1" title="Edit">
+                    <i class="fas fa-edit mr-1"></i> Edit
+                </a>
+                @endif
                 <a href="{{ route($url.'.create') }}{{$request->student ? '?student='.$request->student :'' }}" class="btn btn-primary"> <i class="la la-plus"></i> Create {{ $type }}</a>
             </div>
             <div class="d-flex align-items-center">

@@ -29,7 +29,11 @@
                     <div class="card-header">
                         <div class="d-flex justify-content-between align-items-center">
                             <h3 class="">{{$title}}</h3>
+                            @if ($student)
+                            <a href="{{ route($url.'.index') }}?student={{ $student->id }}" class="btn btn-primary">Go Back to {{$type}} List</a>
+                            @else
                             <a href="{{ route($url.'.index') }}" class="btn btn-primary">Go Back to {{$type}} List</a>
+                            @endif
                         </div>
                     </div>
                     <div class="card-body p-0">
