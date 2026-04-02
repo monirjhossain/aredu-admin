@@ -102,7 +102,7 @@ class StudentController extends Controller
             $students->where(function ($q) use ($request) {
             $q->where('first_name', 'like', '%' . $request->input('search') . '%')
                 ->orWhere('last_name', 'like', '%' . $request->input('search') . '%')
-                ->orWhere('study_level', 'like', '%' . $request->input('search') . '%')
+                ->orWhere('study_id', 'like', '%' . $request->input('search') . '%')
                 // ->orWhere('subject', 'like', '%' . $request->input('search') . '%')
                 ->orWhereHas('subjects', function ($q) use ($request) {
                     $q->where('name', 'like', '%' . $request->input('search') . '%');
