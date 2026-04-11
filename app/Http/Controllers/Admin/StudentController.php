@@ -270,9 +270,9 @@ class StudentController extends Controller
         $data['url'] = 'students';
         $data['print'] = $request->input('print');
         $data['study_levels'] = Study::all();
-        $data['subjects'] = Subject::all();
+        $data['subjects'] = Subject::orderBy('name', 'asc')->get();
         $data['intakes'] = $this->intakeCreate();
-        $data['universities'] = Post::select('id', 'post_title')->where('post_type', 'university')->get();
+        $data['universities'] = Post::orderBy('post_title', 'asc')->select('id', 'post_title')->where('post_type', 'university')->get();
         $data['student_statuses'] = StudentStatus::select('id', 'name')->get();
         $data['counselors'] = $counselors;
         // return $data;
