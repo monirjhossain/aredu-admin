@@ -118,6 +118,7 @@
                         </select>
                     </div>
                     <input id="print" type="hidden" name="print" value="no">
+                    <input id="export" type="hidden" name="export" value="no">
                 </div>
             </form>
             <div class="card-toolbar">
@@ -138,6 +139,7 @@
                 <a onclick="submitDetailsForm('no')" class="btn btn-primary mr-1"> <i class="la la-search"></i>Search </a>
                 <a href="{{ route('students.index') }}" class="btn btn-primary mr-1"> <i class="la la-undo"></i>Reset </a>
                 <a onclick="submitDetailsForm('yes')" class="btn btn-primary mr-1"> <i class="la la-print"></i>Print </a>
+                <a onclick="submitDetailsForm('export')" class="btn btn-success mr-1"> <i class="la la-download"></i>Export </a>
                 <a href="{{ route($url . '.create') }}" class="btn btn-primary mr-1"> <i class="la la-plus"></i> Create
                     {{ $type }}</a>
                 {{-- <a href="#" linkUrl="{{ route('student.sendBulkSms') }}" class="btn btn-primary sms_send mr-1"><i class="fas fa-envelope" title="Invoice List"></i>
@@ -395,8 +397,13 @@
     function submitDetailsForm(type) {
         if(type == 'yes'){
             $('#searchForm #print').val('yes');
+            $('#searchForm #export').val('no');
+        }else if(type == 'export'){
+            $('#searchForm #print').val('no');
+            $('#searchForm #export').val('yes');
         }else{
             $('#searchForm #print').val('no');
+            $('#searchForm #export').val('no');
         }
         $("#searchForm").submit();
     }

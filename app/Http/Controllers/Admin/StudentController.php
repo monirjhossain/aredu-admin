@@ -34,6 +34,34 @@ class StudentController extends Controller
 
     use UploadAble;
 
+    private function downloadRowsAsCsv(array $rows, string $filename)
+    {
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ];
+
+        $callback = function () use ($rows) {
+            $handle = fopen('php://output', 'w');
+
+            // UTF-8 BOM improves Excel compatibility for UTF-8 text.
+            fwrite($handle, "\xEF\xBB\xBF");
+
+            if (!empty($rows)) {
+                fputcsv($handle, array_keys($rows[0]));
+                foreach ($rows as $row) {
+                    fputcsv($handle, array_values($row));
+                }
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -167,6 +195,71 @@ class StudentController extends Controller
         $perPage = (int) $request->input('perpage', 20);
         if ($perPage <= 0) {
             $perPage = 20;
+        }
+
+        if ($request->input('export') === 'yes') {
+            $exportStudents = (clone $students)
+                ->with([
+                    'student_status',
+                    'branchInfo',
+                    'subjects',
+                    'universitiesAppStatus',
+                    'educationQualifications',
+                    'sncounselor',
+                    'jncounselor'
+                ])
+                ->get();
+
+            $rows = $exportStudents->map(function ($student) {
+                $education = $student->educationQualifications->sortByDesc('id')->first();
+                $applicationNumbers = $student->universitiesAppStatus
+                    ->pluck('application_no')
+                    ->filter()
+                    ->unique()
+                    ->implode(', ');
+
+                return [
+                    'Name' => $student->full_name ?? '',
+                    'Passport Number' => $student->passport ?? '',
+                    'Application Number' => $applicationNumbers,
+                    'Status' => optional($student->student_status)->name ?? '',
+                    'Subject' => $student->subjects->pluck('name')->implode(', '),
+                    'Mobile number' => $student->mobile_no ?? '',
+                    'CGPA' => optional($education)->result ?? '',
+                    'Passing Year' => optional(optional($education)->attend_to)->format('Y') ?? '',
+                    'Branch' => optional($student->branchInfo)->name ?? '',
+                    'English language' => $student->language_cer ?? '',
+                    'CSCA-Mathmatics' => $student->csca_mathmatics ?? $student->csca_mathematics ?? '',
+                    'CSCA-Chemistry' => $student->csca_chemistry ?? '',
+                    'CSCA-Physics' => $student->csca_physics ?? '',
+                    'Senior Counselor' => optional($student->sncounselor)->name ?? '',
+                    'Junior Counselor' => optional($student->jncounselor)->name ?? '',
+                    'Remarks' => optional($education)->remarks ?? $student->note ?? '',
+                ];
+            })->values()->all();
+
+            if (empty($rows)) {
+                $rows[] = [
+                    'Name' => 'No data found for selected filters',
+                    'Passport Number' => '',
+                    'Application Number' => '',
+                    'Status' => '',
+                    'Subject' => '',
+                    'Mobile number' => '',
+                    'CGPA' => '',
+                    'Passing Year' => '',
+                    'Branch' => '',
+                    'English language' => '',
+                    'CSCA-Mathmatics' => '',
+                    'CSCA-Chemistry' => '',
+                    'CSCA-Physics' => '',
+                    'Senior Counselor' => '',
+                    'Junior Counselor' => '',
+                    'Remarks' => '',
+                ];
+            }
+
+            return $this->downloadRowsAsCsv($rows, 'Students_Filtered_Report.csv');
         }
 
         $totalStudent = $students->count();
@@ -538,6 +631,7 @@ class StudentController extends Controller
             return redirect()->route('students.index');
         }
     }
+
     public function applicationForm()
     {
         $data['title'] = 'Student Application Form';

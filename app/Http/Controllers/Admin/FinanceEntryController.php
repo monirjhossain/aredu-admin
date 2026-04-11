@@ -14,10 +14,42 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Throwable;
 
 
 class FinanceEntryController extends Controller
 {
+
+
+    private function downloadAsCsv($rows, string $filename)
+    {
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ];
+
+        $callback = function () use ($rows) {
+            $handle = fopen('php://output', 'w');
+
+            // UTF-8 BOM for Excel compatibility.
+            fwrite($handle, "\xEF\xBB\xBF");
+
+            $firstRow = $rows->first();
+            if (is_array($firstRow)) {
+                fputcsv($handle, array_keys($firstRow));
+            }
+
+            foreach ($rows as $row) {
+                fputcsv($handle, array_values((array) $row));
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 
     /**
      * Export filtered finance entries to Excel.
@@ -74,16 +106,21 @@ class FinanceEntryController extends Controller
             ];
         });
 
-        // Use Laravel Excel 3.x+ to export
-        // If not installed: composer require maatwebsite/excel
-        // Create a simple export class on the fly
-        $export = new class($exportData) implements \Maatwebsite\Excel\Concerns\FromCollection, \Maatwebsite\Excel\Concerns\WithHeadings {
-            protected $data;
-            public function __construct($data) { $this->data = $data; }
-            public function collection() { return collect($this->data); }
-            public function headings(): array { return array_keys($this->data->first() ?? []); }
-        };
-        return \Maatwebsite\Excel\Facades\Excel::download($export, 'FinanceEntriesReport.xlsx');
+        try {
+            // Use Laravel Excel 3.x+ to export when available.
+            $export = new class($exportData) implements \Maatwebsite\Excel\Concerns\FromCollection, \Maatwebsite\Excel\Concerns\WithHeadings {
+                protected $data;
+                public function __construct($data) { $this->data = $data; }
+                public function collection() { return collect($this->data); }
+                public function headings(): array { return array_keys($this->data->first() ?? []); }
+            };
+            return \Maatwebsite\Excel\Facades\Excel::download($export, 'FinanceEntriesReport.xlsx');
+        } catch (Throwable $e) {
+            report($e);
+
+            // Fallback for servers where Excel package binding is unavailable.
+            return $this->downloadAsCsv($exportData, 'FinanceEntriesReport.csv');
+        }
     }
     
     public function index(Request $request)
