@@ -16,9 +16,34 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Maatwebsite\Excel\Facades\Excel;
+use Throwable;
 
 class ReportsController extends Controller
 {
+    private function downloadBladeAsExcel(string $view, array $data, string $filename)
+    {
+        $content = view($view, $data)->render();
+
+        return response($content, 200, [
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ]);
+    }
+
+    private function safeExcelDownload($export, string $filename, string $fallbackView, array $fallbackData)
+    {
+        try {
+            return Excel::download($export, $filename);
+        } catch (Throwable $e) {
+            report($e);
+            $fallbackFilename = preg_replace('/\.xlsx$/i', '.xls', $filename);
+
+            return $this->downloadBladeAsExcel($fallbackView, $fallbackData, $fallbackFilename);
+        }
+    }
+
     public function index(Request $request)
     {
         $perPage = request()->get('perpage', 20);
@@ -52,7 +77,12 @@ class ReportsController extends Controller
                     ->where('type', 'expense')
                     ->with('expense')
                     ->get();
-                    return Excel::download(new \App\Exports\ExpenseSummaryExport($entries), 'CategoryCost_summery.xlsx');
+                    return $this->safeExcelDownload(
+                        new \App\Exports\ExpenseSummaryExport($entries),
+                        'CategoryCost_summery.xlsx',
+                        'admin.reports.export_expense_summary',
+                        ['entries' => $entries]
+                    );
                 } elseif ($type === 'income_summary') {
                     $entries = $financeEntry->select(
                         'category_id',
@@ -64,7 +94,12 @@ class ReportsController extends Controller
                     ->where('type', 'income')
                     ->with('income')
                     ->get();
-                    return Excel::download(new \App\Exports\IncomeSummaryExport($entries), 'CategoryIncome_summery.xlsx');
+                    return $this->safeExcelDownload(
+                        new \App\Exports\IncomeSummaryExport($entries),
+                        'CategoryIncome_summery.xlsx',
+                        'admin.reports.export_income_summary',
+                        ['entries' => $entries]
+                    );
                 }
             } else if ($type === 'student_summary') {
                 $financeEntry = FinanceEntry::orderBy('student_id', 'ASC');
@@ -90,7 +125,12 @@ class ReportsController extends Controller
                     ->groupBy('student_id')
                     ->with('student')
                     ->get();
-                return Excel::download(new \App\Exports\StudentSummaryExport($entries), 'StudentSummary.xlsx');
+                return $this->safeExcelDownload(
+                    new \App\Exports\StudentSummaryExport($entries),
+                    'StudentSummary.xlsx',
+                    'admin.reports.export_student_summary',
+                    ['entries' => $entries]
+                );
             }
         }
 
