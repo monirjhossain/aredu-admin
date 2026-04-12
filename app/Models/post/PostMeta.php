@@ -17,9 +17,9 @@ use Illuminate\Support\Str;
 
 class PostMeta extends Model
 {
-    use HasFactory, ModelSearchAble, SoftDeletes;
+    use HasFactory, ModelSearchAble;
 
-    protected $table = 'post_metas';
+    // protected $table = 'post_metas';
     protected $fillable = [
         'post_id',
         'meta_key',

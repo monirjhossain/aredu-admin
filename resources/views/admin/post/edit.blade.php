@@ -73,6 +73,17 @@
                                         </div> --}}
                                         @if ( $type == 'university')
                                         <div class="form-group">
+                                            <label for="link">Application Portal Link</label>
+                                            <input type="text" name="meta[link]" value="{{ $post->getMeta('link') }}" class="form-control" placeholder="Enter">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="user">User</label>
+                                            <input type="text" name="meta[user]" value="{{ old('meta.user', $post->getMeta('user')) }}" class="form-control" placeholder="Enter">
+                                        </div><div class="form-group">
+                                            <label for="password">Password</label>
+                                            <input type="text" name="meta[password]" value="{{ old('meta.password', $post->getMeta('password')) }}" class="form-control" placeholder="Enter">
+                                        </div>
+                                        <div class="form-group">
                                             <label class="control-label" for="subjects">Subject / Mejos</label>
                                             <div class="flex-wrap border p-3" style="height: 200px; overflow: scroll;">
                                                 @foreach($subjects as $subject)

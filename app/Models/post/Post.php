@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Student\Student;
 use App\Models\Subject;
 use App\Models\Tag;
+use App\Models\Post\PostMeta;
 use App\Models\User;
 use App\Traits\ModelSearchAble;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -89,10 +90,15 @@ class Post extends Model
     }
     public function postMetas()
     {
-        return $this->belongsToMany(PostMeta::class);
+        return $this->hasMany(PostMeta::class, 'post_id');
     }
     public function categories()
     {
         return $this->belongsToMany(Category::class)->orderByDesc('id');
+    }
+    public function getMeta($key, $default = null)
+    {
+        $meta = $this->postMetas->firstWhere('meta_key', $key);
+        return $meta ? $meta->meta_value : $default;
     }
 }
