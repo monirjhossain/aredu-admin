@@ -42,9 +42,20 @@
                                         @include('includes.errors')
                                         <div class="form-group">
                                             <label for="post_title">Title</label>
-                                            <input type="name" name="post_title" value="{{ old('post_title') }}" class="form-control" placeholder="Enter title">
+                                            <input type="text" name="post_title" value="{{ old('post_title') }}" class="form-control" placeholder="Enter title">
                                         </div>
                                         @if ( $type == 'university')
+                                        <div class="form-group">
+                                            <label for="link">Application Portal Link</label>
+                                            <input type="text" name="meta[link]" value="{{ old('link') }}" class="form-control" placeholder="Enter">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="user">User</label>
+                                            <input type="text" name="meta[user]" value="{{ old('user') }}" class="form-control" placeholder="Enter">
+                                        </div><div class="form-group">
+                                            <label for="password">Password</label>
+                                            <input type="text" name="meta[password]" value="{{ old('password') }}" class="form-control" placeholder="Enter">
+                                        </div>
                                         <div class="form-group">
                                             <label class="control-label" for="categories">Subjects / Major</label>
                                             <div class="flex-wrap border p-3" style="height: 200px; overflow: scroll;">
@@ -94,7 +105,7 @@
                                         </div>
                                         {{-- <div class="form-group">
                                             <label for="video">Video Link (Optional) <Small>(IF post type video than mandatory with embed)</Small></label>
-                                            <input type="name" name="video" value="{{ old('video') }}" class="form-control" placeholder="https://www.youtube.com/embed/67Pbeq_TUKU">
+                                            <input type="text" name="video" value="{{ old('video') }}" class="form-control" placeholder="https://www.youtube.com/embed/67Pbeq_TUKU">
                                         </div> --}}
                                         <div class="tile-body">
                                             <div class="row">

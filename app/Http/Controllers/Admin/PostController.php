@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Session;
 use App\Models\Category;
 use App\Http\Requests\Post\PostRequest;
 use App\Models\Post\Post;
+use App\Models\Post\PostMeta;
 use App\Models\Subject;
 use App\Models\Tag;
 use Illuminate\Http\Request;
@@ -124,7 +125,7 @@ class PostController extends Controller
         $data['tags'] = Tag::orderBy('name', 'ASC')->get();
         $data['categories'] = Category::orderBy('name', 'ASC')->get();
         return view('admin.post.create')->with($data);
-    }
+}
 
     public function store(PostRequest $request)
     {
@@ -146,6 +147,17 @@ class PostController extends Controller
             }
             $post->tags()->attach($request->tags);
             $post->categories()->attach($request->categories);
+            if($request->meta){
+                $data = collect($request->meta)->map(function ($value, $key) use ($post) {
+                    return [
+                        'post_id'    => $post->id,
+                        'meta_key'        => $key,
+                        'meta_value'      => $value,
+                    ];
+                })->values()->toArray();
+                PostMeta::insert($data);
+            }
+
             DB::commit();
             return redirect()->back()->with('success', 'Successfully Added');
         } catch (\Throwable $th) {

@@ -3,6 +3,7 @@
 namespace App\Models\Post;
 
 use App\Models\Category;
+
 use App\Models\Student\Student;
 use App\Models\Subject;
 use App\Models\Tag;
@@ -85,6 +86,10 @@ class Post extends Model
     public function tags()
     {
         return $this->belongsToMany(Tag::class);
+    }
+    public function postMetas()
+    {
+        return $this->belongsToMany(PostMeta::class);
     }
     public function categories()
     {
