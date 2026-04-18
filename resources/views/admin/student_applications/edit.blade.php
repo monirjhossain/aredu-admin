@@ -20,7 +20,9 @@
                 </div>
                 <div class="col-md-6">
                     <h3>Application Details</h3>
-                    <p><strong>University:</strong> {{ $application->university->post_title }}</p>
+                    <p><strong>University:</strong>
+                        <a href="{{ route('universities.show', [$application->university->id]) }}">{{ $application->university->post_title }}</a>
+                    </p>
                     <p><strong>Subject:</strong> {{ $application->subject->name }}</p>
                     <p><strong>Current Status:</strong> <span class="badge badge-info">{{ $application->statusUni->name }}</span></p>
                 </div>
@@ -45,7 +47,28 @@
                 <div class="form-group">
                     <label for="application_no">  Application No</label>
                     <input type="text" value="{{ old('application_no', $application->application_no) }}" name="application_no" class="form-control" placeholder="Enter application no">
-                    {{-- <textarea name="application_no" id="application_no" rows="3" class="form-control" placeholder="Enter application no">{{ old('note', $application->application_no) }} --}}
+                </div>
+                <div class="form-group">
+                    <label for="portal_type">Is this agent portal?</label>
+                        <label>
+                            <input type="radio" name="portal_type" value="1" required {{ old('portal_type', $application->portal_type ?? 1) == 1 ? 'checked' : '' }}>
+                            Yes
+                        </label>
+                
+                        <label>
+                            <input type="radio" name="portal_type" value="0" {{ old('portal_type', $application->portal_type ?? 0) == 0 ? 'checked' : '' }}>
+                            No
+                        </label>
+                </div>
+                <div id="credentials_fields" style="display: none;">
+                <div class="form-group">
+                    <label for="login_id">Login ID</label>
+                    <input type="text" value="{{ old('login_id', $application->login_id) }}" name="login_id" class="form-control" placeholder="Enter">
+                </div>
+                <div class="form-group">
+                    <label for="login_password">Login Password</label>
+                    <input type="text" value="{{ old('login_id', $application->login_password) }}" name="login_password" class="form-control" placeholder="Enter">
+                </div>
                 </div>
                 <div class="form-group">
                     <label for="note">Note</label>
@@ -114,4 +137,29 @@
         </div>
     </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const radios = document.querySelectorAll('input[name="portal_type"]');
+    const fields = document.getElementById('credentials_fields');
+
+    function toggleCredentials() {
+        const selected = document.querySelector('input[name="portal_type"]:checked').value;
+
+        if (selected === '0') {
+            fields.style.display = 'block';
+        } else {
+            fields.style.display = 'none';
+        }
+    }
+
+    // Attach event listener to both radios
+    radios.forEach(radio => {
+        radio.addEventListener('change', toggleCredentials);
+    });
+
+    // Run on load
+    toggleCredentials();
+});
+</script>
 @endsection

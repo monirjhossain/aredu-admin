@@ -101,6 +101,13 @@ class Student extends Model
     {
         return $this->hasMany(StudentUniversity::class);
     }
+    public function universityById($universityId)
+    {
+        return $this->universitiesAppStatus()
+            ->where('university_id', $universityId)
+            ->first();
+    }
+
     public function subjects()
     {
         return $this->belongsToMany(Subject::class);
