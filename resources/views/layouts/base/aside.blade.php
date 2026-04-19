@@ -451,13 +451,13 @@
                                     </a>
                                 </li>
                             @endforeach
-                            @endif
                             <li class="menu-item {{ request()->is('students') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="{{ route('students.index') }}?universitylist=1" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                     <span class="menu-text font-weight-bolder">University Report</span>
                                 </a>
                             </li>
+                            @endif
                                 
                             {{-- <li class="menu-item {{ request()->is('students') ? 'menu-item-active' : '' }}""
                                 aria-haspopup="true">
