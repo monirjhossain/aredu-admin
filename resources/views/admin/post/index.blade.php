@@ -72,12 +72,13 @@
                                     <th>Title</th>
                                     @if ($type == 'university')
                                     <th>subjects</th>
+                                    <th>Credintial</th>
                                     @endif
                                     <th>Category</th>
                                     <th>Author</th>
-                                    <th style="width: 130px">Created Date</th>
+                                    <th style="">Created Date</th>
                                     <th>Status</th>
-                                    <th style="width: 40px">Action</th>
+                                    <th style="">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -97,6 +98,13 @@
                                             @foreach($post->subjects as $sub)
                                             <span class="badge badge-primary">{{ $sub->name }} </span>
                                             @endforeach
+                                        </td>
+                                        <td>
+                                            @forelse ($post->postMetas as $item)
+                                            {{ $item->meta_key ?? '-' }} : {{ $item->meta_value ?? '-' }} <br>
+                                            @empty
+                                            -                                            
+                                            @endforelse($post->subjects as $sub)
                                         </td>
                                         @endif
                                         <td>

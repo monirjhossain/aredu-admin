@@ -282,12 +282,15 @@
                         <th>University</th>
                         <th>Subject</th>
                         <th>Status</th>
+                        @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,3]))
+                        <th>Credintial</th>
+                        @endif
                         <th>Note</th>
                         <th>Remarks</th>
                         <th>Admission Notice</th>
                         <th>JW Copy</th>
                         <th>Visa Copy</th>
-                        <th style="width:100px; min-width:100px;" class="text-center text-danger"><i class="fa fa-bolt"></i></th>
+                        <th class="text-center text-danger"><i class="fa fa-bolt"></i></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -309,6 +312,18 @@
                                     @endforeach
                                 </div>
                             </td>
+                            @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,3]))
+                            <td>
+                                Link: {{ $item->university->getMeta('link') }}<br>
+                                @if($item->portal_type == 1)
+                                    User ID: {{$item->university->getMeta('user')}}<br>
+                                    Password: {{$item->university->getMeta('password')}} <br>
+                                @else
+                                    User ID: {{$item->login_id}}<br>
+                                    Password: {{$item->login_password}}<br>
+                                @endif
+                            </td>
+                            @endif
                             <td>{{ $item->note ?? '-'}}</td>
                             <td>{{ $item->remarks ?? '-'}}</td>
                             <td class="text-center">
