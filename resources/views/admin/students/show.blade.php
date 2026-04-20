@@ -138,6 +138,15 @@
                             <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->last_education }}</span>
                         </li>
                         <li class="list-group-item">
+                            <span class="fw-bold text-dark ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-flask me-2 pe-1"></i></span><span class="ms-3">CSCA Background:</span></span>
+                            <div class="ms-5 mt-2 text-dark" style="font-size:1.05rem; line-height: 1.6;">
+                                <div><b>Have CSCA:</b> {{ (int)($student->has_csca ?? 0) === 1 ? 'Yes' : 'No' }}</div>
+                                <div><b>Math Result:</b> {{ $student->csca_math ?? '-' }}</div>
+                                <div><b>Physics Result:</b> {{ $student->csca_physics ?? '-' }}</div>
+                                <div><b>Chemistry Result:</b> {{ $student->csca_chemistry ?? '-' }}</div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
                             <span class="fw-bold text-muted ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-comment-dots me-2 pe-1"></i></span><span class="ms-3">Remark:</span></span>
                             <span class="ms-3 text-dark" style="font-size:1.18rem;">{!! nl2br(e($student->note)) !!}</span>
                         </li>

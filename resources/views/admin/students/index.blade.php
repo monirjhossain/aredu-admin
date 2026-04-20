@@ -138,7 +138,7 @@
                 </form>
                 <a onclick="submitDetailsForm('no')" class="btn btn-primary mr-1"> <i class="la la-search"></i>Search </a>
                 <a href="{{ route('students.index') }}" class="btn btn-primary mr-1"> <i class="la la-undo"></i>Reset </a>
-                <a onclick="submitDetailsForm('yes')" class="btn btn-primary mr-1"> <i class="la la-print"></i>Print </a>
+                <!-- <a onclick="submitDetailsForm('yes')" class="btn btn-primary mr-1"> <i class="la la-print"></i>Print </a> -->
                 <a onclick="submitDetailsForm('export')" class="btn btn-success mr-1"> <i class="la la-download"></i>Export </a>
                 <a href="{{ route($url . '.create') }}" class="btn btn-primary mr-1"> <i class="la la-plus"></i> Create
                     {{ $type }}</a>
