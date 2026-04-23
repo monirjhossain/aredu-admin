@@ -22,6 +22,9 @@ class StudentRequest extends FormRequest
             "last_name" =>  'required',
             "passport" =>  'required',
             "mobile_no" =>  'required',
+            'csca_exams' => 'nullable|array',
+            'csca_exams.*.exam_id' => 'nullable|distinct|exists:csca_exams,id|required_with:csca_exams.*.result',
+            'csca_exams.*.result' => 'nullable|string|max:255|required_with:csca_exams.*.exam_id',
             // Last Education Qualification validation
             'educations.education_level_id.*' => 'required', // Degree
             'educations.attend_from.*' => 'required|date',   // Year (From)

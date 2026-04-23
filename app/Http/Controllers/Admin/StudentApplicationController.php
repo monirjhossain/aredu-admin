@@ -210,6 +210,8 @@ class StudentApplicationController extends Controller
         try {
             $oldStatus = $application->status_id;
             $oldStatusName = optional($application->statusUni)->name;
+            $oldNote = isset($application->note) ? trim((string) $application->note) : '';
+            $oldRemarks = isset($application->remarks) ? trim((string) $application->remarks) : '';
             $application->status_id = $request->status_id;
             if ($request->has('note')) {
                 $application->note = $request->note;
@@ -242,15 +244,20 @@ class StudentApplicationController extends Controller
 
             $application->save();
             $application->refresh(); // Ensure latest status
+            $newNote = isset($application->note) ? trim((string) $application->note) : '';
+            $newRemarks = isset($application->remarks) ? trim((string) $application->remarks) : '';
 
-            // Only record status change and notify if status_id actually changed
-            if ($oldStatus != $application->status_id) {
+            // Notify on status change and note/remarks updates.
+            $statusChanged = $oldStatus != $application->status_id;
+            $noteOrRemarksChanged = ($oldNote !== $newNote) || ($oldRemarks !== $newRemarks);
+            if ($statusChanged || $noteOrRemarksChanged) {
                 $actor = Auth::user();
                 $student = Student::find($application->student_id);
                 $studentUser = $student ? $student->user : null; // Assuming Student model has user() relation
                 $newStatusName = optional($application->statusUni)->name;
                 $actorName = $actor ? $actor->name : 'System';
-                $notification = new \App\Notifications\StatusChangedNotification($application, $oldStatusName, $newStatusName, 'university', $actorName);
+                $eventType = $statusChanged ? 'status_changed' : 'note_remarks_updated';
+                $notification = new \App\Notifications\StatusChangedNotification($application, $oldStatusName, $newStatusName, 'university', $actorName, $eventType);
                 // Notify actor (if not the student user)
                 if ($actor && (!$studentUser || $actor->id !== $studentUser->id) && method_exists($actor, 'notify')) {
                     $actor->notify($notification);
@@ -274,7 +281,7 @@ class StudentApplicationController extends Controller
                 }
 
                 // Send email to student on university status change using '[Status Change]' template
-                if($student && isset($student->email)){
+                if($statusChanged && $student && isset($student->email)){
                     // Always use student's junior counselor info for mail, regardless of actor
                     $JuniorCounselorName = $student->jncounselor ? $student->jncounselor->name : 'N/A';
                     $JuniorCounselorMobile = $student->jncounselor ? $student->jncounselor->mobile_no : 'N/A';
@@ -297,14 +304,16 @@ class StudentApplicationController extends Controller
                     }
                 }
 
-                // record the status change
-                UniversityApplicationStatus::where('student_university_id', $application->id)->update(['active' => 0]);
-                UniversityApplicationStatus::create([
-                    'student_university_id' => $application->id,
-                    'status_id' => $request->status_id,
-                    'updated_by' => Auth::id(),
-                    'active' => 1
-                ]);
+                if ($statusChanged) {
+                    // record the status change
+                    UniversityApplicationStatus::where('student_university_id', $application->id)->update(['active' => 0]);
+                    UniversityApplicationStatus::create([
+                        'student_university_id' => $application->id,
+                        'status_id' => $request->status_id,
+                        'updated_by' => Auth::id(),
+                        'active' => 1
+                    ]);
+                }
             }
 
             DB::commit();

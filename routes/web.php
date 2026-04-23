@@ -16,6 +16,7 @@ use App\Http\Controllers\MyProfileController;
 use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\ReportsController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\CSCAExamController;
 use App\Http\Controllers\Admin\StudentApplicationController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\StudentInvoiceController;
@@ -109,7 +110,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('student_status', SettingController::class);
         Route::resource('university_status', SettingController::class);
         Route::resource('sms_template', SettingController::class);
-
+        Route::resource('csca_exam', CSCAExamController::class);
     });
 
     Route::resource('currencies', CurrencyController::class);

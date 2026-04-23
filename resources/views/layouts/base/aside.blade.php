@@ -225,7 +225,7 @@
                         </ul>
                     </div>
                 </li>
-                
+
                 <li class="menu-item {{ request()->is('success-story') ? 'menu-item-open' : '' }} {{ request()->is('success-story/*') ? 'menu-item-open' : '' }}"
                     aria-haspopup="true" data-menu-toggle="hover">
                     <a href="javascript:;" class="menu-link menu-toggle">
@@ -252,7 +252,7 @@
                         </ul>
                     </div>
                 </li>
-                
+
                 <li class="menu-item {{ request()->is('events') ? 'menu-item-open' : '' }} {{ request()->is('events/*') ? 'menu-item-open' : '' }}"
                     aria-haspopup="true" data-menu-toggle="hover">
                     <a href="javascript:;" class="menu-link menu-toggle">
@@ -306,7 +306,7 @@
                         </ul>
                     </div>
                 </li>
-                
+
                 <li class="menu-item {{ request()->is('sliders') ? 'menu-item-open' : '' }} {{ request()->is('sliders/*') ? 'menu-item-open' : '' }}"
                     aria-haspopup="true" data-menu-toggle="hover">
                     <a href="javascript:;" class="menu-link menu-toggle">
@@ -458,7 +458,7 @@
                                     <span class="menu-text font-weight-bolder">University-wise</span>
                                 </a>
                             </li>
-                                
+
                             {{-- <li class="menu-item {{ request()->is('students') ? 'menu-item-active' : '' }}""
                                 aria-haspopup="true">
                                 <a href="{{ route('students.index') }}?type=Processing" class="menu-link">
@@ -591,6 +591,13 @@
                                 <a href="{{ route('setting.university_status.index') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                     <span class="menu-text font-weight-bolder">University status</span>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ request()->is('setting/csca_exam') ? 'menu-item-active' : '' }}"
+                                aria-haspopup="true">
+                                <a href="{{ route('setting.csca_exam.index') }}" class="menu-link">
+                                    <i class="menu-bullet menu-bullet-dot"><span></span></i>
+                                    <span class="menu-text font-weight-bolder">CSCA Exam</span>
                                 </a>
                             </li>
                         </ul>

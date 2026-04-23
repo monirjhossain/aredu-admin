@@ -17,14 +17,16 @@ class StatusChangedNotification extends Notification
     protected $type;
     protected $url;
     protected $actorName;
+    protected $eventType;
 
-    public function __construct($model, $oldStatus, $newStatus, $type, $actorName = null)
+    public function __construct($model, $oldStatus, $newStatus, $type, $actorName = null, $eventType = 'status_changed')
     {
         $this->model = $model;
         $this->oldStatus = $oldStatus;
         $this->newStatus = $newStatus;
         $this->type = $type;
         $this->actorName = $actorName;
+        $this->eventType = $eventType;
         // Determine URL based on type
         if ($type === 'student') {
             $this->url = route('students.show', $model->id);
@@ -55,6 +57,25 @@ class StatusChangedNotification extends Notification
      */
     public function toMail($notifiable)
     {
+        $note = isset($this->model->note) ? trim((string) $this->model->note) : '';
+        $remarks = isset($this->model->remarks) ? trim((string) $this->model->remarks) : '';
+
+        if ($this->eventType === 'note_remarks_updated') {
+            $details = '';
+            if ($note !== '') {
+                $details .= '<br>Note: <b>' . e($note) . '</b>';
+            }
+            if ($remarks !== '') {
+                $details .= '<br>Remarks: <b>' . e($remarks) . '</b>';
+            }
+
+            $actorName = $this->actorName ?: 'System';
+            $body = 'Dear ' . $notifiable->name . ',<br>Note/Remarks has been updated by <b>' . e($actorName) . '</b>.' . $details;
+            $body .= '<br><a href="' . $this->url . '">View Details</a>';
+
+            return (new \App\Mail\MailSystem($notifiable->name, $body, 'Note/Remarks Updated'));
+        }
+
         // Get the template for status change (create a new template in settings with name '[Status Change]')
         $template = \App\Models\SmsTemplate::where('name', '[Status Change]')->first();
         $body = '';
@@ -120,7 +141,13 @@ class StatusChangedNotification extends Notification
             $studentName = $this->model->full_name ?? ($this->model->first_name . ' ' . $this->model->last_name);
         }
 
-        if (empty($this->oldStatus) && $universityName) {
+        if ($this->eventType === 'note_remarks_updated') {
+            if ($universityName) {
+                $message = "{$studentName} - {$universityName} - Note/Remarks updated - by {$this->actorName}.";
+            } else {
+                $message = "{$studentName} - Note/Remarks updated - by {$this->actorName}.";
+            }
+        } elseif (empty($this->oldStatus) && $universityName) {
             // New university application added
             $message = "{$studentName} - {$universityName} - {$this->newStatus} - by {$this->actorName}.";
         } elseif (empty($this->oldStatus)) {

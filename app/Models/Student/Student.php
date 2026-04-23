@@ -6,6 +6,7 @@ use App\Models\Document;
 use App\Models\EducationQualification;
 use App\Models\Post\Post;
 use App\Models\StudentStatus;
+use App\Models\StudentCSCAExam;
 use App\Models\Branch;
 use App\Models\Study;
 use App\Models\Subject;
@@ -117,6 +118,10 @@ class Student extends Model
     public function educationQualifications()
     {
         return $this->hasMany(EducationQualification::class, 'student_id', 'id');
+    }
+    public function studentCscaExams()
+    {
+        return $this->hasMany(StudentCSCAExam::class, 'student_id', 'id');
     }
     protected static function boot()
     {

@@ -13,6 +13,8 @@ use App\Models\EducationLevel;
 use App\Models\EducationQualification;
 use App\Models\Inquiry\Inquiry;
 use App\Models\Post\Post;
+use App\Models\CSCAExam;
+use App\Models\Role;
 use App\Models\SmsTemplate;
 use App\Models\Student\Student;
 use App\Models\Student\StudentUniversity;
@@ -33,6 +35,34 @@ class StudentController extends Controller
 {
 
     use UploadAble;
+
+    private function normalizeCscaExamPayload(?array $cscaExams): array
+    {
+        return collect($cscaExams ?? [])
+            ->filter(function ($exam) {
+                return !empty($exam['exam_id']) && !empty($exam['result']);
+            })
+            ->map(function ($exam) {
+                return [
+                    'csca_exam_id' => (int) $exam['exam_id'],
+                    'result' => trim((string) $exam['result']),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    private function syncStudentCscaExams(Student $student, ?array $cscaExams): void
+    {
+        $normalizedExams = $this->normalizeCscaExamPayload($cscaExams);
+        $student->studentCscaExams()->delete();
+
+        if (empty($normalizedExams)) {
+            return;
+        }
+
+        $student->studentCscaExams()->createMany($normalizedExams);
+    }
 
     private function downloadRowsAsCsv(array $rows, string $filename)
     {
@@ -229,9 +259,6 @@ class StudentController extends Controller
                     'Passing Year' => optional(optional($education)->attend_to)->format('Y') ?? '',
                     'Branch' => optional($student->branchInfo)->name ?? '',
                     'English language' => $student->language_cer ?? '',
-                    'CSCA-Mathmatics' => $student->csca_mathmatics ?? $student->csca_mathematics ?? '',
-                    'CSCA-Chemistry' => $student->csca_chemistry ?? '',
-                    'CSCA-Physics' => $student->csca_physics ?? '',
                     'Senior Counselor' => optional($student->sncounselor)->name ?? '',
                     'Junior Counselor' => optional($student->jncounselor)->name ?? '',
                     'Remarks' => optional($education)->remarks ?? $student->note ?? '',
@@ -250,9 +277,6 @@ class StudentController extends Controller
                     'Passing Year' => '',
                     'Branch' => '',
                     'English language' => '',
-                    'CSCA-Mathmatics' => '',
-                    'CSCA-Chemistry' => '',
-                    'CSCA-Physics' => '',
                     'Senior Counselor' => '',
                     'Junior Counselor' => '',
                     'Remarks' => '',
@@ -307,10 +331,10 @@ class StudentController extends Controller
         $data['documents'] = Document::select('id', 'name')->orderBy('name', 'asc')->get();
         $data['studies'] = Study::select('id', 'name')->orderBy('name', 'asc')->get();
         $data['universities'] = Post::select('id', 'post_title')->orderby('post_title', 'ASC')->where('post_type', 'university')->get();
-
         $data['title'] = 'Student Create';
         $data['type'] = 'student';
         $data['url'] = 'students';
+        $data['csca_exams'] = CSCAExam::orderBy('name')->get();
 
         // return $data;
         return view('admin.students.create')->with($data);
@@ -363,6 +387,8 @@ class StudentController extends Controller
                 $education->save();
             }
 
+            $this->syncStudentCscaExams($student, $request->input('csca_exams'));
+
             if(isset($student->email)){
                 $template = SmsTemplate::where('name', '[File Open]')->firstOrFail();
                 $juniorCounselorName = $student->jncounselor ? $student->jncounselor->name : '';
@@ -397,7 +423,7 @@ class StudentController extends Controller
 
                 // Notify all users with specific roles
                 $roleNames = ['Admin', 'Super Admin', 'Assign Employee', 'Senior Counselor', 'Junior Counselor'];
-                $roles = \App\Models\Role::whereIn('user_type', $roleNames)->pluck('id');
+                $roles = Role::whereIn('user_type', $roleNames)->pluck('id');
                 $usersToNotify = \App\Models\User::whereIn('role_id', $roles)->get();
                 foreach ($usersToNotify as $user) {
                     // Avoid duplicate notification to actor or student user
@@ -430,7 +456,7 @@ class StudentController extends Controller
      */
     public function show(Student $student)
     {
-        $student->load('subjects', 'universities', 'documents', 'universitiesAppStatus'); // relation load koro
+        $student->load('subjects', 'universities', 'documents', 'universitiesAppStatus', 'studentCscaExams.cscaExam'); // relation load koro
 
         return view('admin.students.show', [
             'student' => $student,
@@ -443,6 +469,7 @@ class StudentController extends Controller
     public function edit(Student $student)
     {
         // return $student->educationQualifications;
+        $student->load('studentCscaExams');
         $currentYear= now()->year;
         $intake = [];
         for ($i=-2; $i < 3 && $i >-3; $i++) {
@@ -464,6 +491,7 @@ class StudentController extends Controller
         $data['title'] = 'Student Edit';
         $data['type'] = 'student';
         $data['url'] = 'students';
+        $data['csca_exams'] = CSCAExam::orderBy('name')->get();
         // return $data;
         return view('admin.students.edit')->with($data);
     }
@@ -475,20 +503,27 @@ class StudentController extends Controller
         try {
             $oldStatus = $student->status;
             $oldStatusName = optional($student->student_status)->name;
+            $oldNote = isset($student->note) ? trim((string) $student->note) : '';
+            $oldRemarks = isset($student->remarks) ? trim((string) $student->remarks) : '';
             // $student = new Student();
             $studentFillableData = $request->only($student->getFillable());
             $student->fill($studentFillableData)->save();
             $student->user_id = Auth::user()->id;
             $student->save();
+            $newNote = isset($student->note) ? trim((string) $student->note) : '';
+            $newRemarks = isset($student->remarks) ? trim((string) $student->remarks) : '';
 
-            // Status change notification logic
-            if ($oldStatus != $student->status) {
+            // Notify on status change and note/remarks updates.
+            $statusChanged = $oldStatus != $student->status;
+            $noteOrRemarksChanged = ($oldNote !== $newNote) || ($oldRemarks !== $newRemarks);
+            if ($statusChanged || $noteOrRemarksChanged) {
                 $actor = Auth::user();
                 $studentUser = $student->user; // Assuming Student model has user() relation
                 $student->load('student_status'); // Reload relationship to get new status name
                 $newStatusName = optional($student->student_status)->name;
                 $actorName = $actor ? $actor->name : 'System';
-                $notification = new \App\Notifications\StatusChangedNotification($student, $oldStatusName, $newStatusName, 'student', $actorName);
+                $eventType = $statusChanged ? 'status_changed' : 'note_remarks_updated';
+                $notification = new \App\Notifications\StatusChangedNotification($student, $oldStatusName, $newStatusName, 'student', $actorName, $eventType);
 
                 // Notify actor (if not the student user)
                 if ($actor && (!$studentUser || $actor->id !== $studentUser->id) && method_exists($actor, 'notify')) {
@@ -501,7 +536,7 @@ class StudentController extends Controller
 
                 // Notify all users with specific roles
                 $roleNames = ['Admin', 'Super Admin', 'Assign Employee', 'Senior Counselor', 'Junior Counselor'];
-                $roles = \App\Models\Role::whereIn('user_type', $roleNames)->pluck('id');
+                $roles = Role::whereIn('user_type', $roleNames)->pluck('id');
                 $usersToNotify = \App\Models\User::whereIn('role_id', $roles)->get();
                 foreach ($usersToNotify as $user) {
                     // Avoid duplicate notification to actor or student user
@@ -514,7 +549,7 @@ class StudentController extends Controller
                 }
 
                 // Send email to student on status change using '[Student Status]' template
-                if(isset($student->email)){
+                if($statusChanged && isset($student->email)){
                     $template = \App\Models\SmsTemplate::where('name', '[Student Status]')->first();
                     if ($template) {
                         $juniorCounselorName = $student->jncounselor ? $student->jncounselor->name : '';
@@ -532,7 +567,7 @@ class StudentController extends Controller
                         $subject = 'AR EDUCATION – Student Status Changed';
                         $name = $student->full_name;
                         $email = $student->email;
-                        \Mail::to($email)->send(new \App\Mail\MailSystem($name, $body, $subject));
+                        Mail::to($email)->send(new MailSystem($name, $body, $subject));
                     }
                 }
             }
@@ -540,6 +575,8 @@ class StudentController extends Controller
             $student->subjects()->sync($request->subjects);
             $student->documents()->sync($request->documents);
             $student->universities()->sync($request->universities);
+
+            $this->syncStudentCscaExams($student, $request->input('csca_exams'));
 
             $educations = $request->educations;
             $count = count($educations['education_level_id']); // total rows

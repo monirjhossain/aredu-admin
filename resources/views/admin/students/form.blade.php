@@ -11,7 +11,7 @@
                 </select>
             </div>
         </div>
-        
+
         <div class="col-lg-4 col-md-4 col-sm-12">
             <div class="form-group">
                 <label for="preferred_country">Preferred Country</label>
@@ -31,7 +31,7 @@
                 </select>
             </div>
         </div>
-        
+
         <div class="col-lg-4 col-md-4 col-sm-12">
             <div class="form-group">
                 <label for="intake">Intake</label>
@@ -87,7 +87,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-12">
             <h4>Student Info</h4>
             <hr>
@@ -180,10 +180,95 @@
                     class="form-control" placeholder="Type here">
             </div>
         </div>
-        <div class="col-12">
-            <h4>Last Education Qualification</h4>
+
+            <div class="col-12 d-flex align-items-center mb-2">
+                <h4>Last Education Qualification</h4>
+                <a href="#" id="toggle-csca-section" class="ml-3 btn btn-link">Have a CSCA?</a>
+            </div>
+        @php
+            $existingCscaRows = old('csca_exams');
+            if (is_null($existingCscaRows) && isset($student) && method_exists($student, 'relationLoaded') && $student->relationLoaded('studentCscaExams')) {
+                $existingCscaRows = $student->studentCscaExams->map(function ($row) {
+                    return [
+                        'exam_id' => $row->csca_exam_id,
+                        'result' => $row->result,
+                    ];
+                })->toArray();
+            }
+            if (empty($existingCscaRows)) {
+                $existingCscaRows = [['exam_id' => '', 'result' => '']];
+            }
+            $showCscaSection = collect($existingCscaRows)->contains(function ($row) {
+                return !empty($row['exam_id']) || !empty($row['result']);
+            });
+        @endphp
+        <div id="csca-section" class="col-12 mb-4" style="display:{{ $showCscaSection ? 'block' : 'none' }};">
             <hr>
+            <label style="font-size:14px;"><b>CSCA Results</b></label>
+            <div id="csca-exam-list">
+                @foreach($existingCscaRows as $i => $row)
+                <div class="form-row align-items-center mb-2 csca-exam-row">
+                    <div class="col-md-5">
+                        <select name="csca_exams[{{ $i }}][exam_id]" class="form-control">
+                            <option value="">Select CSCA Exam</option>
+                            @foreach($csca_exams as $exam)
+                                <option value="{{ $exam->id }}" {{ (string)($row['exam_id'] ?? '') === (string)$exam->id ? 'selected' : '' }}>{{ $exam->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <input type="text" name="csca_exams[{{ $i }}][result]" class="form-control" placeholder="Result" value="{{ $row['result'] ?? '' }}">
+                    </div>
+                    <div class="col-md-2">
+                        @if($loop->first)
+                            <button type="button" class="btn btn-success add-csca-exam">+</button>
+                        @else
+                            <button type="button" class="btn btn-danger remove-csca-exam">-</button>
+                        @endif
+                    </div>
+                </div>
+                @endforeach
+            </div>
         </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('toggle-csca-section');
+    const cscaSection = document.getElementById('csca-section');
+    let cscaExamIndex = document.querySelectorAll('#csca-exam-list .csca-exam-row').length;
+    toggleBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        cscaSection.style.display = cscaSection.style.display === 'none' ? 'block' : 'none';
+    });
+    document.querySelector('#csca-exam-list').addEventListener('click', function(e) {
+        if (e.target.classList.contains('add-csca-exam')) {
+            e.preventDefault();
+            const row = document.createElement('div');
+            row.className = 'form-row align-items-center mb-2 csca-exam-row';
+            row.innerHTML = `
+                <div class="col-md-5">
+                    <select name="csca_exams[${cscaExamIndex}][exam_id]" class="form-control">
+                        <option value="">Select CSCA Exam</option>
+                        @foreach($csca_exams as $exam)
+                            <option value="{{ $exam->id }}">{{ $exam->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <input type="text" name="csca_exams[${cscaExamIndex}][result]" class="form-control" placeholder="Result">
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-danger remove-csca-exam">-</button>
+                </div>
+            `;
+            document.getElementById('csca-exam-list').appendChild(row);
+            cscaExamIndex++;
+        } else if (e.target.classList.contains('remove-csca-exam')) {
+            e.preventDefault();
+            e.target.closest('.csca-exam-row').remove();
+        }
+    });
+    });
+</script>
         @php
             // If editing, load existing educations, else empty array
             $educations = collect($student->educationQualifications ?? []);
