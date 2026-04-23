@@ -103,11 +103,96 @@ class StudentController extends Controller
         // return $request;
         $currentUser = Auth::user();
         $students = Student::orderBy('id', 'DESC');
+
+        //university ways report
         if ($request->input('universitylist')) {
-            // $uni = StudentUniversity::orderBy('id', 'DESC')
-            //     ->select('university_id')
-            //     ->selectRaw('COUNT(*) as total_rows')
-            //     ->groupBy('university_id');
+            if ($request->input('applicationlist')) {
+                $universityId = $request->input('applicationlist');
+                $uni = Post::findOrFail($universityId);
+                $students->whereHas('universities', function ($q) use ($universityId) {
+                    $q->where('id', $universityId);
+                });
+
+                if ($request->input('export') && $request->input('export') === 'yes') {
+                    if ($request->input('export') === 'yes') {
+                        $exportStudents = (clone $students)
+                            ->with([
+                                'student_status',
+                                'branchInfo',
+                                'subjects',
+                                'universitiesAppStatus',
+                                'educationQualifications',
+                                'sncounselor',
+                                'jncounselor'
+                            ])
+                            ->get();
+                        // $i=1;
+                        $rows = $exportStudents->map(function ($student) use ($uni) {
+                            $education = $student->educationQualifications->sortByDesc('id')->first();
+                            $applicationNumbers = $student->universitiesAppStatus
+                            
+                                ->pluck('application_no')
+                                ->filter()
+                                ->unique()
+                                ->implode(', ');
+
+                            return [
+                                'Sl' => 1,
+                                'Application No' => $student->universityById($uni->id)->application_no ?? '',
+                                'Name' => $student->full_name ?? '',
+                                'Passport' => $student->passport ?? '',
+                                'CGPA' => optional($education)->result ?? '',
+                                'Passing Year' => optional(optional($education)->attend_to)->format('Y') ?? '',
+                                'Branch' => optional($student->branchInfo)->name ?? '',
+                                'Subject' => $student->universityById($uni->id)->subject->name ?? '',
+                                'Mobile' => $student->mobile_no ?? '',
+                                'Status' => $student->universityById($uni->id)->statusUni->name ?? '',
+                                'language' => $student->language_cer ?? '',
+                                'Link' => $uni->getMeta('link') ?? '',
+                                'User' => $student->universityById($uni->id) && $student->universityById($uni->id)->portal_type == 1 ? $uni->getMeta('user') : $student->universityById($uni->id)->login_id ?? '',
+                                'Password' => $student->universityById($uni->id) && $student->universityById($uni->id)->portal_type == 1 ? $uni->getMeta('password') : $student->universityById($uni->id)->login_password ?? '',
+                                'CSCA' => '-',
+                                'Junior Counselor' => optional($student->jncounselor)->name ?? '',
+                                'Note' => $student->universityById($uni->id)->note ?? '',
+                                'Remarks' => $student->universityById($uni->id)->remarks ?? '',
+                            ];
+                        })->values()->all();
+
+                        if (empty($rows)) {
+                            $rows[] = [
+                                'Sl' => '', 
+                                'Application No' => '', 
+                                'Name' => '', 
+                                'Passport' => '', 
+                                'CGPA' => '', 
+                                'Passing Year' => '', 
+                                'Branch' => '', 
+                                'Subject' => '', 
+                                'Mobile' => '', 
+                                'Status' => '', 
+                                'language' => '', 
+                                'Link' => '', 
+                                'User' => '', 
+                                'Password' => '', 
+                                'CSCA' => '', 
+                                'Junior Counselor' => '', 
+                                'Note' => '', 
+                                'Remarks' => '', 
+                            ];
+                        }
+
+                        return $this->downloadRowsAsCsv($rows, $uni->post_title . '_Application_Report.csv');
+                    }
+                }
+                $data['title'] = 'Application List - '. $uni->post_title;
+                $data['type'] = 'report';
+                $data['url'] = 'students';
+                $data['university'] = $uni;
+                $data['students'] = $students->get();
+                // return $data;
+                return view('admin.students.university-student-list')->with($data);
+            }
+            
             $uni = Post::has('students')
                 ->select('id', 'post_title')
                 ->withCount('students');
@@ -120,6 +205,7 @@ class StudentController extends Controller
             // return $data;
             return view('admin.students.university-list')->with($data);
         }
+
         if ($request->input('branch_id')) {
             $students->where('branch_id', $request->input('branch_id'));
         }else{
@@ -259,6 +345,12 @@ class StudentController extends Controller
                     'Passing Year' => optional(optional($education)->attend_to)->format('Y') ?? '',
                     'Branch' => optional($student->branchInfo)->name ?? '',
                     'English language' => $student->language_cer ?? '',
+<<<<<<< HEAD
+=======
+                    'CSCA-Mathmatics' => $student->csca_math ?? $student->csca_mathmatics ?? $student->csca_mathematics ?? '',
+                    'CSCA-Chemistry' => $student->csca_chemistry ?? $student->csca_chem ?? '',
+                    'CSCA-Physics' => $student->csca_physics ?? $student->csca_phy ?? '',
+>>>>>>> 830ef70510efe44c78d85a453c41422adf5596fc
                     'Senior Counselor' => optional($student->sncounselor)->name ?? '',
                     'Junior Counselor' => optional($student->jncounselor)->name ?? '',
                     'Remarks' => optional($education)->remarks ?? $student->note ?? '',

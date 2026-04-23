@@ -420,6 +420,51 @@
             </div>
         @endif
 
+        @php
+            $hasCsca = (int) old('has_csca', $student->has_csca ?? 0);
+            if (!$hasCsca && (old('csca_math', $student->csca_math ?? '') || old('csca_physics', $student->csca_physics ?? '') || old('csca_chemistry', $student->csca_chemistry ?? ''))) {
+                $hasCsca = 1;
+            }
+        @endphp
+        <div class="col-12 mb-2">
+            <a href="javascript:void(0)" id="toggleCscaSection" class="text-primary font-weight-bold">Do YOU have CSCA?</a>
+            <input type="hidden" name="has_csca" id="has_csca_input" value="{{ $hasCsca }}">
+        </div>
+        <div class="col-12" id="cscaSection" style="display: {{ $hasCsca ? 'block' : 'none' }};">
+            <div class="border rounded p-3 mb-3 bg-light">
+                <h5 class="mb-3">CSCA backround</h5>
+                <div class="row">
+                    <div class="col-lg-4 col-md-4 col-sm-12">
+                        <div class="form-group">
+                            <label for="csca_math">Math Result</label>
+                            <input type="text" name="csca_math" id="csca_math" value="{{ old('csca_math', $student->csca_math ?? '') }}" class="form-control @error('csca_math') is-invalid @enderror" placeholder="Type here">
+                            @error('csca_math')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-12">
+                        <div class="form-group">
+                            <label for="csca_physics">Physics Result</label>
+                            <input type="text" name="csca_physics" id="csca_physics" value="{{ old('csca_physics', $student->csca_physics ?? '') }}" class="form-control @error('csca_physics') is-invalid @enderror" placeholder="Type here">
+                            @error('csca_physics')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-12">
+                        <div class="form-group">
+                            <label for="csca_chemistry">Chemistry Result</label>
+                            <input type="text" name="csca_chemistry" id="csca_chemistry" value="{{ old('csca_chemistry', $student->csca_chemistry ?? '') }}" class="form-control @error('csca_chemistry') is-invalid @enderror" placeholder="Type here">
+                            @error('csca_chemistry')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="col-12">
             <h4>Other Info</h4>
             <hr>
@@ -586,3 +631,24 @@
 <div class="card-footer">
     <button type="submit" class="btn btn-lg btn-primary">Submit</button>
 </div>
+<<<<<<< HEAD
+=======
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggleLink = document.getElementById('toggleCscaSection');
+        const cscaSection = document.getElementById('cscaSection');
+        const hasCscaInput = document.getElementById('has_csca_input');
+
+        if (!toggleLink || !cscaSection || !hasCscaInput) {
+            return;
+        }
+
+        toggleLink.addEventListener('click', function () {
+            const isHidden = cscaSection.style.display === 'none' || cscaSection.style.display === '';
+            cscaSection.style.display = isHidden ? 'block' : 'none';
+            hasCscaInput.value = isHidden ? '1' : '0';
+        });
+    });
+</script>
+>>>>>>> 830ef70510efe44c78d85a453c41422adf5596fc

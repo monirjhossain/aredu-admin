@@ -41,6 +41,22 @@
                                 </form>
                             </div> --}}
                         </div>
+                        <div class="card-toolbar">
+{{--                     
+                        <a onclick="submitDetailsForm('no')" class="btn btn-primary mr-1"> <i class="la la-search"></i>Search </a>
+                        <a href="{{ route('students.index') }}" class="btn btn-primary mr-1"> <i class="la la-undo"></i>Reset </a>
+                        <a onclick="submitDetailsForm('yes')" class="btn btn-primary mr-1"> <i class="la la-print"></i>Print </a> --}}
+                        {{-- <a onclick="submitDetailsForm('export')" class="btn btn-success mr-1"> <i class="la la-download"></i>Export </a> --}}
+                        <a href="{{ route('students.index') }}?universitylist=1&applicationlist={{$university->id}}&export=yes" class="btn btn-success mr-1" target="_blanck"> <i class="la la-download"></i>Export </a>
+                        {{-- <a href="{{ route($url . '.create') }}" class="btn btn-primary mr-1"> <i class="la la-plus"></i> Create
+                            {{ $type }}</a>
+
+                        <!-- Button trigger modal-->
+                        <button onclick="getSmsTemplate(0)" type="button" class="btn btn-primary messageModal" data-toggle="modal" data-target="#exampleModalLong">
+                            <i class="fas fa-envelope" title="message"></i>
+                        </button> --}}
+
+                    </div>
                     </div>
 
                     <div class="card-body" style="overflow: scroll;">
@@ -48,15 +64,23 @@
                             <thead class="thead-light">
                                 <tr>
                                     <th>#</th>
-                                    {{-- <th>University</th>
-                                    <th>No of Students</th>
-                                    <th style="width: 10px">No</th> --}}
                                     <th>Application No</th>
-                                    <th>University</th>
+                                    <th>Name</th>
+                                    <th>Passport</th>
+                                    {{-- <th>University</th> --}}
+                                    <th>GPA</th>
+                                    <th>Passing Year</th>
+                                    <th>Branch</th>
                                     <th>Subject</th>
+                                    <th>Mobile</th>
                                     <th>Status</th>
+                                    <th>Language</th>
                                     <th>Note</th>
                                     <th>Remarks</th>
+                                    <th>Link</th>
+                                    <th>User</th>
+                                    <th>Password</th>
+                                    <th>CSCA</th>
                                     <th style="width:100px; min-width:100px;" class="text-center text-danger"><i class="fa fa-bolt"></i></th>
                     
                                 </tr>
@@ -65,53 +89,77 @@
                                 @forelse ($students as $key=>$item)
                                     <tr>
                                         <tr>
-                            <td>{{ $item->id }}</td>
-                            <td>{{ $item->application_no ?? '-' }}</td>
-                            <td>{{ $item->university->post_title }}</td>
-                            <td>{{ $item->subject->name ?? '-' }}</td>
-                            {{-- <td>{{ $item->statusUni->name }} --}}
-                            <td>
-                                <div class="progress-container">
-                                    <div class="progress-line"></div>
-                                    @foreach ($item->statusAll as $key => $st)
-                                        <div class="step">
-                                            <div class="circle {{ $st->active == 1 ? 'active' : '' }}">{{ $key+1 }}</div>
-                                            <div class="label-ff {{ $st->active == 1 ? 'active' : '' }} "><b>{{ $st->statusUni->name }}</b></div>
-                                            <div> &nbsp; {{ $st->created_at }}</div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </td>
-                            <td>{{ $item->note ?? '-'}}</td>
-                            <td>{{ $item->remarks ?? '-'}}</td>
-                            <td>
-                                <div class="btn-group">
-                                    <a href="{{ route($url.'.edit', [$item->id]) }}" class="btn btn-sm btn-info">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <form id="deleteForm{{ $item->id }}" action="{{ route($url.'.destroy', [$item->id]) }}"
-                                        class="d-inline-block" method="POST">
-                                        @method('DELETE')
-                                        @csrf
-                                        <input type="hidden" name="student_id" value="{{$student->id}}">
-                                        <input type="hidden" name="id" value="{{$item->id}}">
-                                        <button id="submitButton" onclick="confirmDelete({{ $item->id }})" type="button" class="btn btn-sm btn-danger">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                                        <td>{{ $key+1 }}</td>
-                                        <td>
-                                            <a href="{{ route('students.index') }}?university={{$entry->id}}">
-                                                {{ $entry->post_title }}</td>
-                                            </a>
-                                            {{-- <a href="{{ route('students.index') }}?university={{$entry->university_id}}">
-                                                {{ $entry->university->post_title }}</td>
-                                            </a> --}}
-                                        <td>{{ $entry->students_count }}</td>
-                                        {{-- <td>{{ $entry->total_rows }}</td> --}}
+                                            <td>{{ $key+1 }}</td>
+                                            <td>{{ $item->universityById($university->id)->application_no ?? '-' }}</td>
+                                            <td>{{ $item->full_name ?? '-' }}</td>
+                                            <td>{{ $item->passport ?? '-' }}</td>
+                                            {{-- <td>{{ $university->post_title }}</td> --}}
+
+                                            @forelse ($item->educationQualifications as $edu)
+                                                <td>
+                                                    {{ optional($edu->first())->result ?? '-' }}
+                                                </td>
+                                                <td>
+                                                    {{ optional($edu->first())->attend_to ?? '-' }}
+                                                </td>
+                                            @empty
+                                                <td>
+                                                    -
+                                                </td>
+                                                <td>
+                                                    -
+                                                </td>
+                                            @endforelse
+                                           
+                                            <td>
+                                                {{ $item->branchInfo->name ?? '' }}
+                                            </td>
+                                            <td>{{ $item->universityById($university->id)->subject->name ?? '-' }}</td>
+                                            <td>{{ $item->mobile_no }}
+                                            <td>{{ $item->universityById($university->id)->statusUni->name ?? '-' }}
+                                            <td>{{ $item->language_cer ?? '-' }}
+                                            <td>{{ $item->universityById($university->id)->note ?? '-'}}</td>
+                                            <td>{{ $item->universityById($university->id)->remarks ?? '-'}}</td>
+
+                                            <td>{{ $university->getMeta('link') ?? '-'}}</td>
+                                            <td>
+                                                @if($item->universityById($university->id) && $item->universityById($university->id)->portal_type == 1)
+                                                    {{$university->getMeta('user') ?? ''}}
+                                                @else
+                                                    {{$item->universityById($university->id)->login_id ?? ''}}<br>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if($item->universityById($university->id) && $item->universityById($university->id)->portal_type == 1)
+                                                    {{$university->getMeta('password') ?? ''}}
+                                                @else
+                                                    {{$item->universityById($university->id)->login_password ?? ''}}<br>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                -
+                                            </td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <a href="{{ route($url.'.show', [$item->id]) }}" class="btn btn-sm btn-info mx-1 rounded" title="View Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{{ route($url.'.edit', [$item->id]) }}" class="btn btn-sm btn-info">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    {{-- <form id="deleteForm{{ $item->id }}" action="{{ route($url.'.destroy', [$item->id]) }}"
+                                                        class="d-inline-block" method="POST">
+                                                        @method('DELETE')
+                                                        @csrf
+                                                        <input type="hidden" name="student_id" value="{{$student->id}}">
+                                                        <input type="hidden" name="id" value="{{$item->id}}">
+                                                        <button id="submitButton" onclick="confirmDelete({{ $item->id }})" type="button" class="btn btn-sm btn-danger">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form> --}}
+                                                </div>
+                                            </td>
+                                        </tr>
                                     </tr>
                                 @empty
                                     <tr>
@@ -139,21 +187,21 @@
 </div>
 <script>
     function confirmDelete(id) {
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Yes, delete it!'
-            }).then((result) => {
-                console.log('dfsdafds');
-                
-                if (result.isConfirmed) {
-                    document.getElementById('deleteForm' + id).submit();
-                }
-            });
-        }
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            console.log('dfsdafds');
+            
+            if (result.isConfirmed) {
+                document.getElementById('deleteForm' + id).submit();
+            }
+        });
+    }
 </script>
 @endsection

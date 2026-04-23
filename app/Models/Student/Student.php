@@ -40,6 +40,10 @@ class Student extends Model
             'zip',
             'gender',
             'language_cer',
+            'has_csca',
+            'csca_math',
+            'csca_physics',
+            'csca_chemistry',
             'blood',
             'weight',
             'height',
@@ -102,6 +106,13 @@ class Student extends Model
     {
         return $this->hasMany(StudentUniversity::class);
     }
+    public function universityById($universityId)
+    {
+        return $this->universitiesAppStatus()
+            ->where('university_id', $universityId)
+            ->first();
+    }
+
     public function subjects()
     {
         return $this->belongsToMany(Subject::class);

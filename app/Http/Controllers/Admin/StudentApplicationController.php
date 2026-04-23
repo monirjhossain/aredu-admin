@@ -205,7 +205,7 @@ class StudentApplicationController extends Controller
             'jw_copy' => 'nullable|file|mimes:pdf,jpg,jpeg,png',
             'visa_copy' => 'nullable|file|mimes:pdf,jpg,jpeg,png',
         ]);
-
+        
         DB::beginTransaction();
         try {
             $oldStatus = $application->status_id;
@@ -221,6 +221,15 @@ class StudentApplicationController extends Controller
             }
             if ($request->has('application_no')) {
                 $application->application_no = $request->application_no;
+            }
+            if ($request->has('login_id')) {
+                $application->login_id = $request->login_id;
+            }
+            if ($request->has('login_password')) {
+                $application->login_password = $request->login_password;
+            }
+            if ($request->has('portal_type')) {
+                $application->portal_type = $request->portal_type;
             }
             $application->updated_by = Auth::id();
 
@@ -320,6 +329,7 @@ class StudentApplicationController extends Controller
             Session::flash('success', 'Application updated successfully');
             return redirect()->back();
         } catch (\Throwable $th) {
+            // return $th;
             DB::rollBack();
             Session::flash('error', 'Something went wrong!');
             return redirect()->back();

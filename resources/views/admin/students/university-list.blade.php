@@ -57,7 +57,7 @@
                                     <tr>
                                         <td>{{ $key+1 }}</td>
                                         <td>
-                                            <a href="{{ route('students.index') }}?university={{$entry->id}}">
+                                            <a href="{{ route('students.index') }}?universitylist=1&applicationlist={{$entry->id}}">
                                                 {{ $entry->post_title }}</td>
                                             </a>
                                             {{-- <a href="{{ route('students.index') }}?university={{$entry->university_id}}">
