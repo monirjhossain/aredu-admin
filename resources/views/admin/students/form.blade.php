@@ -631,8 +631,6 @@
 <div class="card-footer">
     <button type="submit" class="btn btn-lg btn-primary">Submit</button>
 </div>
-<<<<<<< HEAD
-=======
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -651,4 +649,3 @@
         });
     });
 </script>
->>>>>>> 830ef70510efe44c78d85a453c41422adf5596fc
