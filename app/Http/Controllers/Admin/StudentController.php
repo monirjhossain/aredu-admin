@@ -345,12 +345,9 @@ class StudentController extends Controller
                     'Passing Year' => optional(optional($education)->attend_to)->format('Y') ?? '',
                     'Branch' => optional($student->branchInfo)->name ?? '',
                     'English language' => $student->language_cer ?? '',
-<<<<<<< HEAD
-=======
                     'CSCA-Mathmatics' => $student->csca_math ?? $student->csca_mathmatics ?? $student->csca_mathematics ?? '',
                     'CSCA-Chemistry' => $student->csca_chemistry ?? $student->csca_chem ?? '',
                     'CSCA-Physics' => $student->csca_physics ?? $student->csca_phy ?? '',
->>>>>>> 830ef70510efe44c78d85a453c41422adf5596fc
                     'Senior Counselor' => optional($student->sncounselor)->name ?? '',
                     'Junior Counselor' => optional($student->jncounselor)->name ?? '',
                     'Remarks' => optional($education)->remarks ?? $student->note ?? '',

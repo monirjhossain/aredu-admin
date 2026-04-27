@@ -457,12 +457,9 @@
                                     <span class="menu-text font-weight-bolder">University Report</span>
                                 </a>
                             </li>
-<<<<<<< HEAD
 
-=======
                             @endif
                                 
->>>>>>> 830ef70510efe44c78d85a453c41422adf5596fc
                             {{-- <li class="menu-item {{ request()->is('students') ? 'menu-item-active' : '' }}""
                                 aria-haspopup="true">
                                 <a href="{{ route('students.index') }}?type=Processing" class="menu-link">
