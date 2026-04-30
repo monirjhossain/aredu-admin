@@ -167,7 +167,7 @@
                         <th class="min-w-300px">Student Parents</th> --}}
                         <th>Responsible</th>
                         <th>Reference</th>
-                        <th>Office Status</th>
+                        {{-- <th>Office Status</th> --}}
                         <th>Branch</th>
                         <th>Add By</th>
                         <th style="width:100px; min-width:100px;" class="text-center text-danger"><i class="fa fa-bolt">
@@ -261,19 +261,19 @@
                                 <span><b>Phone:</b> {{ $item->mother_mobile_no }}</span><br>
                                 <span><b>Occupation:</b> {{ $item->mother_occoupation }}</span><br>
                             </td> --}}
-                            <td>{{ $item->responsiblePerson->full_name ?? ''}}</td>
+                            <td>{{ $item->jncounselor->full_name ?? ''}}</td>
                             <td>{{ \Illuminate\Support\Str::words($item->note, 10, '...') }}</td>
                             {{-- <td>
                                 <span class="badge {{ $item->status == '1'? 'badge-primary': 'badge-danger' }}">{{ $item->status == '1'? 'Active': 'Deactive' }} </span>
                             </td> --}}
-                            <td>
+                            {{-- <td>
                                 {{ $item->student_status->name ?? '' }}
-                            </td>
+                            </td> --}}
                             <td>
                                 {{ $item->branchInfo->name ?? '' }}
                             </td>
                             <td>
-                                {{ $item->user->name ?? '' }}
+                                {{ $item->user->name ?? '' }} - {{ $item->created_at ?? '' }}
                             </td>
             <td>
                 <div class="btn-group" role="group" aria-label="Student Actions">

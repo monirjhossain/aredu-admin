@@ -247,11 +247,13 @@ table th:last-child {
   <div class="invoice">
     <div style="display: flex; justify-content: space-between;">
       <!-- <img src="{{ asset('media/custom/Logo-1.png') }}" class="logo" alt="Logo"> -->
-      <img src="{{ asset($branch->logo) }}" class="logo" alt="Logo">
+      {{-- <img src="{{ asset($branch->logo) }}" class="logo" alt="Logo"> --}}
+      <img src="{{ asset($student->branchInfo->logo) }}" class="logo" alt="Logo">
       <div class="title">
         <h1>Invoice</h1>
         <div><span class="bold-text">AR ID Number:</span> {{$invoice->invoice_no}}</div>
-        <div><span class="bold-text">Date:</span> {{now()->format('F j, Y');}}</div>
+        <div><span class="bold-text">Date:</span> {{$invoice->created_at->format('F j, Y')}}</div>
+        <div><span class="">Print Date:</span> {{now()->format('F j, Y');}}</div>
       </div>
     </div>
 
@@ -387,8 +389,8 @@ table th:last-child {
 <div class="footer-blocks">
   <div class="footer-box">
     <strong>Phone</strong><br>
-    <!-- {{ $branch->phone}} -->
-    {!! str_replace(',', '<br>', $branch->phone) !!}
+    <!-- {{ $student->branchInfo->phone}} -->
+    {!! str_replace(',', '<br>', $student->branchInfo->phone) !!}
     <!-- +880 1768-820865<br>
     +880 1736-318321<br>
     +880 1811-256545 -->
@@ -396,7 +398,7 @@ table th:last-child {
 
   <div class="footer-box">
     <strong>Address</strong><br>
-    {{ $branch->address}}
+    {{ $student->branchInfo->address}}
     <!-- Tropical Tower, 10th Floor,<br>
     Bata Signal, Elephant Road -->
   </div>
@@ -404,7 +406,7 @@ table th:last-child {
   <div class="footer-box">
     <strong>Website</strong><br>
     <a href="https://areducation.net">areducation.net</a><br>
-    {{$branch->email}}
+    {{$student->branchInfo->email}}
     <!-- areducation16@gmail.com -->
   </div>
 </div>
