@@ -57,8 +57,11 @@
                                     <tr>
                                         <td>{{ $key+1 }}</td>
                                         <td>
-                                            <a href="{{ route('students.index') }}?universitylist=1&applicationlist={{$entry->id}}">
-                                                {{ $entry->post_title }}</td>
+                                            @if($type == 'statuslist')
+                                            <a href="{{ route('students.index') }}?perpage=500&student_statuses={{$entry->id}}">{{ $entry->post_title }}</td>
+                                            @else
+                                            <a href="{{ route('students.index') }}?universitylist=1&applicationlist={{$entry->id}}">{{ $entry->post_title }}</td>
+                                            @endif
                                             </a>
                                             {{-- <a href="{{ route('students.index') }}?university={{$entry->university_id}}">
                                                 {{ $entry->university->post_title }}</td>

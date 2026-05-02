@@ -205,6 +205,23 @@ class StudentController extends Controller
             // return $data;
             return view('admin.students.university-list')->with($data);
         }
+        if ($request->input('statuslist')) {
+            $uni = StudentStatus::has('students')
+                ->select('id', 'name as post_title')
+                ->withCount([
+                    'students as students_count' => function ($query) use ($currentUser) {
+                        $query->where('branch_id', $currentUser->branch);
+                    }
+                ]);
+                // ->get();
+
+            $data['title'] = 'Status Ways Student List';
+            $data['type'] = 'statuslist';
+            $data['url'] = 'students';
+            $data['universities'] = $uni->get();
+            // return $data;
+            return view('admin.students.university-list')->with($data);
+        }
 
         if ($request->input('branch_id')) {
             $students->where('branch_id', $request->input('branch_id'));
