@@ -50,11 +50,15 @@ class ReportsController extends Controller
         $type = request()->get('type', '');
         $typeStudent = request()->get('student', '');
         $category_id = request()->get('category_id', '');
+        $currentUser = Auth::user();
+        
 
         // Excel export logic
         if ($request->has('export') && $request->get('export') === 'excel') {
             if ($type === 'expense_summary' || $type === 'income_summary') {
                 $financeEntry = FinanceEntry::orderBy('category_id', 'ASC');
+                $financeEntry->where('branch_id', $currentUser->branch);
+
                 if($type && $category_id){
                     $financeEntry->where('category_id', $category_id)->where('type', $type == 'income_summary' ? 'income' : 'expense');
                 }
@@ -103,6 +107,7 @@ class ReportsController extends Controller
                 }
             } else if ($type === 'student_summary') {
                 $financeEntry = FinanceEntry::orderBy('student_id', 'ASC');
+                $financeEntry->where('branch_id', $currentUser->branch);
                 $start_date = $request->get('start_date');
                 $end_date = $request->get('end_date');
                 $student_id = $request->get('student_id');
@@ -139,6 +144,7 @@ class ReportsController extends Controller
             $order = 'desc';
         }
         $financeEntry = FinanceEntry::orderBy('category_id', 'ASC');
+        $financeEntry->where('branch_id', $currentUser->branch);
         // If filtering by category, just filter the summary, don't redirect to single_category
         if($type && $category_id){
             $financeEntry->where('category_id', $category_id)->where('type', $type == 'income_summary' ? 'income' : 'expense');

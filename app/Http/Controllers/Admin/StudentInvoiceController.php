@@ -43,12 +43,11 @@ class StudentInvoiceController extends Controller
             $student_id = $request->input('student');
             $student = Student::findOrFail($student_id);
             $invoices->where('student_id', $student_id);
+        } else{
+            $currentUser = Auth::user();
+            $invoices->where('branch_id', $currentUser->branch);
         }
 
-        $currentUser = Auth::user();
-        if($currentUser->role_id == 4){
-            $invoices->where('user_id', $currentUser->id);
-        }
         // if($request->input('type')){
         //     $students->where('office_status', $request->input('type'));
         // }
@@ -88,7 +87,6 @@ class StudentInvoiceController extends Controller
         $data['totalAmount'] = number_format($data['invoices']->sum('paid'), 2);
         $data['openingBalanceBDT']=0;
         $data['request'] = $request;
-        // $data['invoices'] = $invoices->paginate(20);
         $data['title'] = 'Invoices';
         $data['type'] = 'invoice';
         $data['student'] = $student;
@@ -143,13 +141,11 @@ class StudentInvoiceController extends Controller
      */
     public function store(Request $request)
     {
-        dd($request->all());
         DB::beginTransaction();
         try {
             $invoice = new Invoice();
             $invoiceFillableData = $request->only($invoice->getFillable());
             $invoice->fill($invoiceFillableData)->save();
-            $invoice->user_id = Auth::user()->id;   
             $invoice->user_id = Auth::user()->id; 
             $currency =  Currency::findOrFail($request->currency);
             if($currency){

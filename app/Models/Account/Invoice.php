@@ -66,9 +66,27 @@ class Invoice extends Model
     protected static function boot()
     {
         parent::boot();
-        static::creating(function ($student) {
-            if (Auth::check() && empty($student->branch_id)) {
-                $student->branch_id = Auth::user()->branch;
+
+        static::creating(function ($invoice) {
+
+            // Skip if already set
+            if (!empty($invoice->branch_id)) {
+                return;
+            }
+
+            // Case 1: Invoice for a student
+            if (!empty($invoice->student_id)) {
+                $student = $invoice->student; // relationship
+
+                if ($student && $student->branch_id) {
+                    $invoice->branch_id = $student->branch_id;
+                    return;
+                }
+            }
+
+            // Case 2: Normal invoice (use logged in user)
+            if (Auth::check() && Auth::user()->branch_id) {
+                $invoice->branch_id = Auth::user()->branch_id;
             }
         });
     }
