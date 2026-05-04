@@ -62,7 +62,7 @@
                     <input type="hidden" name="branch_id" value="{{ request('branch_id') }}">
                 @endif
                 <input type="hidden" name="perpage" value="{{ request('perpage', 20) }}">
-                <div class="row">
+                <div class="row student-filter-row">
                     <div class="col mb-2">
                         <input type="text" name="search" placeholder="Search" class="form-control" value="{{ $request->search }}">
                     </div>

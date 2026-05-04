@@ -1,3 +1,17 @@
+/* Mobile only: filter fields 2-column grid for student filter row */
+@media (max-width: 575.98px) {
+    .student-filter-row > .col {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+/* Mobile only: filter fields 2-column grid for student filter row */
+@media (max-width: 575.98px) {
+    .card-header .row > .col {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
 body,
 html {
     font-size: 11.5px!important;
