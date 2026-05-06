@@ -16,13 +16,37 @@
     <div class="card card-custom">
         <div class="card-header flex-wrap py-5">
             <div class="card-title">
-                <form id="searchForm" action="{{ route('students.index') }}" method="get">
-                    <input type="text" name="search" placeholder="Search" class="form-control"
-                        value="{{ $request->search }}">
+                <form id="filterForm" action="{{ route($url.'.index') }}" method="GET" class="w-100">
+                    @if($request->student)
+                        <input type="hidden" name="student" value="{{ $request->student }}">
+                    @endif
+                    <div class="d-flex flex-nowrap align-items-center" style="gap: 8px; overflow-x: auto; white-space: nowrap; padding-bottom: 4px;">
+                        <input type="text" name="search" placeholder="Search invoice, student, phone, passport, user"
+                            class="form-control" style="min-width: 280px; width: 280px; flex: 0 0 auto;" value="{{ $request->search }}">
+                        <select name="branch_id" class="form-control" style="width: 180px; flex: 0 0 auto;">
+                            <option value="">All Branches</option>
+                            @foreach($branches as $branch)
+                                <option value="{{ $branch->id }}" {{ (string) $request->branch_id === (string) $branch->id ? 'selected' : '' }}>
+                                    {{ $branch->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <select name="user_id" class="form-control" style="width: 220px; flex: 0 0 auto;">
+                            <option value="">All Collectors</option>
+                            @foreach($collectors as $collector)
+                                <option value="{{ $collector->id }}" {{ (string) $request->user_id === (string) $collector->id ? 'selected' : '' }}>
+                                    {{ $collector->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <input type="date" name="date_from" class="form-control" style="width: 170px; flex: 0 0 auto;" value="{{ $request->date_from }}">
+                        <input type="date" name="date_to" class="form-control" style="width: 170px; flex: 0 0 auto;" value="{{ $request->date_to }}">
+                    </div>
                 </form>
             </div>
             <div class="card-toolbar">
                 <a onclick="submitDetailsForm()" class="btn btn-primary mr-1"> <i class="la la-search"></i>Search </a>
+                <a href="{{ route($url.'.index') }}{{ $request->student ? '?student='.$request->student : '' }}" class="btn btn-light-danger mr-1">Reset</a>
                 
                 @if ($student)
                 <a href="{{ route('students.show', $student->id) }}" class="btn btn-primary mr-1"> <i class="fas fa-eye"></i>Details</a>
@@ -32,23 +56,17 @@
                 @endif
                 <a href="{{ route($url.'.create') }}{{$request->student ? '?student='.$request->student :'' }}" class="btn btn-primary"> <i class="la la-plus"></i> Create {{ $type }}</a>
             </div>
-            <div class="d-flex align-items-center">
-                                        <form method="GET" action="{{ route('finance_entries.invoices.index') }}" class="mr-2">
-                                            <select name="perpage" class="form-control" onchange="this.form.submit()">
-                                                <option value="5" {{ request('perpage') == 5 ? 'selected' : '' }}>5</option>
-                                                <option value="10" {{ request('perpage') == 10 ? 'selected' : '' }}>10</option>
-                                                <option value="25" {{ request('perpage') == 25 ? 'selected' : '' }}>25</option>
-                                                <option value="50" {{ request('perpage') == 50 ? 'selected' : '' }}>50</option>
-                                                <option value="100" {{ request('perpage') == 100 ? 'selected' : '' }}>100</option>
-                                                <option value="200" {{ request('perpage') == 200 ? 'selected' : '' }}>200</option>
-                                                <option value="500" {{ request('perpage') == 500 ? 'selected' : '' }}>500</option>
-                                            </select>
-                                        </form>
-                                        @if($type == 'expense')
-                                            <a href="{{ route('finance_entries.create', ['type' => $type]) }}" class="btn btn-primary">Create Entry</a>
-                                        @endif
-                                    </div>
+            <select name="perpage" class="form-control" style="width: 100px; flex: 0 0 auto;" onchange="this.form.submit()">
+                <option value="5" {{ request('perpage') == 5 ? 'selected' : '' }}>5</option>
+                <option value="10" {{ request('perpage') == 10 ? 'selected' : '' }}>10</option>
+                <option value="25" {{ request('perpage') == 25 ? 'selected' : '' }}>25</option>
+                <option value="50" {{ request('perpage') == 50 ? 'selected' : '' }}>50</option>
+                <option value="100" {{ request('perpage') == 100 ? 'selected' : '' }}>100</option>
+                <option value="200" {{ request('perpage') == 200 ? 'selected' : '' }}>200</option>
+                <option value="500" {{ request('perpage') == 500 ? 'selected' : '' }}>500</option>
+             </select>
         </div>
+        
         <div class="card-body" style="overflow: scroll; ">
             <table class="table table-hover">
                 <thead class="thead-light ">
@@ -137,14 +155,14 @@
         </div>
         <div class="card-footer">
             {{-- {!! $invoices->links() !!} --}}
-            {{ $invoices->appends(['perpage' => $perPage])->links() }}
+            {{ $invoices->appends(request()->query())->links() }}
         </div>
     </div>
 @endsection
 @section('scripts')
     <script>
         function submitDetailsForm() {
-            $("#searchForm").submit();
+            $("#filterForm").submit();
         }
         function confirmDelete(id) {
             Swal.fire({

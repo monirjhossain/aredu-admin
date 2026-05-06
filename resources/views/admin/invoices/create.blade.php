@@ -80,8 +80,9 @@
                                                             <div class="form-group mb-0">
                                                                 <label for="payment_method" class="font-weight-bold mb-1">Payment Method</label>
                                                                 <select id="payment_method" name="wallet_id" class="form-control">
+                                                                    <option value="" {{ old('wallet_id') ? '' : 'selected' }}>Select payment method (optional)</option>
                                                                     @foreach($wallets as $item)
-                                                                        <option value="{{$item->id}}">{{$item->name}}</option>
+                                                                        <option value="{{$item->id}}" {{ (string) old('wallet_id') === (string) $item->id ? 'selected' : '' }}>{{$item->name}}</option>
                                                                     @endforeach
                                                                 </select>
                                                             </div>

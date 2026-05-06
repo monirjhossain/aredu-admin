@@ -4,6 +4,7 @@ namespace App\Models\Account;
 
 use App\Models\Student\Student;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
@@ -57,7 +58,67 @@ class Invoice extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-        public function isStudentFirstInvoice()
+
+    public function scopeForStudent(Builder $query, ?int $studentId): Builder
+    {
+        if (!$studentId) {
+            return $query;
+        }
+
+        return $query->where('student_id', $studentId);
+    }
+
+    public function scopeForBranch(Builder $query, int $branchId): Builder
+    {
+        return $query->where('branch_id', $branchId);
+    }
+
+    public function scopeSearchTerm(Builder $query, ?string $search): Builder
+    {
+        if (!$search) {
+            return $query;
+        }
+
+        $search = trim($search);
+
+        return $query->where(function (Builder $innerQuery) use ($search) {
+            $innerQuery->where('invoice_no', 'like', '%' . $search . '%')
+                ->orWhere('products', 'like', '%' . $search . '%')
+                ->orWhereHas('student', function (Builder $studentQuery) use ($search) {
+                    $studentQuery->where('first_name', 'like', '%' . $search . '%')
+                        ->orWhere('last_name', 'like', '%' . $search . '%')
+                        ->orWhere('mobile_no', 'like', '%' . $search . '%')
+                        ->orWhere('passport', 'like', '%' . $search . '%');
+                })
+                ->orWhereHas('user', function (Builder $userQuery) use ($search) {
+                    $userQuery->where('name', 'like', '%' . $search . '%');
+                });
+        });
+    }
+
+    public function scopeInvoiceDateBetween(Builder $query, ?string $dateFrom, ?string $dateTo): Builder
+    {
+        if ($dateFrom) {
+            $query->whereDate('invoice_date', '>=', $dateFrom);
+        }
+
+        if ($dateTo) {
+            $query->whereDate('invoice_date', '<=', $dateTo);
+        }
+
+        return $query;
+    }
+
+    public function scopeCollectedBy(Builder $query, $userId): Builder
+    {
+        if (!$userId) {
+            return $query;
+        }
+
+        return $query->where('user_id', $userId);
+    }
+
+    public function isStudentFirstInvoice()
     {
         return !Invoice::where('student_id', $this->student_id)
                       ->where('created_at', '<', $this->created_at)
