@@ -60,7 +60,9 @@
                         <option value="500" {{ request('perpage', 20) == 500 ? 'selected' : '' }}>500</option>
                     </select>
                 </form>
-                <a onclick="submitDetailsForm()" class="btn btn-primary mr-1"> <i class="la la-search"></i>Search </a>
+                <button type="button" onclick="submitInvoiceFilterForm()" class="btn btn-primary mr-1">
+                    <i class="la la-search"></i>Search
+                </button>
                 <a href="{{ route($url.'.export', request()->except('page')) }}" class="btn btn-success mr-1"><i class="la la-download"></i> Export Excel</a>
                 <a href="{{ route($url.'.index') }}{{ $request->student ? '?student='.$request->student : '' }}" class="btn btn-light-danger mr-1">Reset</a>
                 
@@ -168,9 +170,13 @@
 @endsection
 @section('scripts')
     <script>
-        function submitDetailsForm() {
-            $("#filterForm").submit();
+        function submitInvoiceFilterForm() {
+            var form = document.getElementById('filterForm');
+            if (form) {
+                form.submit();
+            }
         }
+
         function confirmDelete(id) {
             Swal.fire({
                 title: 'Are you sure?',

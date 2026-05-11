@@ -127,15 +127,35 @@ class Invoice extends Model
 
     public function scopeInvoiceDateBetween(Builder $query, ?string $dateFrom, ?string $dateTo): Builder
     {
-        if ($dateFrom) {
-            $query->whereDate('invoice_date', '>=', $dateFrom);
+        if (!$dateFrom && !$dateTo) {
+            return $query;
         }
 
-        if ($dateTo) {
-            $query->whereDate('invoice_date', '<=', $dateTo);
-        }
+        return $query->where(function (Builder $dateQuery) use ($dateFrom, $dateTo) {
+            $dateQuery->where(function (Builder $invoiceDateQuery) use ($dateFrom, $dateTo) {
+                if ($dateFrom) {
+                    $invoiceDateQuery->whereDate('invoice_date', '>=', $dateFrom);
+                }
 
-        return $query;
+                if ($dateTo) {
+                    $invoiceDateQuery->whereDate('invoice_date', '<=', $dateTo);
+                }
+            });
+
+            // Legacy rows may have null invoice_date. Fall back to created_at
+            // so date range filters still work for those records.
+            $dateQuery->orWhere(function (Builder $createdAtQuery) use ($dateFrom, $dateTo) {
+                $createdAtQuery->whereNull('invoice_date');
+
+                if ($dateFrom) {
+                    $createdAtQuery->whereDate('created_at', '>=', $dateFrom);
+                }
+
+                if ($dateTo) {
+                    $createdAtQuery->whereDate('created_at', '<=', $dateTo);
+                }
+            });
+        });
     }
 
     public function scopeCollectedBy(Builder $query, $userId): Builder
