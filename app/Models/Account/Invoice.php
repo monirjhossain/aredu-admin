@@ -59,6 +59,35 @@ class Invoice extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    /**
+     * Student block embedded in products JSON (legacy / snapshot rows).
+     *
+     * @return array<string, mixed>
+     */
+    protected function embeddedStudentFromProducts(): array
+    {
+        $products = $this->products;
+        if (!is_array($products)) {
+            return [];
+        }
+
+        return isset($products['student']) && is_array($products['student']) ? $products['student'] : [];
+    }
+
+    public function displayStudentFullName(): string
+    {
+        $embedded = $this->embeddedStudentFromProducts();
+
+        return optional($this->student)->full_name ?? ($embedded['full_name'] ?? '');
+    }
+
+    public function displayStudentPhone(): string
+    {
+        $embedded = $this->embeddedStudentFromProducts();
+
+        return optional($this->student)->mobile_no ?? ($embedded['mobile_no'] ?? '');
+    }
+
     public function scopeForStudent(Builder $query, ?int $studentId): Builder
     {
         if (!$studentId) {

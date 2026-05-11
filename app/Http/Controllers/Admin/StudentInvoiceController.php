@@ -15,11 +15,16 @@ use App\Models\Product;
 use App\Models\Branch;
 use App\Models\User;
 use App\Models\Student\Student;
+use App\Exports\InvoicesListExport;
 use App\Services\InvoiceCreationService;
 use App\Traits\UploadAble;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use Throwable;
 
 class StudentInvoiceController extends Controller
 {
@@ -34,31 +39,19 @@ class StudentInvoiceController extends Controller
 
     public function index(InvoiceIndexFilterRequest $request)
     {
-        $currentUser = Auth::user();
         $filters = $request->validated();
-        $perPage = (int) ($filters['perpage'] ?? 20);
-        if ($perPage <= 0) {
-            $perPage = 20;
-        }
+        $perPage = $this->resolveInvoiceListPerPage($filters);
         $studentId = isset($filters['student']) ? (int) $filters['student'] : null;
         $student = $studentId ? Student::findOrFail($studentId) : null;
 
-        $filterBranchId = isset($filters['branch_id']) ? (int) $filters['branch_id'] : null;
-        $effectiveBranchId = $filterBranchId ?? (int) $currentUser->branch;
-
-        $invoices = Invoice::query()
-            ->with(['student', 'user'])
-            ->orderByDesc('id')
-            ->when($studentId, fn($q) => $q->forStudent($studentId), fn($q) => $q->forBranch($effectiveBranchId))
-            ->searchTerm($filters['search'] ?? null)
-            ->invoiceDateBetween($filters['date_from'] ?? null, $filters['date_to'] ?? null)
-            ->collectedBy($filters['user_id'] ?? null);
+        $invoices = $this->invoiceFilteredQuery($request);
 
         $data['invoices'] = $invoices->paginate($perPage);
         $data['perPage'] = $perPage;
         $data['totalAmount'] = number_format($data['invoices']->sum('paid'), 2);
         $data['openingBalanceBDT'] = 0;
         $data['request'] = $request;
+        $currentUser = Auth::user();
         $data['collectors'] = User::select('id', 'name')
             ->where('branch', $currentUser->branch)
             ->orderBy('name', 'asc')
@@ -70,6 +63,73 @@ class StudentInvoiceController extends Controller
         $data['url'] = $student ? 'student.invoices' : 'finance_entries.invoices';
 
         return view('admin.invoices.index')->with($data);
+    }
+
+    /**
+     * Export filtered invoices to Excel (same filters as index; all matching rows, not paginated).
+     */
+    public function export(InvoiceIndexFilterRequest $request)
+    {
+        $invoices = $this->invoiceFilteredQuery($request)->get();
+        $filename = 'invoices_export_' . date('Y-m-d_His') . '.xlsx';
+
+        try {
+            return Excel::download(new InvoicesListExport($invoices), $filename);
+        } catch (Throwable $e) {
+            report($e);
+
+            return $this->streamInvoicesCsv($invoices, str_replace('.xlsx', '.csv', $filename));
+        }
+    }
+
+    /**
+     * Same scope as invoice index listing (filters applied, no pagination).
+     */
+    private function resolveInvoiceListPerPage(array $filters): int
+    {
+        $perPage = (int) ($filters['perpage'] ?? 20);
+
+        return $perPage > 0 ? $perPage : 20;
+    }
+
+    private function invoiceFilteredQuery(InvoiceIndexFilterRequest $request): Builder
+    {
+        $currentUser = Auth::user();
+        $filters = $request->validated();
+        $studentId = isset($filters['student']) ? (int) $filters['student'] : null;
+
+        $filterBranchId = isset($filters['branch_id']) ? (int) $filters['branch_id'] : null;
+        $effectiveBranchId = $filterBranchId ?? (int) $currentUser->branch;
+
+        return Invoice::query()
+            ->with(['student', 'user'])
+            ->orderByDesc('id')
+            ->when($studentId, fn($q) => $q->forStudent($studentId), fn($q) => $q->forBranch($effectiveBranchId))
+            ->searchTerm($filters['search'] ?? null)
+            ->invoiceDateBetween($filters['date_from'] ?? null, $filters['date_to'] ?? null)
+            ->collectedBy($filters['user_id'] ?? null);
+    }
+
+    private function streamInvoicesCsv(Collection $invoices, string $filename)
+    {
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ];
+
+        $callback = function () use ($invoices) {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, InvoicesListExport::exportHeadings());
+            foreach ($invoices as $invoice) {
+                fputcsv($handle, InvoicesListExport::mapInvoiceRow($invoice));
+            }
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     /**

@@ -128,10 +128,12 @@ Route::middleware('auth')->group(function () {
     Route::post('wallet/transfer', [WalletTransferController::class, 'store'])->name('wallets.transfer');
 
     Route::group(['prefix'=>'finance_entrie', 'as' => 'finance_entries.'], function(){
+        Route::get('invoices/export', [StudentInvoiceController::class, 'export'])->name('invoices.export');
         Route::resource('invoices', StudentInvoiceController::class);
         Route::resource('reports', ReportsController::class);
     });
     Route::group(['prefix'=>'student', 'as' => 'student.'], function(){
+        Route::get('invoices/export', [StudentInvoiceController::class, 'export'])->name('invoices.export');
         Route::resource('invoices', StudentInvoiceController::class);
         Route::resource('application', StudentApplicationController::class);
 
