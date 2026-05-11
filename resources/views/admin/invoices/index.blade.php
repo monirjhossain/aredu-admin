@@ -20,6 +20,7 @@
                     @if($request->student)
                         <input type="hidden" name="student" value="{{ $request->student }}">
                     @endif
+                    <input type="hidden" name="perpage" value="{{ request('perpage', 20) }}">
                     <div class="d-flex flex-nowrap align-items-center" style="gap: 8px; overflow-x: auto; white-space: nowrap; padding-bottom: 4px;">
                         <input type="text" name="search" placeholder="Search invoice, student, phone, passport, user"
                             class="form-control" style="min-width: 280px; width: 280px; flex: 0 0 auto;" value="{{ $request->search }}">
@@ -45,6 +46,20 @@
                 </form>
             </div>
             <div class="card-toolbar">
+                <form method="GET" action="{{ route($url.'.index') }}" class="mr-1">
+                    @foreach(request()->except(['perpage', 'page']) as $key => $value)
+                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                    @endforeach
+                    <select name="perpage" class="form-control" onchange="this.form.submit()">
+                        <option value="5" {{ request('perpage', 20) == 5 ? 'selected' : '' }}>5</option>
+                        <option value="10" {{ request('perpage', 20) == 10 ? 'selected' : '' }}>10</option>
+                        <option value="25" {{ request('perpage', 20) == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ request('perpage', 20) == 50 ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ request('perpage', 20) == 100 ? 'selected' : '' }}>100</option>
+                        <option value="200" {{ request('perpage', 20) == 200 ? 'selected' : '' }}>200</option>
+                        <option value="500" {{ request('perpage', 20) == 500 ? 'selected' : '' }}>500</option>
+                    </select>
+                </form>
                 <a onclick="submitDetailsForm()" class="btn btn-primary mr-1"> <i class="la la-search"></i>Search </a>
                 <a href="{{ route($url.'.index') }}{{ $request->student ? '?student='.$request->student : '' }}" class="btn btn-light-danger mr-1">Reset</a>
                 
@@ -56,15 +71,6 @@
                 @endif
                 <a href="{{ route($url.'.create') }}{{$request->student ? '?student='.$request->student :'' }}" class="btn btn-primary"> <i class="la la-plus"></i> Create {{ $type }}</a>
             </div>
-            <select name="perpage" class="form-control" style="width: 100px; flex: 0 0 auto;" onchange="this.form.submit()">
-                <option value="5" {{ request('perpage') == 5 ? 'selected' : '' }}>5</option>
-                <option value="10" {{ request('perpage') == 10 ? 'selected' : '' }}>10</option>
-                <option value="25" {{ request('perpage') == 25 ? 'selected' : '' }}>25</option>
-                <option value="50" {{ request('perpage') == 50 ? 'selected' : '' }}>50</option>
-                <option value="100" {{ request('perpage') == 100 ? 'selected' : '' }}>100</option>
-                <option value="200" {{ request('perpage') == 200 ? 'selected' : '' }}>200</option>
-                <option value="500" {{ request('perpage') == 500 ? 'selected' : '' }}>500</option>
-             </select>
         </div>
         
         <div class="card-body" style="overflow: scroll; ">

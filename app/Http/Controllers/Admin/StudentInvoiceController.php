@@ -36,7 +36,10 @@ class StudentInvoiceController extends Controller
     {
         $currentUser = Auth::user();
         $filters = $request->validated();
-        $perPage = (int) ($filters['perpage'] ?? 15);
+        $perPage = (int) ($filters['perpage'] ?? 20);
+        if ($perPage <= 0) {
+            $perPage = 20;
+        }
         $studentId = isset($filters['student']) ? (int) $filters['student'] : null;
         $student = $studentId ? Student::findOrFail($studentId) : null;
 
