@@ -163,6 +163,7 @@
                         <th>Subject</th>
                         {{-- <th>Documents</th> --}}
                         <th class="min-w-180px">Application Info</th>
+                        <th>CSCA Result</th>
                         {{-- <th class="min-w-300px">Student Details</th>
                         <th class="min-w-300px">Student Parents</th> --}}
                         <th>Responsible</th>
@@ -245,6 +246,21 @@
                                 {{-- <span><b>Point:</b> {{ $item->last_education }}</span><br> --}}
                                 {{-- <span><b>note:</b> {{ $item->note }}</span><br> --}}
                             </td>
+                            <td>
+                                @if($item->studentCscaExams->isNotEmpty())
+                                    @foreach($item->studentCscaExams as $csca)
+                                        <span class="badge badge-info">
+                                            {{ $csca->cscaExam->name ?? 'CSCA' }}: {{ $csca->result }}
+                                        </span><br>
+                                    @endforeach
+                                @elseif((int)($item->has_csca ?? 0) === 1)
+                                    <span class="badge badge-secondary">Math: {{ $item->csca_math ?? '-' }}</span><br>
+                                    <span class="badge badge-secondary">Physics: {{ $item->csca_physics ?? '-' }}</span><br>
+                                    <span class="badge badge-secondary">Chemistry: {{ $item->csca_chemistry ?? '-' }}</span>
+                                @else
+                                    -
+                                @endif
+                            </td>
                             {{-- <td>
                                 <span><b>Email:</b> {{ $item->email }}</span><br>
                                 <span><b>Phone:</b> {{ $item->mobile_no }}</span><br>
@@ -304,7 +320,7 @@
         </tr>
                     @empty
                         <tr>
-                            <td colspan="11">
+                            <td colspan="12">
                                 <h5 class="text-center">No student found.</h5>
                             </td>
                         </tr>

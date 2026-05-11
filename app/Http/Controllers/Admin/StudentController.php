@@ -102,7 +102,7 @@ class StudentController extends Controller
     {
         // return $request;
         $currentUser = Auth::user();
-        $students = Student::orderBy('id', 'DESC');
+        $students = Student::with(['studentCscaExams.cscaExam'])->orderBy('id', 'DESC');
 
         //university ways report
         if ($request->input('universitylist')) {
