@@ -117,6 +117,13 @@
                             @endforeach
                         </select>
                     </div>
+                    <div class="col mb-2">
+                        <select name="has_csca" class="form-control">
+                            <option value="">-CSCA-</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
                     <input id="print" type="hidden" name="print" value="no">
                     <input id="export" type="hidden" name="export" value="no">
                 </div>

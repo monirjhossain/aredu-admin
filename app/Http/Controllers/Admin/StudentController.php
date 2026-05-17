@@ -249,6 +249,9 @@ class StudentController extends Controller
         if ($request->input('intake')) {
             $students->where('intake', $request->input('intake'));
         }
+        // if ($request->input('has_csca')) {
+        //     $students->where('intake', $request->input('intake'));
+        // }
         if ($request->input('student_statuses')) {
             $students->where('status', $request->input('student_statuses'));
         }
@@ -351,25 +354,38 @@ class StudentController extends Controller
                     ->unique()
                     ->implode(', ');
 
-                return [
-                    'Name' => $student->full_name ?? '',
-                    'Passport Number' => $student->passport ?? '',
-                    'Application Number' => $applicationNumbers,
-                    'Status' => optional($student->student_status)->name ?? '',
-                    'Subject' => $student->subjects->pluck('name')->implode(', '),
-                    'Mobile number' => $student->mobile_no ?? '',
-                    'CGPA' => optional($education)->result ?? '',
-                    'Passing Year' => optional(optional($education)->attend_to)->format('Y') ?? '',
-                    'Branch' => optional($student->branchInfo)->name ?? '',
-                    'English language' => $student->language_cer ?? '',
-                    // 'CSCA-Mathmatics' => $student->csca_math ?? $student->csca_mathmatics ?? $student->csca_mathematics ?? '',
-                    // 'CSCA-Chemistry' => $student->csca_chemistry ?? $student->csca_chem ?? '',
-                    // 'CSCA-Physics' => $student->csca_physics ?? $student->csca_phy ?? '',
-                    'Senior Counselor' => optional($student->sncounselor)->name ?? '',
-                    'Junior Counselor' => optional($student->jncounselor)->name ?? '',
-                    'Remarks' => optional($education)->remarks ?? $student->note ?? '',
-                ];
+                    return [
+                        'Name' => $student->full_name ?? '',
+                        'Passport Number' => $student->passport ?? '',
+                        'Application Number' => $applicationNumbers,
+                        'Status' => optional($student->student_status)->name ?? '',
+                        'Subject' => $student->subjects->pluck('name')->implode(', '),
+                        'Mobile number' => $student->mobile_no ?? '',
+                        'CGPA' => optional($education)->result ?? '',
+                        'Passing Year' => optional(optional($education)->attend_to)->format('Y') ?? '',
+                        'Branch' => optional($student->branchInfo)->name ?? '',
+                        'English language' => $student->language_cer ?? '',
+                        'CSCA' => $student->studentCscaExams->isNotEmpty()
+                                ? $student->studentCscaExams
+                                    ->map(fn ($csca) => ($csca->cscaExam->name ?? 'CSCA') . ': ' . $csca->result)
+                                    ->implode(', ')
+                                : (
+                                    (int)($student->has_csca ?? 0) === 1
+                                        ? 'Math: ' . ($student->csca_math ?? '-') .
+                                        ', Physics: ' . ($student->csca_physics ?? '-') .
+                                        ', Chemistry: ' . ($student->csca_chemistry ?? '-')
+                                        : '-'
+                                ),
+                        // 'CSCA-Mathmatics' => $student->csca_math ?? $student->csca_mathmatics ?? $student->csca_mathematics ?? '',
+                        // 'CSCA-Chemistry' => $student->csca_chemistry ?? $student->csca_chem ?? '',
+                        // 'CSCA-Physics' => $student->csca_physics ?? $student->csca_phy ?? '',
+                        'Senior Counselor' => optional($student->sncounselor)->name ?? '',
+                        'Junior Counselor' => optional($student->jncounselor)->name ?? '',
+                        // 'Remarks' => optional($education)->remarks ?? $student->note ?? '',
+                        'Remarks' => ' ',
+                    ];
             })->values()->all();
+            // dd($rows);
 
             if (empty($rows)) {
                 $rows[] = [
