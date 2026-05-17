@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Session;
 use App\Models\Category;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Student\StudentRequest;
+use App\Queries\StudentCscaQuery;
 use App\Mail\MailSystem;
 use App\Models\Branch;
 use App\Models\Document;
@@ -249,9 +250,7 @@ class StudentController extends Controller
         if ($request->input('intake')) {
             $students->where('intake', $request->input('intake'));
         }
-        // if ($request->input('has_csca')) {
-        //     $students->where('intake', $request->input('intake'));
-        // }
+        StudentCscaQuery::apply($students, $request->input('has_csca'));
         if ($request->input('student_statuses')) {
             $students->where('status', $request->input('student_statuses'));
         }

@@ -120,8 +120,8 @@
                     <div class="col mb-2">
                         <select name="has_csca" class="form-control">
                             <option value="">-CSCA-</option>
-                            <option value="yes">Yes</option>
-                            <option value="no">No</option>
+                            <option value="yes" {{ $request->has_csca === 'yes' ? 'selected' : '' }}>Yes</option>
+                            <option value="no" {{ $request->has_csca === 'no' ? 'selected' : '' }}>No</option>
                         </select>
                     </div>
                     <input id="print" type="hidden" name="print" value="no">
@@ -130,7 +130,7 @@
             </form>
             <div class="card-toolbar">
                 <form method="GET" action="{{ route('students.index') }}" class="mr-1">
-                    @foreach(request()->except(['perpage', 'page']) as $key => $value)
+                    @foreach(collect(request()->query())->except(['perpage', 'page'])->filter(fn ($value) => filled($value)) as $key => $value)
                         <input type="hidden" name="{{ $key }}" value="{{ $value }}">
                     @endforeach
                     <select name="perpage" class="form-control" onchange="this.form.submit()">
@@ -336,7 +336,7 @@
             </table>
         </div>
         <div class="card-footer">
-            {!! $students->appends(request()->query())->links() !!}
+            {!! $students->appends(collect(request()->query())->filter(fn ($value) => filled($value))->all())->links() !!}
         </div>
         <!-- Modal-->
         <div class="modal fade" id="exampleModalLong" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdrop" aria-hidden="true">
@@ -418,17 +418,36 @@
     });
 
     function submitDetailsForm(type) {
-        if(type == 'yes'){
-            $('#searchForm #print').val('yes');
-            $('#searchForm #export').val('no');
-        }else if(type == 'export'){
-            $('#searchForm #print').val('no');
-            $('#searchForm #export').val('yes');
-        }else{
-            $('#searchForm #print').val('no');
-            $('#searchForm #export').val('no');
+        var $form = $('#searchForm');
+
+        $form.find(':input').prop('disabled', false);
+
+        if (type == 'yes') {
+            $('#searchForm #print').val('yes').prop('disabled', false);
+            $('#searchForm #export').prop('disabled', true);
+        } else if (type == 'export') {
+            $('#searchForm #print').prop('disabled', true);
+            $('#searchForm #export').val('yes').prop('disabled', false);
+        } else {
+            $('#searchForm #print').prop('disabled', true);
+            $('#searchForm #export').prop('disabled', true);
         }
-        $("#searchForm").submit();
+
+        // Empty filters are omitted from the URL (disabled inputs are not submitted).
+        $form.find('input, select').each(function () {
+            var $el = $(this);
+            var name = $el.attr('name');
+
+            if (!name || name === 'print' || name === 'export' || name === 'perpage' || name === 'branch_id') {
+                return;
+            }
+
+            if ($.trim($el.val()) === '') {
+                $el.prop('disabled', true);
+            }
+        });
+
+        $form.submit();
     }
 
     $(document).ready(function() {

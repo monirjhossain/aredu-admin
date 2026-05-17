@@ -134,6 +134,7 @@ class Student extends Model
     {
         return $this->hasMany(StudentCSCAExam::class, 'student_id', 'id');
     }
+
     protected static function boot()
     {
         parent::boot();
