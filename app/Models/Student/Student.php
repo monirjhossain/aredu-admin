@@ -143,6 +143,47 @@ class Student extends Model
                 $student->branch_id = Auth::user()->branch;
             }
         });
+
+        static::creating(function ($student) {
+            // Skip if already exists
+            if (!empty($student->st_office_id)) {
+                return;
+            }
+
+            $branch = $student->branchInfo;
+
+            if (!$branch) {
+                throw new \Exception('Branch not found.');
+            }
+
+            $branchShort = strtoupper($branch->short_name);
+
+            // Extract year from intake
+            preg_match('/\d{4}/', $student->intake, $matches);
+
+            $year = $matches[0] ?? date('Y');
+
+            $prefix = "{$branchShort}{$year}-";
+
+            // Get last serial
+            $lastStudent = self::where('st_office_id', 'like', $prefix . '%')
+                ->orderByDesc('id')
+                ->first();
+
+            $nextSerial = 1;
+
+            if ($lastStudent) {
+
+                preg_match('/-(\d+)$/', $lastStudent->st_office_id, $serialMatch);
+
+                $nextSerial = ((int) ($serialMatch[1] ?? 0)) + 1;
+            }
+
+            $serial = str_pad($nextSerial, 3, '0', STR_PAD_LEFT);
+
+            $student->st_office_id = "{$prefix}{$serial}";
+        });
+
     }
     public function branchInfo() {
         return $this->belongsTo(Branch::class, 'branch_id');

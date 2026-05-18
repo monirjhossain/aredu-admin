@@ -164,6 +164,7 @@
                 <thead class="thead-light ">
                     <tr>
                         <th style="width: 10px"> # </th>
+                        <th>ID</th>
                         <th class="min-w-180px">Name</th>
                         <th>Study Level</th>
                         <th>University</th>
@@ -190,6 +191,7 @@
 
                         <tr>
                             <td>{{ $itemSl-- }}</td>
+                            <td>{{ $item->st_office_id ?? '-' }}</td>
                             <td>
                                 {{ $item->full_name }}
                                 <span class="badge
