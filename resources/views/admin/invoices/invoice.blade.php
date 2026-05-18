@@ -251,9 +251,9 @@ table th:last-child {
       <img src="{{ asset($student->branchInfo->logo) }}" class="logo" alt="Logo">
       <div class="title">
         <h1>Invoice</h1>
-        <div><span class="bold-text">AR ID Number:</span> {{$invoice->invoice_no}}</div>
+        <div><span class="bold-text">Invoice No:</span> {{$invoice->invoice_no}}</div>
         <div><span class="bold-text">Date:</span> {{$invoice->created_at->format('F j, Y')}}</div>
-        <div><span class="">Print Date:</span> {{now()->format('F j, Y');}}</div>
+        <div><span>Print:</span> {{now()->format('F j, Y');}}</div>
       </div>
     </div>
 
@@ -263,6 +263,7 @@ table th:last-child {
         <p class="invoice-text">Invoice</p>
     </div> --}}
     <h3>Invoice to:</h3>
+    <p class="marginNull"><span class="bold-text">Student ID: </span>{{$student->st_office_id ?? ''}}</p>
     <p class="marginNull"><span class="bold-text">Student Name: </span>{{$student->first_name. ' '. $student->last_name}}</p>
     <p class="marginNull"><span class="bold-text">Address: </span>{{$student->address}}</p>
     <p class="marginNull"><span class="bold-text">Phone No: </span>{{$student->mobile_no}}</p>
