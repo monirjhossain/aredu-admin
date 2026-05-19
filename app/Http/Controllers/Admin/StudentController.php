@@ -203,7 +203,18 @@ class StudentController extends Controller
                 $data['type'] = 'report';
                 $data['url'] = 'students';
                 $data['university'] = $uni;
-                $data['students'] = $students->get();
+                $data['university_statuses'] = UniversityStatus::select('id', 'name')->orderBy('id')->get();
+                $data['status_tone_map'] = \App\Support\UniversityApplicationStatusTone::map();
+                $data['students'] = $students
+                    ->with([
+                        'educationQualifications',
+                        'branchInfo',
+                        'universitiesAppStatus' => function ($query) use ($universityId) {
+                            $query->where('university_id', $universityId)
+                                ->with(['statusUni', 'subject']);
+                        },
+                    ])
+                    ->get();
                 // return $data;
                 return view('admin.students.university-student-list')->with($data);
             }

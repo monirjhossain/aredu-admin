@@ -1,6 +1,7 @@
 @extends('layouts.default')
 
 @section('content')
+@include('admin.students.partials.application-status-select-styles')
 <!-- Content Header (Page header) -->
 <div class="content-header">
     <div class="container-fluid">
@@ -60,7 +61,12 @@
                     </div>
 
                     <div class="card-body" style="overflow: scroll;">
-                        <table class="table table-hover mb-6">
+                        <table
+                            id="uni-application-list"
+                            class="table table-hover mb-6"
+                            data-csrf="{{ csrf_token() }}"
+                            data-status-tones='@json($status_tone_map)'
+                        >
                             <thead class="thead-light">
                                 <tr>
                                     <th>#</th>
@@ -87,53 +93,49 @@
                             </thead>
                             <tbody>
                                 @forelse ($students as $key=>$item)
+                                    @php
+                                        $application = $item->universitiesAppStatus->first();
+                                        $education = $item->educationQualifications->sortByDesc('id')->first();
+                                    @endphp
                                     <tr>
-                                        <tr>
                                             <td>{{ $key+1 }}</td>
-                                            <td>{{ $item->universityById($university->id)->application_no ?? '-' }}</td>
+                                            <td>{{ $application->application_no ?? '-' }}</td>
                                             <td>{{ $item->full_name ?? '-' }}</td>
                                             <td>{{ $item->passport ?? '-' }}</td>
                                             {{-- <td>{{ $university->post_title }}</td> --}}
 
-                                            @forelse ($item->educationQualifications as $edu)
-                                                <td>
-                                                    {{ optional($edu->first())->result ?? '-' }}
-                                                </td>
-                                                <td>
-                                                    {{ optional($edu->first())->attend_to ?? '-' }}
-                                                </td>
-                                            @empty
-                                                <td>
-                                                    -
-                                                </td>
-                                                <td>
-                                                    -
-                                                </td>
-                                            @endforelse
-                                           
-                                            <td>
-                                                {{ $item->branchInfo->name ?? '' }}
+                                            <td>{{ optional($education)->result ?? '-' }}</td>
+                                            <td>{{ optional($education)->attend_to ?? '-' }}</td>
+                                            <td>{{ $item->branchInfo->name ?? '' }}</td>
+                                            <td>{{ optional($application->subject)->name ?? '-' }}</td>
+                                            <td>{{ $item->mobile_no }}</td>
+                                            <td class="uni-status-cell">
+                                                @if($application)
+                                                    @include('admin.students.partials.application-status-select', [
+                                                        'application' => $application,
+                                                        'university_statuses' => $university_statuses,
+                                                    ])
+                                                @else
+                                                    <span class="text-muted">—</span>
+                                                @endif
                                             </td>
-                                            <td>{{ $item->universityById($university->id)->subject->name ?? '-' }}</td>
-                                            <td>{{ $item->mobile_no }}
-                                            <td>{{ $item->universityById($university->id)->statusUni->name ?? '-' }}
-                                            <td>{{ $item->language_cer ?? '-' }}
-                                            <td>{{ $item->universityById($university->id)->note ?? '-'}}</td>
-                                            <td>{{ $item->universityById($university->id)->remarks ?? '-'}}</td>
+                                            <td>{{ $item->language_cer ?? '-' }}</td>
+                                            <td>{{ $application->note ?? '-' }}</td>
+                                            <td>{{ $application->remarks ?? '-' }}</td>
 
                                             <td>{{ $university->getMeta('link') ?? '-'}}</td>
                                             <td>
-                                                @if($item->universityById($university->id) && $item->universityById($university->id)->portal_type == 1)
-                                                    {{$university->getMeta('user') ?? ''}}
+                                                @if($application && (int) $application->portal_type === 1)
+                                                    {{ $university->getMeta('user') ?? '' }}
                                                 @else
-                                                    {{$item->universityById($university->id)->login_id ?? ''}}<br>
+                                                    {{ $application->login_id ?? '' }}
                                                 @endif
                                             </td>
                                             <td>
-                                                @if($item->universityById($university->id) && $item->universityById($university->id)->portal_type == 1)
-                                                    {{$university->getMeta('password') ?? ''}}
+                                                @if($application && (int) $application->portal_type === 1)
+                                                    {{ $university->getMeta('password') ?? '' }}
                                                 @else
-                                                    {{$item->universityById($university->id)->login_password ?? ''}}<br>
+                                                    {{ $application->login_password ?? '' }}
                                                 @endif
                                             </td>
                                             <td>
@@ -159,7 +161,6 @@
                                                     </form> --}}
                                                 </div>
                                             </td>
-                                        </tr>
                                     </tr>
                                 @empty
                                     <tr>
@@ -185,6 +186,7 @@
         </div>
     </div>
 </div>
+<script src="{{ asset('js/admin/uni-application-status.js') }}"></script>
 <script>
     function confirmDelete(id) {
         Swal.fire({
