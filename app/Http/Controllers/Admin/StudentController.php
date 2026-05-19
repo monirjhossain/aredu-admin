@@ -103,16 +103,30 @@ class StudentController extends Controller
     {
         // return $request;
         $currentUser = Auth::user();
-        $students = Student::with(['studentCscaExams.cscaExam'])->orderBy('id', 'DESC');
+        $students = Student::with(['studentCscaExams.cscaExam', 'universitiesAppStatus.statusUni',]);
 
         //university ways report
         if ($request->input('universitylist')) {
             if ($request->input('applicationlist')) {
                 $universityId = $request->input('applicationlist');
                 $uni = Post::findOrFail($universityId);
-                $students->whereHas('universities', function ($q) use ($universityId) {
-                    $q->where('id', $universityId);
-                });
+                 $students->select('students.*')
+                 
+                 // ->where('student_university.university_id', $universityId);
+                 
+                 // ORDER BY UNIVERSITY STATUS
+                 
+                //  ->whereHas('universities', function ($q) use ($universityId) {
+                //      $q->where('id', $universityId);
+                //      })
+                ->join('student_university', function ($join) use ($universityId) {
+                    $join->on('students.id', '=', 'student_university.student_id')
+                        ->where('student_university.university_id', $universityId);
+                })
+
+
+                    //  ->join('student_university', 'students.id', '=', 'student_university.student_id')
+                        ->orderBy('student_university.status_id', 'ASC');
 
                 if ($request->input('export') && $request->input('export') === 'yes') {
                     if ($request->input('export') === 'yes') {
@@ -265,6 +279,7 @@ class StudentController extends Controller
             $students->where(function ($q) use ($request) {
             $q->where('first_name', 'like', '%' . $request->input('search') . '%')
                 ->orWhere('last_name', 'like', '%' . $request->input('search') . '%')
+                ->orWhere('st_office_id', 'like', '%' . $request->input('search') . '%')
                 ->orWhere('study_id', 'like', '%' . $request->input('search') . '%')
                 // ->orWhere('subject', 'like', '%' . $request->input('search') . '%')
                 ->orWhereHas('subjects', function ($q) use ($request) {
@@ -409,7 +424,7 @@ class StudentController extends Controller
 
         $totalStudent = $students->count();
         $data['request'] = $request;
-        $data['students'] = $students->paginate($perPage);
+        $data['students'] = $students->orderBy('st_office_id', 'DESC')->paginate($perPage);
         $data['title'] = 'Student List - Total: ' . $totalStudent;
         $data['type'] = 'student';
         $data['url'] = 'students';
