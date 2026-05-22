@@ -108,6 +108,10 @@ class Student extends Model
     }
     public function universityById($universityId)
     {
+        if ($this->relationLoaded('universitiesAppStatus')) {
+            return $this->universitiesAppStatus->firstWhere('university_id', (int) $universityId);
+        }
+
         return $this->universitiesAppStatus()
             ->where('university_id', $universityId)
             ->first();

@@ -84,6 +84,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('category', CategoryController::class);
     Route::resource('tag', TagController::class);
     Route::resource('inquiries', InquiryController::class);
+    Route::patch('students/{student}/office-status', [StudentController::class, 'updateOfficeStatus'])
+        ->name('students.update-office-status');
     Route::resource('students', StudentController::class);
     Route::resource('finance_entries', FinanceEntryController::class);
     Route::get('finance_entries-export', [FinanceEntryController::class, 'export'])->name('finance_entries.export');
@@ -135,6 +137,8 @@ Route::middleware('auth')->group(function () {
     Route::group(['prefix'=>'student', 'as' => 'student.'], function(){
         Route::get('invoices/export', [StudentInvoiceController::class, 'export'])->name('invoices.export');
         Route::resource('invoices', StudentInvoiceController::class);
+        Route::patch('application/{application}/status', [StudentApplicationController::class, 'updateStatus'])
+            ->name('application.update-status');
         Route::resource('application', StudentApplicationController::class);
 
         Route::get('/send_single_sms', [BulkSmsController::class, 'sendSingleSms'])->name('sendSingleSms');

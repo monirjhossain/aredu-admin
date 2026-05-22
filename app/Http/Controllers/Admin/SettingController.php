@@ -19,6 +19,7 @@ use App\Models\Study;
 use App\Models\Subject;
 use App\Models\Tag;
 use App\Models\UniversityStatus;
+use App\Support\StatusDropdownCache;
 use Database\Seeders\StudentStatusesTableSeeder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -191,6 +192,8 @@ class SettingController extends Controller
             $modelFillableData = $request->only($model->getFillable());
             $model->fill($modelFillableData)->save();
             DB::commit();
+            $this->forgetStatusDropdownCache($request->post_type);
+
             return redirect()->back()->with('success', 'Successfully Added');
         } catch (\Throwable $th) {
             DB::rollback();
@@ -326,6 +329,8 @@ class SettingController extends Controller
             $modelFillableData = $request->only($model->getFillable());
             $model->fill($modelFillableData)->save();
             DB::commit();
+            $this->forgetStatusDropdownCache($request->post_type);
+
             return redirect()->back()->with('success', 'Successfully Added');
         } catch (\Throwable $th) {
             DB::rollback();
@@ -373,11 +378,24 @@ class SettingController extends Controller
                 $model->delete();
             }
             DB::commit();
+            $this->forgetStatusDropdownCache($request->post_type);
+
             return redirect()->back()->with('success', 'Successfully Deleted');
         } catch (\Throwable $th) {
             DB::rollback();
             return $th->getMessage();
             return redirect()->back()->with('error', 'Operation Failed.');;
+        }
+    }
+
+    private function forgetStatusDropdownCache(?string $postType): void
+    {
+        if ($postType === 'student_status') {
+            StatusDropdownCache::forgetStudentStatuses();
+        }
+
+        if ($postType === 'university_status') {
+            StatusDropdownCache::forgetUniversityStatuses();
         }
     }
 }

@@ -37,6 +37,11 @@ class StudentUniversity extends Model
         'remarks'	          
     ];
 
+    public function student()
+    {
+        return $this->belongsTo(Student::class, 'student_id');
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'updated_by');

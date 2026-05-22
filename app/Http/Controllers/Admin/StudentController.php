@@ -20,6 +20,8 @@ use App\Models\SmsTemplate;
 use App\Models\Student\Student;
 use App\Models\Student\StudentUniversity;
 use App\Models\StudentStatus;
+use App\Services\Student\OfficeStatusService;
+use App\Services\Student\UniversityApplicationListService;
 use App\Models\Study;
 use App\Models\UniversityStatus;
 use App\Models\Subject;
@@ -36,6 +38,12 @@ class StudentController extends Controller
 {
 
     use UploadAble;
+
+    public function __construct(
+        private readonly OfficeStatusService $officeStatusService,
+        private readonly UniversityApplicationListService $applicationListService
+    ) {
+    }
 
     private function normalizeCscaExamPayload(?array $cscaExams): array
     {
@@ -108,115 +116,19 @@ class StudentController extends Controller
         //university ways report
         if ($request->input('universitylist')) {
             if ($request->input('applicationlist')) {
-                $universityId = $request->input('applicationlist');
-                $uni = Post::findOrFail($universityId);
-                 $students->select('students.*')
-                 
-                 // ->where('student_university.university_id', $universityId);
-                 
-                 // ORDER BY UNIVERSITY STATUS
-                 
-                //  ->whereHas('universities', function ($q) use ($universityId) {
-                //      $q->where('id', $universityId);
-                //      })
-                ->join('student_university', function ($join) use ($universityId) {
-                    $join->on('students.id', '=', 'student_university.student_id')
-                        ->where('student_university.university_id', $universityId);
-                })
+                $filterRequest = $this->applicationListService->resolveFilterRequest($request);
 
-
-                    //  ->join('student_university', 'students.id', '=', 'student_university.student_id')
-                        ->orderBy('student_university.status_id', 'ASC');
-
-                if ($request->input('export') && $request->input('export') === 'yes') {
-                    if ($request->input('export') === 'yes') {
-                        $exportStudents = (clone $students)
-                            ->with([
-                                'student_status',
-                                'branchInfo',
-                                'subjects',
-                                'universitiesAppStatus',
-                                'educationQualifications',
-                                'sncounselor',
-                                'jncounselor'
-                            ])
-                            ->get();
-                        // $i=1;
-                        $rows = $exportStudents->map(function ($student) use ($uni) {
-                            $education = $student->educationQualifications->sortByDesc('id')->first();
-                            $applicationNumbers = $student->universitiesAppStatus
-                            
-                                ->pluck('application_no')
-                                ->filter()
-                                ->unique()
-                                ->implode(', ');
-
-                            return [
-                                'Sl' => 1,
-                                'Application No' => $student->universityById($uni->id)->application_no ?? '',
-                                'Name' => $student->full_name ?? '',
-                                'Passport' => $student->passport ?? '',
-                                'CGPA' => optional($education)->result ?? '',
-                                'Passing Year' => optional(optional($education)->attend_to)->format('Y') ?? '',
-                                'Branch' => optional($student->branchInfo)->name ?? '',
-                                'Subject' => $student->universityById($uni->id)->subject->name ?? '',
-                                'Mobile' => $student->mobile_no ?? '',
-                                'Status' => $student->universityById($uni->id)->statusUni->name ?? '',
-                                'language' => $student->language_cer ?? '',
-                                'Link' => $uni->getMeta('link') ?? '',
-                                'User' => $student->universityById($uni->id) && $student->universityById($uni->id)->portal_type == 1 ? $uni->getMeta('user') : $student->universityById($uni->id)->login_id ?? '',
-                                'Password' => $student->universityById($uni->id) && $student->universityById($uni->id)->portal_type == 1 ? $uni->getMeta('password') : $student->universityById($uni->id)->login_password ?? '',
-                                'CSCA' => '-',
-                                'Junior Counselor' => optional($student->jncounselor)->name ?? '',
-                                'Note' => $student->universityById($uni->id)->note ?? '',
-                                'Remarks' => $student->universityById($uni->id)->remarks ?? '',
-                            ];
-                        })->values()->all();
-
-                        if (empty($rows)) {
-                            $rows[] = [
-                                'Sl' => '', 
-                                'Application No' => '', 
-                                'Name' => '', 
-                                'Passport' => '', 
-                                'CGPA' => '', 
-                                'Passing Year' => '', 
-                                'Branch' => '', 
-                                'Subject' => '', 
-                                'Mobile' => '', 
-                                'Status' => '', 
-                                'language' => '', 
-                                'Link' => '', 
-                                'User' => '', 
-                                'Password' => '', 
-                                'CSCA' => '', 
-                                'Junior Counselor' => '', 
-                                'Note' => '', 
-                                'Remarks' => '', 
-                            ];
-                        }
-
-                        return $this->downloadRowsAsCsv($rows, $uni->post_title . '_Application_Report.csv');
-                    }
+                if ($request->input('export') === 'yes') {
+                    return $this->downloadRowsAsCsv(
+                        $this->applicationListService->exportRows($filterRequest),
+                        $this->applicationListService->exportFilename($filterRequest)
+                    );
                 }
-                $data['title'] = 'Application List - '. $uni->post_title;
-                $data['type'] = 'report';
-                $data['url'] = 'students';
-                $data['university'] = $uni;
-                $data['university_statuses'] = UniversityStatus::select('id', 'name')->orderBy('id')->get();
-                $data['status_tone_map'] = \App\Support\UniversityApplicationStatusTone::map();
-                $data['students'] = $students
-                    ->with([
-                        'educationQualifications',
-                        'branchInfo',
-                        'universitiesAppStatus' => function ($query) use ($universityId) {
-                            $query->where('university_id', $universityId)
-                                ->with(['statusUni', 'subject']);
-                        },
-                    ])
-                    ->get();
-                // return $data;
-                return view('admin.students.university-student-list')->with($data);
+
+                return view(
+                    'admin.students.university-student-list',
+                    $this->applicationListService->listViewData($filterRequest)
+                );
             }
             
             $uni = Post::has('students')
@@ -435,7 +347,19 @@ class StudentController extends Controller
 
         $totalStudent = $students->count();
         $data['request'] = $request;
-        $data['students'] = $students->orderBy('st_office_id', 'DESC')->paginate($perPage);
+        $data['students'] = $students
+            ->with([
+                'student_status:id,name',
+                'studyLevel:id,name',
+                'universities:id,post_title',
+                'subjects:id,name',
+                'universitiesAppStatus.statusUni:id,name',
+                'jncounselor:id,name',
+                'branchInfo:id,name',
+                'user:id,name',
+            ])
+            ->orderBy('st_office_id', 'DESC')
+            ->paginate($perPage);
         $data['title'] = 'Student List - Total: ' . $totalStudent;
         $data['type'] = 'student';
         $data['url'] = 'students';
@@ -444,7 +368,7 @@ class StudentController extends Controller
         $data['subjects'] = Subject::orderBy('name', 'asc')->get();
         $data['intakes'] = $this->intakeCreate();
         $data['universities'] = Post::orderBy('post_title', 'asc')->select('id', 'post_title')->where('post_type', 'university')->get();
-        $data['student_statuses'] = StudentStatus::select('id', 'name')->get();
+        $data['student_statuses'] = StudentStatus::select('id', 'name')->orderBy('id')->get();
         $data['counselors'] = $counselors;
         // return $data;
         if ($request->input('print') && $request->input('print') == 'yes') {
@@ -660,62 +584,29 @@ class StudentController extends Controller
             $newNote = isset($student->note) ? trim((string) $student->note) : '';
             $newRemarks = isset($student->remarks) ? trim((string) $student->remarks) : '';
 
-            // Notify on status change and note/remarks updates.
             $statusChanged = $oldStatus != $student->status;
             $noteOrRemarksChanged = ($oldNote !== $newNote) || ($oldRemarks !== $newRemarks);
+
             if ($statusChanged || $noteOrRemarksChanged) {
-                $actor = Auth::user();
-                $studentUser = $student->user; // Assuming Student model has user() relation
-                $student->load('student_status'); // Reload relationship to get new status name
+                $student->load('student_status');
                 $newStatusName = optional($student->student_status)->name;
-                $actorName = $actor ? $actor->name : 'System';
-                $eventType = $statusChanged ? 'status_changed' : 'note_remarks_updated';
-                $notification = new \App\Notifications\StatusChangedNotification($student, $oldStatusName, $newStatusName, 'student', $actorName, $eventType);
 
-                // Notify actor (if not the student user)
-                if ($actor && (!$studentUser || $actor->id !== $studentUser->id) && method_exists($actor, 'notify')) {
-                    $actor->notify($notification);
-                }
-                // Notify student user
-                if ($studentUser) {
-                    $studentUser->notify($notification);
-                }
-
-                // Notify all users with specific roles
-                $roleNames = ['Admin', 'Super Admin', 'Assign Employee', 'Senior Counselor', 'Junior Counselor'];
-                $roles = Role::whereIn('user_type', $roleNames)->pluck('id');
-                $usersToNotify = \App\Models\User::whereIn('role_id', $roles)->get();
-                foreach ($usersToNotify as $user) {
-                    // Avoid duplicate notification to actor or student user
-                    if (($actor && $user->id === $actor->id) || ($studentUser && $user->id === $studentUser->id)) {
-                        continue;
-                    }
-                    if (method_exists($user, 'notify')) {
-                        $user->notify($notification);
-                    }
-                }
-
-                // Send email to student on status change using '[Student Status]' template
-                if($statusChanged && isset($student->email)){
-                    $template = \App\Models\SmsTemplate::where('name', '[Student Status]')->first();
-                    if ($template) {
-                        $juniorCounselorName = $student->jncounselor ? $student->jncounselor->name : '';
-                        $juniorCounselorMobile = $student->jncounselor ? $student->jncounselor->mobile_no : '';
-                        $placeholders = [
-                            '[Student Name]'   => $student->full_name,
-                            '[Status Name]'    => $newStatusName,
-                            '[Counselor Name]' => $juniorCounselorName . ($juniorCounselorMobile ? ' - ' . $juniorCounselorMobile : ''),
-                        ];
-                        $body = str_replace(
-                            array_keys($placeholders),
-                            array_values($placeholders),
-                            $template->message
-                        );
-                        $subject = 'AR EDUCATION – Student Status Changed';
-                        $name = $student->full_name;
-                        $email = $student->email;
-                        Mail::to($email)->send(new MailSystem($name, $body, $subject));
-                    }
+                if ($statusChanged) {
+                    $this->officeStatusService->notifyChange(
+                        $student,
+                        $oldStatusName,
+                        $newStatusName,
+                        'status_changed',
+                        true
+                    );
+                } elseif ($noteOrRemarksChanged) {
+                    $this->officeStatusService->notifyChange(
+                        $student,
+                        $oldStatusName,
+                        $newStatusName,
+                        'note_remarks_updated',
+                        false
+                    );
                 }
             }
 
@@ -744,59 +635,6 @@ class StudentController extends Controller
             }
 
 
-            DB::commit();
-            Session::flash('success', 'Update successfully');
-            return redirect()->route('students.index');
-        } catch (\Throwable $th) {
-            DB::rollback();
-            Session::flash('error', 'Something went wrong!');
-            return redirect()->back();
-        }
-
-        // return $request;
-        DB::beginTransaction();
-        try {
-            $educations = $request->educations;
-            $count = count($educations['education_level_id']); // total rows
-
-            $count = 1;
-            for ($i = 0; $i < $count; $i++) {
-                $education = new EducationQualification();
-                $education->education_level_id = $educationsData['education_level_id'][$i] ?? null;
-                $education->attend_from        = $educationsData['attend_from'][$i] ?? null;
-                $education->attend_to          = $educationsData['attend_to'][$i] ?? null;
-                $education->result          = $educationsData['result'][$i] ?? null;
-                $education->out_of          = $educationsData['out_of'][$i] ?? null;
-                $education->country            = $educationsData['country'][$i] ?? null;
-                $education->institution        = $educationsData['institution'][$i] ?? null;
-                $education->group_subject      = $educationsData['group_subject'][$i] ?? null;
-                $education->student_id         = $student->id; // if linked to a student
-                $education->save();
-            }
-
-            DB::commit();
-            Session::flash('success', 'Created successfully');
-            // return redirect()->route('students.index');
-            return redirect()->back();
-        } catch (\Throwable $th) {
-            DB::rollback();
-            Session::flash('error', 'Something went wrong!');
-            return $th;
-            // return redirect()->back();
-        }
-
-
-
-
-        DB::beginTransaction();
-        try {
-            // $student = new Student();
-            $studentFillableData = $request->only($student->getFillable());
-            $student->fill($studentFillableData)->save();
-
-            $student->subjects()->sync($request->subjects);
-            $student->documents()->sync($request->documents);
-            $student->universities()->sync($request->universities);
             DB::commit();
             Session::flash('success', 'Update successfully');
             return redirect()->route('students.index');
@@ -851,6 +689,38 @@ class StudentController extends Controller
         // return $data;
         return view('frontend.students.show')->with($data);
     }
+    public function updateOfficeStatus(Request $request, Student $student)
+    {
+        $this->authorize('updateOfficeStatus', $student);
+
+        $validated = $request->validate([
+            'status_id' => 'required|integer|exists:student_statuses,id',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $result = $this->officeStatusService->update($student, (int) $validated['status_id']);
+            DB::commit();
+
+            $statusName = $result['status_name'] ?? 'new status';
+
+            return response()->json([
+                'success' => true,
+                'status_name' => $result['status_name'],
+                'message' => $result['changed']
+                    ? "Office status updated to {$statusName}."
+                    : "Office status is already set to {$statusName}.",
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not update office status.',
+            ], 422);
+        }
+    }
+
     public function intakeCreate()
     {
         $currentYear= now()->year;

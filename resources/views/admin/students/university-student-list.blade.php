@@ -1,7 +1,7 @@
 @extends('layouts.default')
 
 @section('content')
-@include('admin.students.partials.application-status-select-styles')
+@include('admin.students.partials.inline-status-select-styles')
 <!-- Content Header (Page header) -->
 <div class="content-header">
     <div class="container-fluid">
@@ -42,28 +42,16 @@
                                 </form>
                             </div> --}}
                         </div>
-                        <div class="card-toolbar">
-{{--                     
-                        <a onclick="submitDetailsForm('no')" class="btn btn-primary mr-1"> <i class="la la-search"></i>Search </a>
-                        <a href="{{ route('students.index') }}" class="btn btn-primary mr-1"> <i class="la la-undo"></i>Reset </a>
-                        <a onclick="submitDetailsForm('yes')" class="btn btn-primary mr-1"> <i class="la la-print"></i>Print </a> --}}
-                        {{-- <a onclick="submitDetailsForm('export')" class="btn btn-success mr-1"> <i class="la la-download"></i>Export </a> --}}
-                        <a href="{{ route('students.index') }}?universitylist=1&applicationlist={{$university->id}}&export=yes" class="btn btn-success mr-1" target="_blanck"> <i class="la la-download"></i>Export </a>
-                        {{-- <a href="{{ route($url . '.create') }}" class="btn btn-primary mr-1"> <i class="la la-plus"></i> Create
-                            {{ $type }}</a>
-
-                        <!-- Button trigger modal-->
-                        <button onclick="getSmsTemplate(0)" type="button" class="btn btn-primary messageModal" data-toggle="modal" data-target="#exampleModalLong">
-                            <i class="fas fa-envelope" title="message"></i>
-                        </button> --}}
-
-                    </div>
+                        @include('admin.students.partials.application-list-toolbar', [
+                            'university' => $university,
+                            'application_status_filter' => $application_status_filter ?? null,
+                        ])
                     </div>
 
                     <div class="card-body" style="overflow: scroll;">
                         <table
-                            id="uni-application-list"
                             class="table table-hover mb-6"
+                            data-inline-status-root
                             data-csrf="{{ csrf_token() }}"
                             data-status-tones='@json($status_tone_map)'
                         >
@@ -94,7 +82,7 @@
                             <tbody>
                                 @forelse ($students as $key=>$item)
                                     @php
-                                        $application = $item->universitiesAppStatus->first();
+                                        $application = $item->universityById($university->id);
                                         $education = $item->educationQualifications->sortByDesc('id')->first();
                                     @endphp
                                     <tr>
@@ -111,9 +99,11 @@
                                             <td>{{ $item->mobile_no }}</td>
                                             <td class="uni-status-cell">
                                                 @if($application)
-                                                    @include('admin.students.partials.application-status-select', [
-                                                        'application' => $application,
-                                                        'university_statuses' => $university_statuses,
+                                                    @include('admin.students.partials.inline-status-select', [
+                                                        'updateUrl' => route('student.application.update-status', $application),
+                                                        'currentStatusId' => $application->status_id,
+                                                        'statuses' => $university_statuses,
+                                                        'tone' => \App\Support\StatusTone::forStatusId((int) $application->status_id),
                                                     ])
                                                 @else
                                                     <span class="text-muted">—</span>
@@ -164,7 +154,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="9" class="text-center">Not found.</td>
+                                        <td colspan="17" class="text-center">Not found.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -186,7 +176,10 @@
         </div>
     </div>
 </div>
-<script src="{{ asset('js/admin/uni-application-status.js') }}"></script>
+@endsection
+
+@section('scripts')
+<script src="{{ asset('js/admin/inline-status-select.js') }}"></script>
 <script>
     function confirmDelete(id) {
         Swal.fire({

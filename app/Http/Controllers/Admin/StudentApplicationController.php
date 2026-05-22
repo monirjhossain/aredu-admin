@@ -19,6 +19,7 @@ use App\Models\Student\Student;
 use App\Models\Student\StudentUniversity;
 use App\Models\Student\UniversityApplicationStatus;
 use App\Models\UniversityStatus;
+use App\Services\Student\UniversityApplicationStatusService;
 use App\Services\WalletService;
 use App\Traits\UploadAble;
 use Illuminate\Http\Request;
@@ -31,6 +32,11 @@ class StudentApplicationController extends Controller
 {
 
     use UploadAble;
+
+    public function __construct(
+        private readonly UniversityApplicationStatusService $applicationStatusService
+    ) {
+    }
 
     /**
      * Display a listing of the resource.
@@ -256,65 +262,30 @@ class StudentApplicationController extends Controller
             $newNote = isset($application->note) ? trim((string) $application->note) : '';
             $newRemarks = isset($application->remarks) ? trim((string) $application->remarks) : '';
 
-            // Notify on status change and note/remarks updates.
             $statusChanged = $oldStatus != $application->status_id;
             $noteOrRemarksChanged = ($oldNote !== $newNote) || ($oldRemarks !== $newRemarks);
-            if ($statusChanged || $noteOrRemarksChanged) {
-                $actor = Auth::user();
-                $student = Student::find($application->student_id);
-                $studentUser = $student ? $student->user : null; // Assuming Student model has user() relation
-                $newStatusName = optional($application->statusUni)->name;
-                $actorName = $actor ? $actor->name : 'System';
-                $eventType = $statusChanged ? 'status_changed' : 'note_remarks_updated';
-                $notification = new \App\Notifications\StatusChangedNotification($application, $oldStatusName, $newStatusName, 'university', $actorName, $eventType);
-                // Notify actor (if not the student user)
-                if ($actor && (!$studentUser || $actor->id !== $studentUser->id) && method_exists($actor, 'notify')) {
-                    $actor->notify($notification);
-                }
-                // Notify student user
-                if ($studentUser) {
-                    $studentUser->notify($notification);
-                }
-                // Notify all users with specific roles
-                $roleNames = ['Admin', 'Super Admin', 'Assign Employee', 'Senior Counselor', 'Junior Counselor'];
-                $roles = \App\Models\Role::whereIn('user_type', $roleNames)->pluck('id');
-                $usersToNotify = \App\Models\User::whereIn('role_id', $roles)->get();
-                foreach ($usersToNotify as $user) {
-                    // Avoid duplicate notification to actor or student user
-                    if (($actor && $user->id === $actor->id) || ($studentUser && $user->id === $studentUser->id)) {
-                        continue;
-                    }
-                    if (method_exists($user, 'notify')) {
-                        $user->notify($notification);
-                    }
-                }
 
-                // Send email to student on university status change using '[Status Change]' template
-                if($statusChanged && $student && isset($student->email)){
-                    // Always use student's junior counselor info for mail, regardless of actor
-                    $JuniorCounselorName = $student->jncounselor ? $student->jncounselor->name : 'N/A';
-                    $JuniorCounselorMobile = $student->jncounselor ? $student->jncounselor->mobile_no : 'N/A';
-                    $template = \App\Models\SmsTemplate::where('name', '[Status Change]')->first();
-                    if ($template) {
-                        $placeholders = [
-                            '[Student Name]'   => $student->full_name,
-                            '[Status Name]'    => $newStatusName,
-                            '[Counselor Name]' => $JuniorCounselorName . ($JuniorCounselorMobile ? ' - ' . $JuniorCounselorMobile : ''),
-                        ];
-                        $body = str_replace(
-                            array_keys($placeholders),
-                            array_values($placeholders),
-                            $template->message
-                        );
-                        $subject = 'AR EDUCATION – University Status Changed';
-                        $name = $student->full_name;
-                        $email = $student->email;
-                        \Mail::to($email)->send(new \App\Mail\MailSystem($name, $body, $subject));
-                    }
-                }
+            if ($statusChanged || $noteOrRemarksChanged) {
+                $application->load('statusUni');
+                $newStatusName = optional($application->statusUni)->name;
 
                 if ($statusChanged) {
-                    $this->recordApplicationStatusHistory($application, (int) $application->status_id);
+                    $this->applicationStatusService->recordHistory($application, (int) $application->status_id);
+                    $this->applicationStatusService->notifyChange(
+                        $application,
+                        $oldStatusName,
+                        $newStatusName,
+                        'status_changed',
+                        true
+                    );
+                } elseif ($noteOrRemarksChanged) {
+                    $this->applicationStatusService->notifyChange(
+                        $application,
+                        $oldStatusName,
+                        $newStatusName,
+                        'note_remarks_updated',
+                        false
+                    );
                 }
             }
 
@@ -333,18 +304,27 @@ class StudentApplicationController extends Controller
 
     public function updateStatus(Request $request, StudentUniversity $application)
     {
+        $application->loadMissing('student');
+        $student = $application->student ?? Student::findOrFail($application->student_id);
+        $this->authorize('updateApplicationStatus', $student);
+
         $validated = $request->validate([
             'status_id' => 'required|integer|exists:university_statuses,id',
         ]);
 
         DB::beginTransaction();
         try {
-            $result = $this->applyApplicationStatusChange($application, (int) $validated['status_id']);
+            $result = $this->applicationStatusService->update($application, (int) $validated['status_id']);
             DB::commit();
+
+            $statusName = $result['status_name'] ?? 'new status';
 
             return response()->json([
                 'success' => true,
                 'status_name' => $result['status_name'],
+                'message' => $result['changed']
+                    ? "Status updated to {$statusName}."
+                    : "Status is already set to {$statusName}.",
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -353,94 +333,6 @@ class StudentApplicationController extends Controller
                 'success' => false,
                 'message' => 'Could not update status.',
             ], 422);
-        }
-    }
-
-    /**
-     * @return array{changed: bool, status_name: string|null}
-     */
-    private function applyApplicationStatusChange(StudentUniversity $application, int $newStatusId): array
-    {
-        if ((int) $application->status_id === $newStatusId) {
-            $application->loadMissing('statusUni');
-
-            return ['changed' => false, 'status_name' => optional($application->statusUni)->name];
-        }
-
-        $oldStatusName = optional($application->statusUni)->name;
-        $application->status_id = $newStatusId;
-        $application->updated_by = Auth::id();
-        $application->save();
-        $application->load('statusUni');
-        $newStatusName = optional($application->statusUni)->name;
-
-        $this->recordApplicationStatusHistory($application, $newStatusId);
-        $this->notifyApplicationStatusChange($application, $oldStatusName, $newStatusName);
-
-        return ['changed' => true, 'status_name' => $newStatusName];
-    }
-
-    private function recordApplicationStatusHistory(StudentUniversity $application, int $statusId): void
-    {
-        UniversityApplicationStatus::where('student_university_id', $application->id)->update(['active' => 0]);
-        UniversityApplicationStatus::create([
-            'student_university_id' => $application->id,
-            'status_id' => $statusId,
-            'updated_by' => Auth::id(),
-            'active' => 1,
-        ]);
-    }
-
-    private function notifyApplicationStatusChange(StudentUniversity $application, ?string $oldStatusName, ?string $newStatusName): void
-    {
-        try {
-            $actor = Auth::user();
-            $student = Student::find($application->student_id);
-            $studentUser = $student ? $student->user : null;
-            $actorName = $actor ? $actor->name : 'System';
-            $notification = new \App\Notifications\StatusChangedNotification(
-                $application,
-                $oldStatusName,
-                $newStatusName,
-                'university',
-                $actorName,
-                'status_changed'
-            );
-
-            if ($actor && (!$studentUser || $actor->id !== $studentUser->id) && method_exists($actor, 'notify')) {
-                $actor->notify($notification);
-            }
-            if ($studentUser) {
-                $studentUser->notify($notification);
-            }
-
-            $roleNames = ['Admin', 'Super Admin', 'Assign Employee', 'Senior Counselor', 'Junior Counselor'];
-            $roles = \App\Models\Role::whereIn('user_type', $roleNames)->pluck('id');
-            foreach (\App\Models\User::whereIn('role_id', $roles)->get() as $user) {
-                if (($actor && $user->id === $actor->id) || ($studentUser && $user->id === $studentUser->id)) {
-                    continue;
-                }
-                if (method_exists($user, 'notify')) {
-                    $user->notify($notification);
-                }
-            }
-
-            if ($student && !empty($student->email)) {
-                $template = \App\Models\SmsTemplate::where('name', '[Status Change]')->first();
-                if ($template) {
-                    $juniorCounselorName = $student->jncounselor ? $student->jncounselor->name : 'N/A';
-                    $juniorCounselorMobile = $student->jncounselor ? $student->jncounselor->mobile_no : 'N/A';
-                    $placeholders = [
-                        '[Student Name]' => $student->full_name,
-                        '[Status Name]' => $newStatusName,
-                        '[Counselor Name]' => $juniorCounselorName . ($juniorCounselorMobile ? ' - ' . $juniorCounselorMobile : ''),
-                    ];
-                    $body = str_replace(array_keys($placeholders), array_values($placeholders), $template->message);
-                    Mail::to($student->email)->send(new \App\Mail\MailSystem($student->full_name, $body, 'AR EDUCATION – University Status Changed'));
-                }
-            }
-        } catch (\Throwable $e) {
-            // Status is saved; notification/mail must not block inline update.
         }
     }
 

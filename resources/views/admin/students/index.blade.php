@@ -1,6 +1,7 @@
 @extends('layouts.default')
 
 @section('content')
+@include('admin.students.partials.inline-status-select-styles')
     <div class="row">
         <div class="col-sm-6">
             <h1 class="m-0 text-dark">{{ $title }}</h1>
@@ -160,14 +161,19 @@
             </div>
         </div>
         <div class="card-body" style="overflow: scroll; ">
-            <table class="table table-hover">
+            <table
+                class="table table-hover"
+                data-inline-status-root
+                data-csrf="{{ csrf_token() }}"
+                data-status-tones='@json($status_tone_map)'
+            >
                 <thead class="thead-light ">
                     <tr>
                         <th style="width: 10px"> # </th>
                         <th>ID</th>
                         <th class="min-w-180px">Name</th>
                         <th>Study Level</th>
-                        <th>University</th>
+                        <th class="uni-status-cell--stacked">University / Status</th>
                         <th>Subject</th>
                         {{-- <th>Documents</th> --}}
                         <th class="min-w-180px">Application Info</th>
@@ -192,43 +198,23 @@
                         <tr>
                             <td>{{ $itemSl-- }}</td>
                             <td>{{ $item->st_office_id ?? '-' }}</td>
-                            <td>
-                                {{ $item->full_name }}
-                                <span class="badge
-                                    {{ ($item->student_status && in_array($item->student_status->id, [7, 9, 11])) ? 'badge-success'
-                                    : ($item->student_status && in_array($item->student_status->id, [4, 12, 2]) ? 'badge-danger'
-                                    : ($item->student_status && in_array($item->student_status->id, [6, 8, 13]) ? 'badge-warning' : 'badge-primary')) }}">
-                                    {{ $item->student_status->name ?? '' }}
-                                </span>
-                                <span class="badge badge-primary">{{ $item->intake }} </span>
+                            <td class="student-name-cell">
+                                <div class="student-name-cell__title">{{ $item->full_name }}</div>
+                                @include('admin.students.partials.inline-status-select', [
+                                    'updateUrl' => route('students.update-office-status', $item),
+                                    'currentStatusId' => $item->status,
+                                    'statuses' => $student_statuses,
+                                    'tone' => \App\Support\StatusTone::forStatusId((int) $item->status),
+                                    'wrapClass' => 'student-office-status-wrap',
+                                ])
+                                <span class="badge badge-primary mt-1">{{ $item->intake }}</span>
                             </td>
                             <td>{{ $item->studyLevel->name ?? '' }}</td>
-                            <td>
-                                @foreach($item->universities as $uni)
-                                    @php
-                                        $statusname = '';
-                                    @endphp
-                                    @foreach($item->universitiesAppStatus as $uniAppStatus)
-                                            @if ($uniAppStatus->university_id == $uni->id)
-                                                @foreach ($uniAppStatus->statusAll as $st)
-                                                    @if ($st->active == 1)
-                                                        @php
-                                                        $statusname = $st->statusUni->name;
-                                                        @endphp
-                                                    @endif
-                                                @endforeach
-
-                                            @endif
-                                    @endforeach
-
-                                    <span class="badge badge-primary">{{ $uni->post_title }} </span>
-                                    @if ($statusname)
-                                    -<span class="badge badge-warning">{{ $statusname }} </span><br>
-                                    @endif
-                                    @php
-                                        $statusname = '';
-                                    @endphp
-                                @endforeach
+                            <td class="uni-status-cell--stacked">
+                                @include('admin.students.partials.university-applications-inline', [
+                                    'student' => $item,
+                                    'university_statuses' => $university_statuses,
+                                ])
                             </td>
                             <td>
                                 @foreach($item->subjects as $sub)
@@ -377,6 +363,7 @@
     </div>
 @endsection
 @section('scripts')
+<script src="{{ asset('js/admin/inline-status-select.js') }}"></script>
 <script>
     function getSmsTemplate(id) {
         if(id == 0){
