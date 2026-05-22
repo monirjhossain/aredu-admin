@@ -19,7 +19,10 @@ use App\Models\Student\Student;
 use App\Models\Student\StudentUniversity;
 use App\Models\Student\UniversityApplicationStatus;
 use App\Models\UniversityStatus;
+use App\Http\Requests\Student\UpdateUniversityApplicationRequest;
+use App\Services\Student\UniversityApplicationEditPresenter;
 use App\Services\Student\UniversityApplicationStatusService;
+use App\Services\Student\UniversityApplicationUpdateService;
 use App\Services\WalletService;
 use App\Traits\UploadAble;
 use Illuminate\Http\Request;
@@ -36,9 +39,20 @@ class StudentApplicationController extends Controller
     /** @var UniversityApplicationStatusService */
     private $applicationStatusService;
 
-    public function __construct(UniversityApplicationStatusService $applicationStatusService)
-    {
+    /** @var UniversityApplicationUpdateService */
+    private $applicationUpdateService;
+
+    /** @var UniversityApplicationEditPresenter */
+    private $applicationEditPresenter;
+
+    public function __construct(
+        UniversityApplicationStatusService $applicationStatusService,
+        UniversityApplicationUpdateService $applicationUpdateService,
+        UniversityApplicationEditPresenter $applicationEditPresenter
+    ) {
         $this->applicationStatusService = $applicationStatusService;
+        $this->applicationUpdateService = $applicationUpdateService;
+        $this->applicationEditPresenter = $applicationEditPresenter;
     }
 
     /**
@@ -78,13 +92,22 @@ class StudentApplicationController extends Controller
      */
     public function store(Request $request)
     {
-        // return $request;
+        $request->validate([
+            'student_id' => 'required|integer|exists:students,id',
+            'university_id' => 'required|integer',
+            'subject_id' => 'required|integer',
+            'status_id' => 'nullable|integer|exists:university_statuses,id',
+        ]);
+
+        $student = Student::findOrFail($request->student_id);
+        $this->authorize('updateApplicationStatus', $student);
+
         DB::beginTransaction();
         try {
             $stUni = new StudentUniversity();
-            $stUniFillableData = $request->only($stUni->getFillable());
-            $stUni->fill($stUniFillableData)->save();
-            $stUni->updated_by = Auth::user()->id;
+            $stUni->fill($request->only($stUni->getFillable()));
+            $stUni->status_id = $request->input('status_id', 1);
+            $stUni->updated_by = Auth::id();
             $stUni->save();
 
             $apStatus = new UniversityApplicationStatus();
@@ -94,9 +117,8 @@ class StudentApplicationController extends Controller
             $apStatus->active = 1;
             $apStatus->save();
 
-            // Send mail on university status add (like update)
-            $student = Student::find($stUni->student_id);
-            $newStatusName = optional($apStatus->statusUni)->name ?? '';
+            $student->load('jncounselor');
+            $newStatusName = optional(UniversityStatus::find($stUni->status_id))->name ?? '';
             if($student && isset($student->email)){
                 $JuniorCounselorName = $student->jncounselor ? $student->jncounselor->name : 'N/A';
                 $JuniorCounselorMobile = $student->jncounselor ? $student->jncounselor->mobile_no : 'N/A';
@@ -149,12 +171,17 @@ class StudentApplicationController extends Controller
             }
 
             DB::commit();
-            Session::flash('success', 'Added successfully');
-            return redirect()->to(route('students.show', $request->student_id));
+
+            return redirect()
+                ->route('students.show', $student->id)
+                ->with('success', 'Application added successfully');
         } catch (\Throwable $th) {
             DB::rollback();
-            Session::flash('error', 'Something went wrong!');
-            return redirect()->back();
+            report($th);
+
+            return redirect()
+                ->route('students.show', $request->student_id)
+                ->with('error', 'Could not add application. Please try again.');
         }
     }
 
@@ -189,117 +216,39 @@ class StudentApplicationController extends Controller
 
     public function edit(StudentUniversity $application)
     {
-        // Show dedicated edit page for a student application.
-        $student = Student::findOrFail($application->student_id);
-        $data['application'] = $application;
-        $data['student'] = $student;
-        $data['title'] = 'Edit Application';
-        $data['type'] = 'application';
-        $data['url'] = 'student.application';
-        $data['universities'] = Post::select('id', 'post_title')->orderby('id', 'DESC')->where('post_type', 'university')->get();
-        $data['university_statuses'] = UniversityStatus::select('id','name')->orderBy('id')->get();
+        $application->loadMissing('student');
 
-        return view('admin.student_applications.edit')->with($data);
+        if (!$application->student) {
+            abort(404, 'Student not found for this application.');
+        }
+
+        $this->authorize('updateApplicationStatus', $application->student);
+
+        return view('admin.student_applications.edit', $this->applicationEditPresenter->viewData($application));
     }
 
-    /**
-     * Update the specified application resource.
-     * This method will be used by the resource route (student.application.update).
-     */
-    public function update(Request $request, StudentUniversity $application)
+    public function update(UpdateUniversityApplicationRequest $request, StudentUniversity $application)
     {
-        $request->validate([
-            'status_id' => 'required|integer',
-            'admission_notice' => 'nullable|file|mimes:pdf,jpg,jpeg,png',
-            'jw_copy' => 'nullable|file|mimes:pdf,jpg,jpeg,png',
-            'visa_copy' => 'nullable|file|mimes:pdf,jpg,jpeg,png',
-        ]);
-        
         DB::beginTransaction();
         try {
-            $oldStatus = $application->status_id;
-            $oldStatusName = optional($application->statusUni)->name;
-            $oldNote = isset($application->note) ? trim((string) $application->note) : '';
-            $oldRemarks = isset($application->remarks) ? trim((string) $application->remarks) : '';
-            $application->status_id = $request->status_id;
-            if ($request->has('note')) {
-                $application->note = $request->note;
-            }
-            if ($request->has('remarks')) {
-                $application->remarks = $request->remarks;
-            }
-            if ($request->has('application_no')) {
-                $application->application_no = $request->application_no;
-            }
-            if ($request->has('login_id')) {
-                $application->login_id = $request->login_id;
-            }
-            if ($request->has('login_password')) {
-                $application->login_password = $request->login_password;
-            }
-            if ($request->has('portal_type')) {
-                $application->portal_type = $request->portal_type;
-            }
-            $application->updated_by = Auth::id();
-
-            // Handle file uploads
-            $fileFields = ['admission_notice', 'jw_copy', 'visa_copy'];
-            foreach ($fileFields as $field) {
-                if ($request->hasFile($field)) {
-                    // Delete old file if exists
-                    if ($application->$field) {
-                        $oldPath = storage_path('app/public/student_applications/' . $application->$field);
-                        if (file_exists($oldPath)) {
-                            @unlink($oldPath);
-                        }
-                    }
-                    $file = $request->file($field);
-                    $filename = uniqid($field . '_') . '.' . $file->getClientOriginalExtension();
-                    $file->storeAs('public/student_applications', $filename);
-                    $application->$field = $filename;
-                }
-            }
-
-            $application->save();
-            $application->refresh(); // Ensure latest status
-            $newNote = isset($application->note) ? trim((string) $application->note) : '';
-            $newRemarks = isset($application->remarks) ? trim((string) $application->remarks) : '';
-
-            $statusChanged = $oldStatus != $application->status_id;
-            $noteOrRemarksChanged = ($oldNote !== $newNote) || ($oldRemarks !== $newRemarks);
-
-            if ($statusChanged || $noteOrRemarksChanged) {
-                $application->load('statusUni');
-                $newStatusName = optional($application->statusUni)->name;
-
-                if ($statusChanged) {
-                    $this->applicationStatusService->recordHistory($application, (int) $application->status_id);
-                    $this->applicationStatusService->notifyChange(
-                        $application,
-                        $oldStatusName,
-                        $newStatusName,
-                        'status_changed',
-                        true
-                    );
-                } elseif ($noteOrRemarksChanged) {
-                    $this->applicationStatusService->notifyChange(
-                        $application,
-                        $oldStatusName,
-                        $newStatusName,
-                        'note_remarks_updated',
-                        false
-                    );
-                }
-            }
-
+            $application->loadMissing('statusUni');
+            $this->applicationUpdateService->update($application, $request);
             DB::commit();
-            Session::flash('success', 'Application updated successfully');
-            return redirect()->back();
+
+            return redirect()
+                ->route('student.application.edit', $application)
+                ->with('success', 'Application updated successfully');
         } catch (\Throwable $th) {
-            // return $th;
             DB::rollBack();
-            Session::flash('error', 'Something went wrong!');
-            return redirect()->back();
+            report($th);
+            $message = config('app.debug')
+                ? $th->getMessage()
+                : 'Something went wrong! Please try again.';
+
+            return redirect()
+                ->route('student.application.edit', $application)
+                ->withInput()
+                ->with('error', $message);
         }
     }
 
@@ -339,14 +288,34 @@ class StudentApplicationController extends Controller
         }
     }
 
-    public function destroy(Request $request)
+    public function destroy(StudentUniversity $application)
     {
-        // return $request;
-        if ($request->id) {
-            StudentUniversity::where('id', $request->id)->delete();
-            UniversityApplicationStatus::where('student_university_id', $request->id)->delete();
-            Session::flash('success', 'Deleted successfully');
-            return redirect()->to(route('students.show', $request->student_id));
+        $application->loadMissing('student');
+
+        if (!$application->student) {
+            abort(404, 'Student not found for this application.');
+        }
+
+        $this->authorize('updateApplicationStatus', $application->student);
+
+        $studentId = (int) $application->student_id;
+
+        DB::beginTransaction();
+        try {
+            UniversityApplicationStatus::where('student_university_id', $application->id)->delete();
+            $application->delete();
+            DB::commit();
+
+            return redirect()
+                ->route('students.show', $studentId)
+                ->with('success', 'Application deleted successfully');
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            report($th);
+
+            return redirect()
+                ->route('students.show', $studentId)
+                ->with('error', 'Could not delete application.');
         }
     }
 }

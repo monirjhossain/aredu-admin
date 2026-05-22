@@ -29,4 +29,16 @@ class StudentPolicy
     {
         return $this->manage($user, $student);
     }
+
+    public function view(User $user, Student $student): bool
+    {
+        return $this->manage($user, $student);
+    }
+
+    public function viewPortalCredentials(User $user, Student $student): bool
+    {
+        $roleIds = config('student.portal_credential_role_ids', [1, 2, 3]);
+
+        return in_array((int) $user->role_id, $roleIds, true);
+    }
 }

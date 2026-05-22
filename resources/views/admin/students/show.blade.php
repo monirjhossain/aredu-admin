@@ -1,423 +1,456 @@
-@extends('layouts.default')
+﻿@extends('layouts.default')
+
+@section('styles')
+    <link href="{{ asset('css/admin/student-profile.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('css/admin/inline-status.css') }}" rel="stylesheet" type="text/css" />
+@endsection
 
 @section('content')
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #f8f9fa;
-    }
-
-    .progress-container {
-        position: relative;
-        width: 300px;
-        margin: 10px auto;
-    }
-
-    /* Vertical line */
-    .progress-line {
-        position: absolute;
-        left: 13px;
-        top: 0;
-        width: 3px;
-        height: 100%;
-        background-color: #ccc;
-        z-index: 1;
-    }
-
-    /* Step item */
-    .step {
-        position: relative;
-        display: flex;
-        align-items: center;
-        margin-bottom: 15px;
-        z-index: 2;
-    }
-
-    /* Circle */
-    .circle {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background-color: #ccc;
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        flex-shrink: 0;
-        z-index: 2;
-    }
-
-    /* Active step */
-    .circle.active {
-        background-color: #28a745; /* green */
-    }
-
-    /* Step label */
-    .label-ff {
-        margin-left: 20px;
-        /* font-size: 16px; */
-        color: #333;
-    }
-    .label-ff.active {
-        color: #28a745; /* green */
-    }
-
-    /* Optional: last step margin */
-    .step:last-child {
-        margin-bottom: 0;
-    }
-</style>
-<div class="container">
-    <a href="{{ route('students.index') }}" class="btn btn-secondary mb-3">
-        <i class="fas fa-arrow-left"></i> Back to Students
-    </a>
-
-
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0">Student Information</h4>
-                <a href="{{ route('student.invoices.index') }}?student={{ $student->id }}" class="btn btn-dark btn-sm rounded-pill font-weight-bold d-flex align-items-center" title="Edit">
-                    <i class="fas fa-file-invoice mr-1"></i> Invoice List
-                </a>
-                <a href="{{ route('students.edit', [$student->id]) }}" class="btn btn-dark btn-sm rounded-pill font-weight-bold d-flex align-items-center" title="Edit">
-                    <i class="fas fa-edit mr-1"></i> Edit
-                </a>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <!-- Personal Info -->
-                <div class="col-md-6 border-right mb-3">
-                    <h5 class="text-secondary mb-3"><i class="fas fa-user mr-1"></i> Personal Information</h5>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
-                            <span class="fw-bold text-primary ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-user-circle me-2 pe-1"></i></span><span class="ms-3">Name:</span></span>
-                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->full_name }}</span>
-                        </li>
-                        <li class="list-group-item">
-                            <span class="fw-bold text-success ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-envelope me-2 pe-1"></i></span><span class="ms-3">Email:</span></span>
-                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->email }}</span>
-                        </li>
-                        <li class="list-group-item">
-                            <span class="fw-bold text-info ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-phone-alt me-2 pe-1"></i></span><span class="ms-3">Phone:</span></span>
-                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->mobile_no }}</span>
-                        </li>
-                        <li class="list-group-item">
-                            <span class="fw-bold text-secondary ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-map-marker-alt me-2 pe-1"></i></span><span class="ms-3">Address:</span></span>
-                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->address }}, {{ $student->city }}</span>
-                        </li>
-                        <li class="list-group-item">
-                            <span class="fw-bold text-warning ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-calendar-alt me-2 pe-1"></i></span><span class="ms-3">Intake:</span></span>
-                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->intake }}</span>
-                        </li>
-                        <li class="list-group-item">
-                            <span class="fw-bold text-danger ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-flag me-2 pe-1"></i></span><span class="ms-3">Preferred Country:</span></span>
-                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->preferred_country }}</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Academic Info -->
-                <div class="col-md-6 mb-3">
-                    <h5 class="text-secondary mb-3"><i class="fas fa-graduation-cap mr-1"></i> Academic & Application</h5>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
-                            <span class="fw-bold text-secondary ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-passport me-2 pe-1"></i></span><span class="ms-3">Passport Number:</span></span>
-                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->passport }}</span>
-                        </li>
-                        <li class="list-group-item">
-                            <span class="fw-bold text-info ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-info-circle me-2 pe-1"></i></span><span class="ms-3">Application Status:</span></span>
-                            <span class="ms-3" style="font-size:1.18rem;"><span class="badge badge-info p-2">{{ $student->student_status->name }}</span></span>
-                        </li>
-                        <li class="list-group-item">
-                            <span class="fw-bold text-success ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-university me-2 pe-1"></i></span><span class="ms-3">Last Education:</span></span>
-                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->last_education }}</span>
-                        </li>
-                        <li class="list-group-item">
-                            <span class="fw-bold text-primary ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-star me-2 pe-1"></i></span><span class="ms-3">Point:</span></span>
-                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->last_education }}</span>
-                        </li>
-                        @if($student->studentCscaExams->isNotEmpty())
-                            @foreach($student->studentCscaExams as $cscaResult)
-                                <li class="list-group-item">
-                                    <span class="fw-bold text-primary ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-flask me-2 pe-1"></i></span><span class="ms-3">{{ $cscaResult->cscaExam->name ?? 'CSCA Exam' }}:</span></span>
-                                    <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $cscaResult->result }}</span>
-                                </li>
-                            @endforeach
-                        @endif
-                        <li class="list-group-item">
-                            <span class="fw-bold text-dark ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-flask me-2 pe-1"></i></span><span class="ms-3">CSCA Background:</span></span>
-                            <div class="ms-5 mt-2 text-dark" style="font-size:1.05rem; line-height: 1.6;">
-                                <div><b>Have CSCA:</b> {{ (int)($student->has_csca ?? 0) === 1 ? 'Yes' : 'No' }}</div>
-                                <div><b>Math Result:</b> {{ $student->csca_math ?? '-' }}</div>
-                                <div><b>Physics Result:</b> {{ $student->csca_physics ?? '-' }}</div>
-                                <div><b>Chemistry Result:</b> {{ $student->csca_chemistry ?? '-' }}</div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <span class="fw-bold text-muted ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-comment-dots me-2 pe-1"></i></span><span class="ms-3">Remark:</span></span>
-                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{!! nl2br(e($student->note)) !!}</span>
-                        </li>
-                        <li class="list-group-item">
-                            <span class="fw-bold text-primary ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-user-tie me-2 pe-1"></i></span><span class="ms-3">Assign Employee:</span></span>
-                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->responsiblePerson->name ?? '' }}</span>
-                        </li>
-                        <li class="list-group-item">
-                            <span class="fw-bold text-primary ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-user-graduate me-2 pe-1"></i></span><span class="ms-3">Senior Counselor:</span></span>
-                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->sncounselor->name ?? '' }}</span>
-                        </li>
-                        <li class="list-group-item">
-                            <span class="fw-bold text-primary ps-2" style="font-size:1.18rem;"><span style="display:inline-block;min-width:32px;"><i class="fas fa-user-tie me-2 pe-1"></i></span><span class="ms-3">Junior Counselor:</span></span>
-                            <span class="ms-3 text-dark" style="font-size:1.18rem;">{{ $student->jncounselor->name ?? '' }}</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            <div class="row mt-3">
-                <!-- Family Info -->
-                <div class="col-md-6 border-right">
-                    <h5 class="text-secondary mb-3"><i class="fas fa-male mr-1"></i> Father Information</h5>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><b>Name:</b> <span class="ms-3">{{ $student->father_name }}</span></li>
-                        <li class="list-group-item"><b>Phone:</b> <span class="ms-3">{{ $student->father_mobile_no }}</span></li>
-                        <li class="list-group-item"><b>Occupation:</b> <span class="ms-3">{{ $student->father_occoupation }}</span></li>
-                    </ul>
-                </div>
-                <div class="col-md-6">
-                    <h5 class="text-secondary mb-3"><i class="fas fa-female mr-1"></i> Mother Information</h5>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><b>Name:</b> <span class="ms-3">{{ $student->mother_name }}</span></li>
-                        <li class="list-group-item"><b>Phone:</b> <span class="ms-3">{{ $student->mother_mobile_no }}</span></li>
-                        <li class="list-group-item"><b>Occupation:</b> <span class="ms-3">{{ $student->mother_occoupation }}</span></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
+<div class="student-show-subheader d-flex flex-wrap align-items-center justify-content-between">
+    <div>
+        <h1 class="font-weight-bolder text-dark mb-1">{{ $student->full_name }}</h1>
+        <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-0">
+            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-muted">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('students.index') }}" class="text-muted">Students</a></li>
+            <li class="breadcrumb-item text-muted">Profile</li>
+        </ul>
     </div>
-
-    <!-- Subjects, Universities, Documents -->
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-success text-white"><h3 class="card-title" style="font-size:2rem;">Subjects</h3></div>
-                <div class="card-body">
-                    @forelse($student->subjects as $sub)
-                        <span class="badge badge-primary mb-1 p-2" style="font-size:1rem;">{{ $sub->name }}</span><br>
-                    @empty
-                        <p class="text-muted">No subjects assigned</p>
-                    @endforelse
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-warning text-white"><h3 class="card-title" style="font-size:2rem;">Universities</h3></div>
-                <div class="card-body">
-                    @forelse($student->universities as $uni)
-                        <span class="badge badge-success mb-1 p-2" style="font-size:1rem;">{{ $uni->post_title }}</span><br>
-                    @empty
-                        <p class="text-muted">No universities selected</p>
-                    @endforelse
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-info text-white"><h3 class="card-title" style="font-size:2rem;">Documents</h3></div>
-                <div class="card-body">
-                    @forelse($student->documents as $doc)
-                        <span class="badge badge-info mb-1 p-2" style="font-size:1rem;">{{ $doc->name }}</span><br>
-                    @empty
-                        <p class="text-muted">No documents uploaded</p>
-                    @endforelse
-                </div>
-            </div>
-        </div>
+    <div class="d-flex flex-wrap mt-3 mt-md-0">
+        <a href="{{ route('students.index') }}" class="btn btn-light-primary font-weight-bold mr-2 mb-2">
+            <i class="fas fa-arrow-left mr-1"></i> Back
+        </a>
+        <a href="{{ route('student.invoices.index') }}?student={{ $student->id }}" class="btn btn-light-info font-weight-bold mr-2 mb-2">
+            <i class="fas fa-file-invoice mr-1"></i> Invoices
+        </a>
+        <a href="{{ route('students.edit', $student->id) }}" class="btn btn-primary font-weight-bold mb-2">
+            <i class="fas fa-edit mr-1"></i> Edit Student
+        </a>
     </div>
-    <div class="card shadow-sm mb-4">
-        <form action="{{ route($url . '.store') }}" method="POST" enctype="multipart/form-data">
-        @csrf
-        <input type="hidden" name="student_id" value="{{$student->id}}">
-        <input type="hidden" name="status_id" value="1">
+</div>
 
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Add Application</h4>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-lg-4 col-md-4 col-sm-12">
-                    <div class="form-group">
-                        <label for="country">Subject</label>
-                        <select name="subject_id" class="form-control" id="" required>
-                            <option value="">----Select----</option>
-                            @foreach($student->subjects as $item)
-                                <option value="{{$item->id}}">{{$item->name}}</option>
-                            @endforeach
-                        </select>
-                    </div>
+<div class="card card-custom gutter-b student-show-hero">
+    <div class="card-body py-8">
+        <div class="d-flex flex-wrap align-items-center">
+            <div class="symbol symbol-90 symbol-circle symbol-light-primary mr-6 mb-4 mb-md-0">
+                <span class="symbol-label text-primary">{{ $initials ?: 'ST' }}</span>
+            </div>
+            <div class="flex-grow-1">
+                <div class="d-flex flex-wrap align-items-center mb-2">
+                    <h2 class="font-weight-bolder text-dark mb-0 mr-4">{{ $student->full_name }}</h2>
+                    @can('updateOfficeStatus', $student)
+                        <div
+                            data-inline-status-root
+                            data-csrf="{{ csrf_token() }}"
+                            data-status-type="office"
+                            data-status-tones='@json($status_tone_map)'
+                        >
+                            @include('admin.students.partials.inline-status-select', [
+                                'updateUrl' => route('students.update-office-status', $student),
+                                'currentStatusId' => $student->status,
+                                'statuses' => $student_statuses,
+                                'tone' => $officeTone,
+                            ])
+                        </div>
+                    @else
+                        <span class="label label-lg label-light-primary label-inline font-weight-bold">
+                            {{ $student->student_status->name ?? '—' }}
+                        </span>
+                    @endcan
                 </div>
-                <div class="col-lg-4 col-md-4 col-sm-12">
-                    <div class="form-group">
-                        <label for="country">University </label>
-                        <select name="university_id" class="form-control" id="" required>
-                            <option value="">----Select----</option>
-                            @foreach($student->universities as $item)
-                                <option value="{{$item->id}}">{{$item->post_title}}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                <div class="student-meta d-flex flex-wrap">
+                    @if($student->email)
+                        <span class="mr-5 mb-1"><i class="fas fa-envelope"></i>{{ $student->email }}</span>
+                    @endif
+                    @if($student->mobile_no)
+                        <span class="mr-5 mb-1"><i class="fas fa-phone"></i>{{ $student->mobile_no }}</span>
+                    @endif
+                    @if($student->preferred_country)
+                        <span class="mr-5 mb-1"><i class="fas fa-globe"></i>{{ $student->preferred_country }}</span>
+                    @endif
+                    @if($student->intake)
+                        <span class="mb-1"><i class="fas fa-calendar-alt"></i>{{ $student->intake }}</span>
+                    @endif
                 </div>
             </div>
-        </div>
-        <div class="card-footer">
-            <button type="submit" class="btn btn-lg btn-primary">ADD</button>
-        </div>
-        </form>
-
-    </div>
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Application Information</h4>
-        </div>
-        <div class="card-body">
-            <table class="table table-hover">
-                <thead class="thead-light ">
-                    <tr>
-                        <th style="width: 10px">No</th>
-                        <th>Application No</th>
-                        <th>University</th>
-                        <th>Subject</th>
-                        <th>Status</th>
-                        @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,3]))
-                        <th>Credintial</th>
-                        @endif
-                        <th>Note</th>
-                        <th>Remarks</th>
-                        <th>Admission Notice</th>
-                        <th>JW Copy</th>
-                        <th>Visa Copy</th>
-                        <th class="text-center text-danger"><i class="fa fa-bolt"></i></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($student->universitiesAppStatus as $item)
-                        <tr>
-                            <td>{{ $item->id }}</td>
-                            <td>{{ $item->application_no ?? '-' }}</td>
-                            <td>{{ $item->university->post_title }}</td>
-                            <td>{{ $item->subject->name ?? '-' }}</td>
-                            <td>
-                                <div class="progress-container">
-                                    <div class="progress-line"></div>
-                                    @foreach ($item->statusAll as $key => $st)
-                                        <div class="step">
-                                            <div class="circle {{ $st->active == 1 ? 'active' : '' }}">{{ $key+1 }}</div>
-                                            <div class="label-ff {{ $st->active == 1 ? 'active' : '' }} "><b>{{ $st->statusUni->name }}</b></div>
-                                            <div> &nbsp; {{ $st->created_at }}</div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </td>
-                            @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,3]))
-                            <td>
-                                Link: {{ $item->university->getMeta('link') }}<br>
-                                @if($item->portal_type == 1)
-                                    User ID: {{$item->university->getMeta('user')}}<br>
-                                    Password: {{$item->university->getMeta('password')}} <br>
-                                @else
-                                    User ID: {{$item->login_id}}<br>
-                                    Password: {{$item->login_password}}<br>
-                                @endif
-                            </td>
-                            @endif
-                            <td>{{ $item->note ?? '-'}}</td>
-                            <td>{{ $item->remarks ?? '-'}}</td>
-                            <td class="text-center">
-                                @if($item->admission_notice)
-                                    <a href="{{ asset('storage/student_applications/' . $item->admission_notice) }}" target="_blank" class="btn btn-light btn-sm p-2 border shadow-sm mx-1 file-link" title="View or Download Admission Notice">
-                                        <i class="fas fa-file-pdf fa-lg text-danger"></i>
-                                    </a>
-                                @else
-                                    <span class="text-muted">-</span>
-                                @endif
-                            </td>
-                            <td class="text-center">
-                                @if($item->jw_copy)
-                                    <a href="{{ asset('storage/student_applications/' . $item->jw_copy) }}" target="_blank" class="btn btn-light btn-sm p-2 border shadow-sm mx-1 file-link" title="View or Download JW Copy">
-                                        <i class="fas fa-file-pdf fa-lg text-primary"></i>
-                                    </a>
-                                @else
-                                    <span class="text-muted">-</span>
-                                @endif
-                            </td>
-                            <td class="text-center">
-                                @if($item->visa_copy)
-                                    <a href="{{ asset('storage/student_applications/' . $item->visa_copy) }}" target="_blank" class="btn btn-light btn-sm p-2 border shadow-sm mx-1 file-link" title="View or Download Visa Copy">
-                                        <i class="fas fa-file-pdf fa-lg text-success"></i>
-                                    </a>
-                                @else
-                                    <span class="text-muted">-</span>
-                                @endif
-                            @push('styles')
-                            <style>
-                                .file-link:hover {
-                                    background: #f0f0f0;
-                                    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-                                    text-decoration: none;
-                                }
-                            </style>
-                            @endpush
-                            </td>
-                            <td>
-                                <div class="btn-group">
-                                    <a href="{{ route($url.'.edit', [$item->id]) }}" class="btn btn-sm btn-info">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <form id="deleteForm{{ $item->id }}" action="{{ route($url.'.destroy', [$item->id]) }}"
-                                        class="d-inline-block" method="POST">
-                                        @method('DELETE')
-                                        @csrf
-                                        <input type="hidden" name="student_id" value="{{$student->id}}">
-                                        <input type="hidden" name="id" value="{{$item->id}}">
-                                        <button id="submitButton" onclick="confirmDelete({{ $item->id }})" type="button" class="btn btn-sm btn-danger">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="11">
-                                <h5 class="text-center">Not found.</h5>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
         </div>
     </div>
 </div>
-<script>
-    function confirmDelete(id) {
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Yes, delete it!'
-            }).then((result) => {
-                console.log('dfsdafds');
+<div class="row">
+    <div class="col-md-3 col-6">
+        <div class="card card-custom student-stat-card gutter-b">
+            <div class="card-body py-5 text-center">
+                <div class="stat-value text-primary">{{ $student->subjects->count() }}</div>
+                <div class="stat-label">Subjects</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card card-custom student-stat-card gutter-b">
+            <div class="card-body py-5 text-center">
+                <div class="stat-value text-success">{{ $student->universities->count() }}</div>
+                <div class="stat-label">Universities</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card card-custom student-stat-card gutter-b">
+            <div class="card-body py-5 text-center">
+                <div class="stat-value text-warning">{{ $applicationCount }}</div>
+                <div class="stat-label">Applications</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card card-custom student-stat-card gutter-b">
+            <div class="card-body py-5 text-center">
+                <div class="stat-value text-info">{{ $student->documents->count() }}</div>
+                <div class="stat-label">Documents</div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+<div class="col-xl-8">
+    <div class="card card-custom student-info-card gutter-b">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-user text-primary mr-2"></i>Personal Information</h3>
+        </div>
+        <div class="card-body pt-2 pb-4">
+            @foreach($personalDetails as $detail)
+                <div class="student-detail-row">
+                    <div class="student-detail-label">{{ $detail['label'] }}</div>
+                    <div class="student-detail-value">{{ $detail['value'] }}</div>
+                </div>
+            @endforeach
+        </div>
+    </div>
 
-                if (result.isConfirmed) {
-                    document.getElementById('deleteForm' + id).submit();
-                }
-            });
-        }
-</script>
+    <div class="card card-custom student-info-card gutter-b">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-graduation-cap text-success mr-2"></i>Academic & CSCA</h3>
+        </div>
+        <div class="card-body pt-4 pb-6">
+<div class="academic-basic-grid mb-6">
+    <div class="academic-basic-item">
+        <span class="academic-basic-label">Passport</span>
+        <span class="academic-basic-value">{{ $student->passport ?: '—' }}</span>
+    </div>
+    <div class="academic-basic-item">
+        <span class="academic-basic-label">Last Education</span>
+        <span class="academic-basic-value">{{ $student->last_education ?: '—' }}</span>
+    </div>
+    <div class="academic-basic-item">
+        <span class="academic-basic-label">Language Proficiency</span>
+        <span class="academic-basic-value">{{ $student->language_cer ?: '—' }}</span>
+    </div>
+    <div class="academic-basic-item">
+        <span class="academic-basic-label">Study Level</span>
+        <span class="academic-basic-value">{{ $student->study_level ?: '—' }}</span>
+    </div>
+</div>
 
+<div class="csca-panel">
+    <div class="csca-panel-head d-flex flex-wrap align-items-center justify-content-between mb-4">
+        <div>
+            <span class="csca-panel-title">CSCA Examination</span>
+            <span class="d-block text-muted font-size-sm mt-1">Structured exam scores and background</span>
+        </div>
+        <span class="label label-lg label-inline font-weight-bold {{ $csca['has_csca'] ? 'label-light-success' : 'label-light-dark' }}">
+            {{ $csca['has_csca'] ? 'Has CSCA' : 'No CSCA' }}
+        </span>
+    </div>
+
+    @if($csca['has_exam_rows'])
+        <div class="csca-score-grid">
+            @foreach($student->studentCscaExams as $cscaResult)
+                <div class="csca-score-card">
+                    <span class="csca-score-exam">{{ $cscaResult->cscaExam->name ?? 'CSCA Exam' }}</span>
+                    <span class="csca-score-result">{{ $cscaResult->result ?: '—' }}</span>
+                </div>
+            @endforeach
+        </div>
+    @elseif(!empty($csca['legacy_scores']))
+        <div class="csca-score-grid">
+            @foreach($csca['legacy_scores'] as $legacy)
+                <div class="csca-score-card">
+                    <span class="csca-score-exam">{{ $legacy['exam'] }}</span>
+                    <span class="csca-score-result">{{ $legacy['result'] }}</span>
+                </div>
+            @endforeach
+        </div>
+    @elseif($csca['show_empty'])
+        <div class="csca-empty text-muted font-size-sm">
+            <i class="fas fa-info-circle mr-1"></i> No CSCA examination records on file.
+        </div>
+    @endif
+</div>
+
+@if($student->note)
+    <div class="academic-remark mt-6">
+        <span class="academic-basic-label d-block mb-2">Remark</span>
+        <div class="academic-remark-body">{!! nl2br(e($student->note)) !!}</div>
+    </div>
+@endif
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card card-custom student-info-card gutter-b">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-male text-info mr-2"></i>Father</h3>
+                </div>
+                <div class="card-body pt-2 pb-4">
+                    @foreach($fatherDetails as $detail)
+                        <div class="student-detail-row">
+                            <div class="student-detail-label">{{ $detail['label'] }}</div>
+                            <div class="student-detail-value">{{ $detail['value'] }}</div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card card-custom student-info-card gutter-b">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-female text-danger mr-2"></i>Mother</h3>
+                </div>
+                <div class="card-body pt-2 pb-4">
+                    @foreach($motherDetails as $detail)
+                        <div class="student-detail-row">
+                            <div class="student-detail-label">{{ $detail['label'] }}</div>
+                            <div class="student-detail-value">{{ $detail['value'] }}</div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="col-xl-4">
+    <div class="card card-custom student-info-card gutter-b">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-users text-primary mr-2"></i>Assigned Team</h3>
+        </div>
+        <div class="card-body pt-2 pb-4">
+            @foreach($teamDetails as $detail)
+                <div class="student-detail-row">
+                    <div class="student-detail-label">{{ $detail['label'] }}</div>
+                    <div class="student-detail-value">{{ $detail['value'] }}</div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+
+    <div class="card card-custom student-info-card gutter-b">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-book text-success mr-2"></i>Subjects</h3>
+        </div>
+        <div class="card-body student-tag-list">
+            @forelse($student->subjects as $sub)
+                <span class="label label-light-primary label-inline">{{ $sub->name }}</span>
+            @empty
+                <span class="text-muted">No subjects assigned</span>
+            @endforelse
+        </div>
+    </div>
+
+    <div class="card card-custom student-info-card gutter-b">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-university text-warning mr-2"></i>Universities</h3>
+        </div>
+        <div class="card-body student-tag-list">
+            @forelse($student->universities as $uni)
+                <span class="label label-light-success label-inline">{{ $uni->post_title }}</span>
+            @empty
+                <span class="text-muted">No universities selected</span>
+            @endforelse
+        </div>
+    </div>
+
+    <div class="card card-custom student-info-card gutter-b">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-folder-open text-info mr-2"></i>Documents</h3>
+        </div>
+        <div class="card-body student-tag-list">
+            @forelse($student->documents as $doc)
+                <span class="label label-light-info label-inline">{{ $doc->name }}</span>
+            @empty
+                <span class="text-muted">No documents uploaded</span>
+            @endforelse
+        </div>
+    </div>
+</div>
+</div>
+@can('updateApplicationStatus', $student)
+<div class="card card-custom gutter-b">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-plus-circle text-primary mr-2"></i>New Application</h3>
+    </div>
+    <form action="{{ route($url . '.store') }}" method="POST">
+        @csrf
+        <input type="hidden" name="student_id" value="{{ $student->id }}">
+        <input type="hidden" name="status_id" value="1">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="font-weight-bold">Subject</label>
+                        <select name="subject_id" class="form-control form-control-solid" required>
+                            <option value="">— Select subject —</option>
+                            @foreach($student->subjects as $item)
+                                <option value="{{ $item->id }}">{{ $item->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-0">
+                        <label class="font-weight-bold">University</label>
+                        <select name="university_id" class="form-control form-control-solid" required>
+                            <option value="">— Select university —</option>
+                            @foreach($student->universities as $item)
+                                <option value="{{ $item->id }}">{{ $item->post_title }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary font-weight-bold">
+                <i class="fas fa-paper-plane mr-1"></i> Add Application
+            </button>
+        </div>
+    </form>
+</div>
+@endcan
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h3 class="font-weight-bolder text-dark mb-0">University Applications</h3>
+    <span class="label label-lg label-light-primary label-inline font-weight-bold">{{ $applicationCount }} total</span>
+</div>
+
+<div data-inline-status-root data-csrf="{{ csrf_token() }}" data-status-type="application" data-status-tones='@json($status_tone_map)'>
+    @forelse($student->universitiesAppStatus as $item)
+        @php $appTone = $applicationTones[$item->id] ?? 'primary'; @endphp
+<div class="card card-custom application-card gutter-b">
+    <div class="card-header flex-wrap">
+        <div class="card-title flex-column align-items-start">
+            <h3 class="card-label font-weight-bolder text-dark mb-1">
+                {{ optional($item->university)->post_title ?? 'University' }}
+            </h3>
+            <span class="text-muted font-size-sm">
+                {{ optional($item->subject)->name ?? '—' }}
+                @if($item->application_no)
+                    · App #{{ $item->application_no }}
+                @endif
+            </span>
+        </div>
+        <div class="card-toolbar d-flex flex-wrap align-items-center">
+            @can('updateApplicationStatus', $student)
+                @include('admin.students.partials.inline-status-select', [
+                    'updateUrl' => route('student.application.update-status', $item),
+                    'currentStatusId' => $item->status_id,
+                    'statuses' => $university_statuses,
+                    'tone' => $appTone,
+                    'wrapClass' => 'mr-3 mb-2',
+                ])
+            @else
+                <span class="label label-lg label-light-{{ $appTone }} label-inline font-weight-bold mr-3 mb-2">
+                    {{ optional($item->statusUni)->name ?? '—' }}
+                </span>
+            @endcan
+            @can('updateApplicationStatus', $student)
+                <a href="{{ route($url . '.edit', $item->id) }}" class="btn btn-sm btn-light-primary font-weight-bold mr-2 mb-2" title="Edit">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <form id="deleteForm{{ $item->id }}" action="{{ route($url . '.destroy', $item) }}" class="d-inline-block mb-2" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" onclick="confirmDeleteStudentApplication({{ $item->id }})" class="btn btn-sm btn-light-danger font-weight-bold" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </form>
+            @endcan
+        </div>
+    </div>
+    <div class="card-body pt-4">
+        @if($item->statusAll->isNotEmpty())
+            <div class="font-weight-bold text-muted font-size-sm mb-3 text-uppercase">Status progress</div>
+            <div class="app-status-track">
+                @foreach($item->statusAll as $key => $st)
+                    <div class="app-status-step {{ (int) $st->active === 1 ? 'is-active' : '' }}">
+                        <span class="step-dot">{{ $key + 1 }}</span>
+                        <span class="step-name">{{ optional($st->statusUni)->name }}</span>
+                        @if($st->created_at)
+                            <span class="step-date">{{ $st->created_at }}</span>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
+        <div class="row">
+            @can('viewPortalCredentials', $student)
+                <div class="col-lg-6 mb-4">
+                    <div class="font-weight-bold text-muted font-size-sm mb-2 text-uppercase">Portal credentials</div>
+                    <div class="bg-light rounded p-4 font-size-sm">
+                        <div><strong>Link:</strong> {{ optional($item->university)->getMeta('link') ?: '—' }}</div>
+                        @if((int) ($item->portal_type ?? 1) === 1)
+                            <div><strong>User ID:</strong> {{ optional($item->university)->getMeta('user') ?: '—' }}</div>
+                            <div><strong>Password:</strong> {{ optional($item->university)->getMeta('password') ?: '—' }}</div>
+                        @else
+                            <div><strong>User ID:</strong> {{ $item->login_id ?: '—' }}</div>
+                            <div><strong>Password:</strong> {{ $item->login_password ?: '—' }}</div>
+                        @endif
+                    </div>
+                </div>
+            @endcan
+            <div class="col-lg-{{ $canViewCredentials ? '6' : '12' }} mb-4">
+                <div class="font-weight-bold text-muted font-size-sm mb-2 text-uppercase">Notes</div>
+                <div class="bg-light rounded p-4 font-size-sm">
+                    <div class="mb-2"><strong>Note:</strong> {{ $item->note ?: '—' }}</div>
+                    <div><strong>Remarks:</strong> {{ $item->remarks ?: '—' }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="font-weight-bold text-muted font-size-sm mb-3 text-uppercase">Documents</div>
+        <div class="d-flex flex-wrap">
+            @if($item->admission_notice)
+                <a href="{{ asset('storage/student_applications/' . $item->admission_notice) }}" target="_blank" class="btn btn-light app-file-btn mr-2 mb-2" title="Admission Notice">
+                    <i class="fas fa-file-pdf text-danger mr-1"></i> Admission
+                </a>
+            @endif
+            @if($item->jw_copy)
+                <a href="{{ asset('storage/student_applications/' . $item->jw_copy) }}" target="_blank" class="btn btn-light app-file-btn mr-2 mb-2" title="JW Copy">
+                    <i class="fas fa-file-pdf text-primary mr-1"></i> JW Copy
+                </a>
+            @endif
+            @if($item->visa_copy)
+                <a href="{{ asset('storage/student_applications/' . $item->visa_copy) }}" target="_blank" class="btn btn-light app-file-btn mr-2 mb-2" title="Visa Copy">
+                    <i class="fas fa-file-pdf text-success mr-1"></i> Visa
+                </a>
+            @endif
+            @if(!$item->admission_notice && !$item->jw_copy && !$item->visa_copy)
+                <span class="text-muted font-size-sm">No files uploaded</span>
+            @endif
+        </div>
+    </div>
+</div>
+    @empty
+        <div class="card card-custom gutter-b">
+            <div class="card-body text-center py-10">
+                <i class="fas fa-inbox text-muted mb-4" style="font-size: 3rem;"></i>
+                <p class="text-muted font-weight-bold mb-0">No university applications yet.</p>
+            </div>
+        </div>
+    @endforelse
+</div>
 @endsection
+
+@section('scripts')
+<script src="{{ asset('js/admin/inline-status-select.js') }}"></script>
+<script src="{{ asset('js/admin/student-show.js') }}"></script>
+@endsection
+

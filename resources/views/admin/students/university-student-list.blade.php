@@ -1,7 +1,10 @@
 @extends('layouts.default')
 
+@section('styles')
+    <link href="{{ asset('css/admin/inline-status.css') }}" rel="stylesheet" type="text/css" />
+@endsection
+
 @section('content')
-@include('admin.students.partials.inline-status-select-styles')
 <!-- Content Header (Page header) -->
 <div class="content-header">
     <div class="container-fluid">

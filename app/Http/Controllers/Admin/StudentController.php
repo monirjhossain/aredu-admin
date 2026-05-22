@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Session;
 use App\Models\Category;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Student\StudentRequest;
+use App\Http\Requests\Student\UpdateOfficeStatusRequest;
 use App\Queries\StudentCscaQuery;
 use App\Mail\MailSystem;
 use App\Models\Branch;
@@ -533,16 +534,11 @@ class StudentController extends Controller
      * @param  \App\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function show(Student $student)
+    public function show(Student $student, \App\Services\Student\StudentProfileService $profileService)
     {
-        $student->load('subjects', 'universities', 'documents', 'universitiesAppStatus', 'studentCscaExams.cscaExam'); // relation load koro
+        $this->authorize('view', $student);
 
-        return view('admin.students.show', [
-            'student' => $student,
-            'title' => $student->full_name,
-            'url' => 'student.application',
-            // 'university_statuses' => UniversityStatus::select('id','name')->orderBy('id')->get()
-        ]);
+        return view('admin.students.show', $profileService->viewData($student));
     }
 
     public function edit(Student $student)
@@ -697,17 +693,11 @@ class StudentController extends Controller
         // return $data;
         return view('frontend.students.show')->with($data);
     }
-    public function updateOfficeStatus(Request $request, Student $student)
+    public function updateOfficeStatus(UpdateOfficeStatusRequest $request, Student $student)
     {
-        $this->authorize('updateOfficeStatus', $student);
-
-        $validated = $request->validate([
-            'status_id' => 'required|integer|exists:student_statuses,id',
-        ]);
-
         DB::beginTransaction();
         try {
-            $result = $this->officeStatusService->update($student, (int) $validated['status_id']);
+            $result = $this->officeStatusService->update($student, (int) $request->input('status_id'));
             DB::commit();
 
             $statusName = $result['status_name'] ?? 'new status';

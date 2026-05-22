@@ -1,0 +1,253 @@
+.student-show-subheader {
+        margin-bottom: 1.25rem;
+    }
+    .student-show-hero .symbol-label {
+        font-size: 1.75rem;
+        font-weight: 600;
+    }
+    .student-show-hero .student-meta {
+        color: #7e8299;
+        font-size: 0.95rem;
+    }
+    .student-show-hero .student-meta i {
+        width: 18px;
+        text-align: center;
+        margin-right: 6px;
+        color: #b5b5c3;
+    }
+    .student-stat-card {
+        border: 0;
+        box-shadow: 0 0 20px 0 rgba(76, 87, 125, 0.08);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .student-stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 24px 0 rgba(76, 87, 125, 0.12);
+    }
+    .student-stat-card .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+    .student-stat-card .stat-label {
+        color: #7e8299;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    .student-info-card .card-header {
+        min-height: 48px;
+        background: #f9f9fc;
+        border-bottom: 1px solid #eff2f5;
+    }
+    .student-info-card .card-header .card-title {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #3f4254;
+        margin: 0;
+    }
+    .student-detail-row {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 0.65rem 0;
+        border-bottom: 1px dashed #eff2f5;
+    }
+    .student-detail-row:last-child {
+        border-bottom: 0;
+    }
+    .student-detail-label {
+        flex: 0 0 38%;
+        max-width: 38%;
+        color: #7e8299;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    .student-detail-value {
+        flex: 1;
+        color: #181c32;
+        font-size: 0.95rem;
+        font-weight: 500;
+        word-break: break-word;
+    }
+    .student-tag-list .label {
+        margin: 0 6px 6px 0;
+        font-size: 0.82rem;
+        font-weight: 500;
+    }
+    .application-card {
+        border: 0;
+        box-shadow: 0 0 20px 0 rgba(76, 87, 125, 0.08);
+    }
+    .application-card .card-header {
+        background: #fff;
+        border-bottom: 1px solid #eff2f5;
+        align-items: flex-start;
+    }
+    .app-status-track {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0;
+        margin: 0 0 1rem;
+        padding: 0;
+        list-style: none;
+    }
+    .app-status-step {
+        position: relative;
+        flex: 1 1 120px;
+        min-width: 110px;
+        padding: 0 12px 0 0;
+        text-align: left;
+    }
+    .app-status-step:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 14px;
+        left: 28px;
+        right: 0;
+        height: 2px;
+        background: #e4e6ef;
+        z-index: 0;
+    }
+    .app-status-step.is-active:not(:last-child)::after {
+        background: linear-gradient(90deg, #50cd89 0%, #e4e6ef 100%);
+    }
+    .app-status-step .step-dot {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #e4e6ef;
+        color: #7e8299;
+        font-size: 0.75rem;
+        font-weight: 700;
+        position: relative;
+        z-index: 1;
+    }
+    .app-status-step.is-active .step-dot {
+        background: #50cd89;
+        color: #fff;
+    }
+    .app-status-step .step-name {
+        display: block;
+        margin-top: 8px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #3f4254;
+        line-height: 1.3;
+    }
+    .app-status-step.is-active .step-name {
+        color: #0d9f5f;
+    }
+    .app-status-step .step-date {
+        display: block;
+        margin-top: 2px;
+        font-size: 0.75rem;
+        color: #b5b5c3;
+    }
+    .app-file-btn {
+        min-width: 42px;
+    }
+    .app-file-btn:hover {
+        background: #f3f6f9;
+        text-decoration: none;
+    }
+    .academic-basic-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem 1.5rem;
+    }
+    .academic-basic-item {
+        padding: 0.85rem 1rem;
+        background: #f9f9fc;
+        border-radius: 0.65rem;
+        border: 1px solid #eff2f5;
+    }
+    .academic-basic-label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: #a1a5b7;
+        margin-bottom: 0.35rem;
+    }
+    .academic-basic-value {
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #181c32;
+        word-break: break-word;
+    }
+    .csca-panel {
+        padding: 1.25rem 1.35rem;
+        background: linear-gradient(135deg, #f8f9fc 0%, #f1faff 100%);
+        border: 1px solid #e8f4ff;
+        border-radius: 0.75rem;
+    }
+    .csca-panel-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #3f4254;
+    }
+    .csca-score-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 0.75rem;
+    }
+    .csca-score-card {
+        text-align: center;
+        padding: 1rem 0.75rem;
+        background: #fff;
+        border: 1px solid #e4e6ef;
+        border-radius: 0.65rem;
+        box-shadow: 0 2px 8px rgba(76, 87, 125, 0.06);
+    }
+    .csca-score-exam {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        color: #7e8299;
+        margin-bottom: 0.5rem;
+        line-height: 1.3;
+    }
+    .csca-score-result {
+        display: block;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #3699ff;
+        line-height: 1.1;
+    }
+    .csca-empty {
+        padding: 0.75rem 1rem;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 0.5rem;
+        border: 1px dashed #e4e6ef;
+    }
+    .academic-remark-body {
+        padding: 1rem 1.15rem;
+        background: #fff8dd;
+        border-left: 4px solid #ffc700;
+        border-radius: 0 0.5rem 0.5rem 0;
+        color: #3f4254;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+    @media (max-width: 575px) {
+        .academic-basic-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    @media (max-width: 767px) {
+        .student-detail-label,
+        .student-detail-value {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+        .student-detail-value {
+            margin-top: 2px;
+        }
+    }
+

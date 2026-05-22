@@ -20,6 +20,14 @@
         }
     }
 
+    function getCsrfToken(root) {
+        if (root && root.dataset.csrf) {
+            return root.dataset.csrf;
+        }
+        var meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : '';
+    }
+
     function applyStatusTone(select, toneMap) {
         var wrap = select.closest('.uni-status-wrap');
         if (!wrap) {
@@ -27,6 +35,22 @@
         }
         wrap.classList.remove('status-tone-success', 'status-tone-danger', 'status-tone-warning', 'status-tone-primary');
         wrap.classList.add('status-tone-' + (toneMap[select.value] || 'primary'));
+    }
+
+    function parseJsonResponse(response) {
+        return response.text().then(function (text) {
+            if (!text) {
+                return { ok: response.ok, data: {} };
+            }
+            try {
+                return { ok: response.ok, data: JSON.parse(text) };
+            } catch (e) {
+                return {
+                    ok: false,
+                    data: { message: response.status === 419 ? 'Session expired. Please refresh the page.' : 'Unexpected server response.' }
+                };
+            }
+        });
     }
 
     roots.forEach(function (root) {
@@ -48,7 +72,7 @@
         }
 
         var toneMap = parseToneMap(root);
-        var csrf = root.dataset.csrf || '';
+        var csrf = getCsrfToken(root);
         var previous = select.dataset.original;
         var wrap = select.closest('.uni-status-wrap');
 
@@ -63,15 +87,13 @@
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-CSRF-TOKEN': csrf
+                'X-CSRF-TOKEN': csrf,
+                'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify({ status_id: select.value })
+            body: JSON.stringify({ status_id: select.value }),
+            credentials: 'same-origin'
         })
-            .then(function (response) {
-                return response.json().then(function (data) {
-                    return { ok: response.ok, data: data };
-                });
-            })
+            .then(parseJsonResponse)
             .then(function (result) {
                 select.classList.remove('is-saving');
                 if (wrap) {
@@ -89,7 +111,7 @@
 
                 select.value = previous;
                 applyStatusTone(select, toneMap);
-                showToast('error', result.data.message || 'Status update failed.', 'Error');
+                showToast('error', (result.data && result.data.message) || 'Status update failed.', 'Error');
             })
             .catch(function () {
                 select.classList.remove('is-saving');

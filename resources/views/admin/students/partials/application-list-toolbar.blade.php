@@ -20,7 +20,7 @@
         'applicationlist' => $university->id,
         'export' => 'yes',
         'application_status' => $application_status_filter ?? null,
-    ], fn ($value) => filled($value))) }}" class="btn btn-success ml-auto" target="_blank">
+    ], function ($value) { return filled($value); })) }}" class="btn btn-success ml-auto" target="_blank">
         <i class="la la-download"></i> Export
     </a>
 </form>

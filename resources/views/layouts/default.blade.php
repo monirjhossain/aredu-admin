@@ -145,17 +145,17 @@
                 "showMethod": "fadeIn",
                 "hideMethod": "fadeOut"
             };
-            @if (Session::has('success'))
-                toastr.success("{{ session('success') }}", "Success");
+            @if(session('success'))
+                toastr.success({!! json_encode(session('success')) !!}, 'Success');
             @endif
-            @if (Session::has('error'))
-                toastr.error("{{ session('error') }}", "Error");
+            @if(session('error'))
+                toastr.error({!! json_encode(session('error')) !!}, 'Error');
             @endif
-            @if (Session::has('info'))
-                toastr.info("{{ session('info') }}", "Info");
+            @if(session('info'))
+                toastr.info({!! json_encode(session('info')) !!}, 'Info');
             @endif
-            @if (Session::has('warning'))
-                toastr.warning("{{ session('warning') }}", "Warning");
+            @if(session('warning'))
+                toastr.warning({!! json_encode(session('warning')) !!}, 'Warning');
             @endif
         });
     </script>
