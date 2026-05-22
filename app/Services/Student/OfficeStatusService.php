@@ -11,9 +11,12 @@ use Illuminate\Support\Facades\Mail;
 
 class OfficeStatusService
 {
-    public function __construct(
-        private readonly RoleBasedStatusNotifier $notifier
-    ) {
+    /** @var RoleBasedStatusNotifier */
+    private $notifier;
+
+    public function __construct(RoleBasedStatusNotifier $notifier)
+    {
+        $this->notifier = $notifier;
     }
 
     /**

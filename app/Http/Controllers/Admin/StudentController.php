@@ -39,10 +39,18 @@ class StudentController extends Controller
 
     use UploadAble;
 
+    /** @var OfficeStatusService */
+    private $officeStatusService;
+
+    /** @var UniversityApplicationListService */
+    private $applicationListService;
+
     public function __construct(
-        private readonly OfficeStatusService $officeStatusService,
-        private readonly UniversityApplicationListService $applicationListService
+        OfficeStatusService $officeStatusService,
+        UniversityApplicationListService $applicationListService
     ) {
+        $this->officeStatusService = $officeStatusService;
+        $this->applicationListService = $applicationListService;
     }
 
     private function normalizeCscaExamPayload(?array $cscaExams): array

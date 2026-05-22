@@ -33,9 +33,12 @@ class StudentApplicationController extends Controller
 
     use UploadAble;
 
-    public function __construct(
-        private readonly UniversityApplicationStatusService $applicationStatusService
-    ) {
+    /** @var UniversityApplicationStatusService */
+    private $applicationStatusService;
+
+    public function __construct(UniversityApplicationStatusService $applicationStatusService)
+    {
+        $this->applicationStatusService = $applicationStatusService;
     }
 
     /**
