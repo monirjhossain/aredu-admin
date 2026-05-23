@@ -188,7 +188,21 @@
 @if($student->note)
     <div class="academic-remark mt-6">
         <span class="academic-basic-label d-block mb-2">Remark</span>
-        <div class="academic-remark-body">{!! nl2br(e($student->note)) !!}</div>
+        <div class="academic-remark-body">
+            @php
+                $rawNote = trim(preg_replace('/\s+/u', ' ', strip_tags($student->note)));
+                $words = preg_split('/\s+/u', $rawNote, -1, PREG_SPLIT_NO_EMPTY);
+                $isTruncated = count($words) > 30;
+                $previewText = $isTruncated ? implode(' ', array_slice($words, 0, 30)) : $rawNote;
+            @endphp
+            <div class="student-note-text">
+                <div class="student-note-preview">{!! nl2br(e($previewText)) !!}</div>
+                @if($isTruncated)
+                    <div class="student-note-full d-none">{!! nl2br(e($student->note)) !!}</div>
+                    <a href="#" class="font-weight-bold student-note-toggle">Load more</a>
+                @endif
+            </div>
+        </div>
     </div>
 @endif
         </div>
@@ -452,5 +466,35 @@
 @section('scripts')
 <script src="{{ asset('js/admin/inline-status-select.js') }}"></script>
 <script src="{{ asset('js/admin/student-show.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.student-note-toggle').forEach(function (toggle) {
+            toggle.addEventListener('click', function (event) {
+                event.preventDefault();
+                var wrapper = event.currentTarget.closest('.student-note-text');
+                if (!wrapper) {
+                    return;
+                }
+                var preview = wrapper.querySelector('.student-note-preview');
+                var full = wrapper.querySelector('.student-note-full');
+                if (!preview || !full) {
+                    return;
+                }
+                var isExpanded = wrapper.classList.contains('is-expanded');
+                if (isExpanded) {
+                    preview.classList.remove('d-none');
+                    full.classList.add('d-none');
+                    event.currentTarget.textContent = 'Load more';
+                    wrapper.classList.remove('is-expanded');
+                } else {
+                    preview.classList.add('d-none');
+                    full.classList.remove('d-none');
+                    event.currentTarget.textContent = 'Show less';
+                    wrapper.classList.add('is-expanded');
+                }
+            });
+        });
+    });
+</script>
 @endsection
 
