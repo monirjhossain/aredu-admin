@@ -30,6 +30,11 @@ class StudentPolicy
         return $this->manage($user, $student);
     }
 
+    public function updatePreferences(User $user, Student $student): bool
+    {
+        return $this->manage($user, $student);
+    }
+
     public function view(User $user, Student $student): bool
     {
         return $this->manage($user, $student);

@@ -25,6 +25,7 @@ class StudentUniversity extends Model
         'student_id',
         'university_id',
         'subject_id',
+        'intake',
         'status_id',
         'portal_type',
         'login_id',

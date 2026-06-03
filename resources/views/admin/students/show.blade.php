@@ -79,7 +79,7 @@
     <div class="col-md-3 col-6">
         <div class="card card-custom student-stat-card gutter-b">
             <div class="card-body py-5 text-center">
-                <div class="stat-value text-primary">{{ $student->subjects->count() }}</div>
+                <div class="stat-value text-primary" data-student-stat="subjects">{{ $student->subjects->count() }}</div>
                 <div class="stat-label">Subjects</div>
             </div>
         </div>
@@ -87,7 +87,7 @@
     <div class="col-md-3 col-6">
         <div class="card card-custom student-stat-card gutter-b">
             <div class="card-body py-5 text-center">
-                <div class="stat-value text-success">{{ $student->universities->count() }}</div>
+                <div class="stat-value text-success" data-student-stat="universities">{{ $student->universities->count() }}</div>
                 <div class="stat-label">Universities</div>
             </div>
         </div>
@@ -241,7 +241,17 @@
         </div>
     </div>
 </div>
-<div class="col-xl-4">
+@php
+    $assignedSubjectIds = $student->subjects->pluck('id')->all();
+    $assignedUniversityIds = $student->universities->pluck('id')->all();
+@endphp
+<div
+    class="col-xl-4"
+    id="student-profile-preferences"
+    data-csrf="{{ csrf_token() }}"
+    data-attach-subject-url="{{ route('students.attach-subject', $student) }}"
+    data-attach-university-url="{{ route('students.attach-university', $student) }}"
+>
     <div class="card card-custom student-info-card gutter-b">
         <div class="card-header">
             <h3 class="card-title"><i class="fas fa-users text-primary mr-2"></i>Assigned Team</h3>
@@ -256,29 +266,63 @@
         </div>
     </div>
 
-    <div class="card card-custom student-info-card gutter-b">
+    <div class="card card-custom student-info-card gutter-b" data-preference-card="subject">
         <div class="card-header">
             <h3 class="card-title"><i class="fas fa-book text-success mr-2"></i>Subjects</h3>
         </div>
-        <div class="card-body student-tag-list">
-            @forelse($student->subjects as $sub)
-                <span class="label label-light-primary label-inline">{{ $sub->name }}</span>
-            @empty
-                <span class="text-muted">No subjects assigned</span>
-            @endforelse
+        <div class="card-body">
+            <div class="student-tag-list" data-preference-tags="subject">
+                @forelse($student->subjects as $sub)
+                    <span class="label label-light-primary label-inline mb-1" data-preference-tag-id="{{ $sub->id }}">{{ $sub->name }}</span>
+                @empty
+                    <span class="text-muted" data-preference-empty="subject">No subjects assigned</span>
+                @endforelse
+            </div>
+            @can('updatePreferences', $student)
+                <div class="d-flex flex-wrap align-items-center mt-3" data-preference-form="subject">
+                    <select class="form-control form-control-sm student-preference-select flex-grow-1 mr-2 mb-2" data-preference-select="subject" aria-label="Add subject">
+                        <option value="">— Select subject —</option>
+                        @foreach($allSubjects as $item)
+                            @if(!in_array($item->id, $assignedSubjectIds, true))
+                                <option value="{{ $item->id }}">{{ $item->name }}</option>
+                            @endif
+                        @endforeach
+                    </select>
+                    <button type="button" class="btn btn-sm btn-light-success font-weight-bold mb-2" data-preference-add="subject">
+                        <i class="fas fa-plus mr-1"></i> Add
+                    </button>
+                </div>
+            @endcan
         </div>
     </div>
 
-    <div class="card card-custom student-info-card gutter-b">
+    <div class="card card-custom student-info-card gutter-b" data-preference-card="university">
         <div class="card-header">
             <h3 class="card-title"><i class="fas fa-university text-warning mr-2"></i>Universities</h3>
         </div>
-        <div class="card-body student-tag-list">
-            @forelse($student->universities as $uni)
-                <span class="label label-light-success label-inline">{{ $uni->post_title }}</span>
-            @empty
-                <span class="text-muted">No universities selected</span>
-            @endforelse
+        <div class="card-body">
+            <div class="student-tag-list" data-preference-tags="university">
+                @forelse($student->universities as $uni)
+                    <span class="label label-light-success label-inline mb-1" data-preference-tag-id="{{ $uni->id }}">{{ $uni->post_title }}</span>
+                @empty
+                    <span class="text-muted" data-preference-empty="university">No universities selected</span>
+                @endforelse
+            </div>
+            @can('updatePreferences', $student)
+                <div class="d-flex flex-wrap align-items-center mt-3" data-preference-form="university">
+                    <select class="form-control form-control-sm student-preference-select flex-grow-1 mr-2 mb-2" data-preference-select="university" aria-label="Add university">
+                        <option value="">— Select university —</option>
+                        @foreach($allUniversities as $item)
+                            @if(!in_array($item->id, $assignedUniversityIds, true))
+                                <option value="{{ $item->id }}">{{ $item->post_title }}</option>
+                            @endif
+                        @endforeach
+                    </select>
+                    <button type="button" class="btn btn-sm btn-light-success font-weight-bold mb-2" data-preference-add="university">
+                        <i class="fas fa-plus mr-1"></i> Add
+                    </button>
+                </div>
+            @endcan
         </div>
     </div>
 
@@ -307,10 +351,10 @@
         <input type="hidden" name="status_id" value="1">
         <div class="card-body">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="form-group">
                         <label class="font-weight-bold">Subject</label>
-                        <select name="subject_id" class="form-control form-control-solid" required>
+                        <select name="subject_id" class="form-control form-control-solid" data-new-app-select="subject" required>
                             <option value="">— Select subject —</option>
                             @foreach($student->subjects as $item)
                                 <option value="{{ $item->id }}">{{ $item->name }}</option>
@@ -318,13 +362,23 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="form-group mb-0">
+                <div class="col-md-4">
+                    <div class="form-group">
                         <label class="font-weight-bold">University</label>
-                        <select name="university_id" class="form-control form-control-solid" required>
+                        <select name="university_id" class="form-control form-control-solid" data-new-app-select="university" required>
                             <option value="">— Select university —</option>
                             @foreach($student->universities as $item)
                                 <option value="{{ $item->id }}">{{ $item->post_title }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group mb-0">
+                        <label class="font-weight-bold">Intake</label>
+                        <select name="intake" class="form-control form-control-solid" required>
+                            @foreach($intakeOptions as $option)
+                                <option value="{{ $option }}" {{ old('intake', $defaultIntake) === $option ? 'selected' : '' }}>{{ $option }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -353,12 +407,9 @@
             <h3 class="card-label font-weight-bolder text-dark mb-1">
                 {{ optional($item->university)->post_title ?? 'University' }}
             </h3>
-            <span class="text-muted font-size-sm">
-                {{ optional($item->subject)->name ?? '—' }}
-                @if($item->application_no)
-                    · App #{{ $item->application_no }}
-                @endif
-            </span>
+            @if($item->application_no)
+                <span class="text-muted font-size-sm">App #{{ $item->application_no }}</span>
+            @endif
         </div>
         <div class="card-toolbar d-flex flex-wrap align-items-center">
             @can('updateApplicationStatus', $student)
@@ -389,6 +440,20 @@
         </div>
     </div>
     <div class="card-body pt-4">
+        <div class="application-meta-row mb-4">
+            <div class="application-meta-item">
+                <span class="application-meta-label">Subject</span>
+                <span class="application-meta-value">{{ optional($item->subject)->name ?? '—' }}</span>
+            </div>
+            <div class="application-meta-item application-meta-item--intake">
+                <span class="application-meta-label"><i class="fas fa-calendar-alt mr-1"></i>Intake</span>
+                @if($item->intake)
+                    <span class="label label-light-info label-inline font-weight-bold mt-1">{{ $item->intake }}</span>
+                @else
+                    <span class="application-meta-value text-muted mt-1">—</span>
+                @endif
+            </div>
+        </div>
         @if($item->statusAll->isNotEmpty())
             <div class="font-weight-bold text-muted font-size-sm mb-3 text-uppercase">Status progress</div>
             <div class="app-status-track">

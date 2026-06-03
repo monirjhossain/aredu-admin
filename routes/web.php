@@ -86,6 +86,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('inquiries', InquiryController::class);
     Route::patch('students/{student}/office-status', [StudentController::class, 'updateOfficeStatus'])
         ->name('students.update-office-status');
+    Route::post('students/{student}/subjects', [StudentController::class, 'attachSubject'])
+        ->name('students.attach-subject');
+    Route::post('students/{student}/universities', [StudentController::class, 'attachUniversity'])
+        ->name('students.attach-university');
     Route::resource('students', StudentController::class);
     Route::resource('finance_entries', FinanceEntryController::class);
     Route::get('finance_entries-export', [FinanceEntryController::class, 'export'])->name('finance_entries.export');

@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Session;
 use App\Models\Category;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Student\StudentRequest;
+use App\Http\Requests\Student\AttachStudentSubjectRequest;
+use App\Http\Requests\Student\AttachStudentUniversityRequest;
 use App\Http\Requests\Student\UpdateOfficeStatusRequest;
 use App\Queries\StudentCscaQuery;
 use App\Mail\MailSystem;
@@ -720,14 +722,56 @@ class StudentController extends Controller
         }
     }
 
+    public function attachSubject(AttachStudentSubjectRequest $request, Student $student)
+    {
+        $subjectId = (int) $request->input('subject_id');
+        $subject = Subject::findOrFail($subjectId);
+
+        if ($student->subjects()->where('subject_id', $subjectId)->exists()) {
+            return response()->json([
+                'success' => true,
+                'already_exists' => true,
+                'item' => ['id' => $subject->id, 'name' => $subject->name],
+                'message' => 'Subject is already assigned to this student.',
+            ]);
+        }
+
+        $student->subjects()->attach($subjectId);
+
+        return response()->json([
+            'success' => true,
+            'already_exists' => false,
+            'item' => ['id' => $subject->id, 'name' => $subject->name],
+            'message' => 'Subject added successfully.',
+        ]);
+    }
+
+    public function attachUniversity(AttachStudentUniversityRequest $request, Student $student)
+    {
+        $universityId = (int) $request->input('university_id');
+        $university = Post::where('post_type', 'university')->findOrFail($universityId);
+
+        if ($student->universities()->where('post_id', $universityId)->exists()) {
+            return response()->json([
+                'success' => true,
+                'already_exists' => true,
+                'item' => ['id' => $university->id, 'name' => $university->post_title],
+                'message' => 'University is already assigned to this student.',
+            ]);
+        }
+
+        $student->universities()->attach($universityId);
+
+        return response()->json([
+            'success' => true,
+            'already_exists' => false,
+            'item' => ['id' => $university->id, 'name' => $university->post_title],
+            'message' => 'University added successfully.',
+        ]);
+    }
+
     public function intakeCreate()
     {
-        $currentYear= now()->year;
-        $intake = [];
-        for ($i=-2; $i < 3 && $i >-3; $i++) {
-            $intake [] = 'March-' . ($currentYear+$i);
-            $intake [] = 'September-' . ($currentYear+$i);
-        }
-        return $intake;
+        return \App\Support\IntakeOptions::list();
     }
 }

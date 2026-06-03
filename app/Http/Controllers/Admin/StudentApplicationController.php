@@ -24,8 +24,10 @@ use App\Services\Student\UniversityApplicationEditPresenter;
 use App\Services\Student\UniversityApplicationStatusService;
 use App\Services\Student\UniversityApplicationUpdateService;
 use App\Services\WalletService;
+use App\Support\IntakeOptions;
 use App\Traits\UploadAble;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -96,6 +98,7 @@ class StudentApplicationController extends Controller
             'student_id' => 'required|integer|exists:students,id',
             'university_id' => 'required|integer',
             'subject_id' => 'required|integer',
+            'intake' => ['required', 'string', 'max:50', Rule::in(IntakeOptions::list())],
             'status_id' => 'nullable|integer|exists:university_statuses,id',
         ]);
 
@@ -109,6 +112,10 @@ class StudentApplicationController extends Controller
             $stUni->status_id = $request->input('status_id', 1);
             $stUni->updated_by = Auth::id();
             $stUni->save();
+
+            if (empty($student->intake)) {
+                $student->update(['intake' => $request->input('intake')]);
+            }
 
             $apStatus = new UniversityApplicationStatus();
             $apStatus->student_university_id = $stUni->id;
