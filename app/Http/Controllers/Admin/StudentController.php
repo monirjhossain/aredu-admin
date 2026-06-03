@@ -142,7 +142,8 @@ class StudentController extends Controller
             
             $uni = Post::has('students')
                 ->select('id', 'post_title')
-                ->withCount('students');
+                ->withCount('students')
+                ->orderBy('post_title', 'asc');
                 // ->get();
 
             $data['title'] = 'University Ways Student List';
