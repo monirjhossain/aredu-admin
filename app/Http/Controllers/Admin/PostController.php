@@ -79,8 +79,8 @@ class PostController extends Controller
             $data['url'] = 'testimonials';
         }
 
-        $data['posts'] = $posts->paginate(20);
-        // return $data;
+        $data['posts'] = $posts->with(['user', 'categories', 'subjects', 'postMetas'])->paginate(20);
+
         return view('admin.post.index')->with($data);
     }
 
