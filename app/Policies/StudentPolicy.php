@@ -7,7 +7,7 @@ use App\Models\User;
 
 class StudentPolicy
 {
-    private const FULL_ACCESS_ROLES = ['Admin', 'Super Admin','Manager','Counselor'];
+    private const FULL_ACCESS_ROLES = ['Admin', 'Super Admin','Manager','Counselor', 'IT Officer'];
 
     public function manage(User $user, Student $student): bool
     {

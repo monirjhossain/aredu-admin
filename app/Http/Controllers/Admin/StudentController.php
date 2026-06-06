@@ -546,6 +546,8 @@ class StudentController extends Controller
 
     public function edit(Student $student)
     {
+        $this->authorize('manage', $student);
+        
         // return $student->educationQualifications;
         $student->load('studentCscaExams');
         $currentYear= now()->year;
@@ -576,6 +578,8 @@ class StudentController extends Controller
 
     public function update(StudentRequest $request, Student $student)
     {
+        $this->authorize('manage', $student);
+        
         // return $request;
         DB::beginTransaction();
         try {
