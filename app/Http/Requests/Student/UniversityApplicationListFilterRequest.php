@@ -18,6 +18,7 @@ class UniversityApplicationListFilterRequest extends FormRequest
             'universitylist' => ['required', 'in:1'],
             'applicationlist' => ['required', 'integer', 'exists:posts,id'],
             'application_status' => ['nullable', 'integer', 'exists:university_statuses,id'],
+            'subject' => ['nullable', 'integer', 'exists:subjects,id'],
             'export' => ['nullable', 'in:yes'],
         ];
     }
@@ -29,8 +30,40 @@ class UniversityApplicationListFilterRequest extends FormRequest
 
     public function applicationStatusId(): ?int
     {
-        return UniversityApplicationListQuery::resolveApplicationStatusId(
+        return UniversityApplicationListQuery::resolveOptionalId(
             $this->input('application_status')
+        );
+    }
+
+    public function subjectId(): ?int
+    {
+        return UniversityApplicationListQuery::resolveOptionalId(
+            $this->input('subject')
+        );
+    }
+
+    /**
+     * @return array<string, int|string>
+     */
+    public function baseRouteQuery(): array
+    {
+        return [
+            'universitylist' => 1,
+            'applicationlist' => $this->universityId(),
+        ];
+    }
+
+    /**
+     * @return array<string, int|string>
+     */
+    public function routeQuery(): array
+    {
+        return array_merge(
+            $this->baseRouteQuery(),
+            array_filter([
+                'application_status' => $this->applicationStatusId(),
+                'subject' => $this->subjectId(),
+            ], static fn ($value) => $value !== null)
         );
     }
 }

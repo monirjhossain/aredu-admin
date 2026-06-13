@@ -4,9 +4,10 @@ namespace App\Services\Student;
 
 use App\Http\Requests\Student\UniversityApplicationListFilterRequest;
 use App\Models\Post\Post;
-use App\Models\Student\Student;
+use App\Models\Subject;
 use App\Models\UniversityStatus;
 use App\Queries\UniversityApplicationListQuery;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -18,7 +19,13 @@ class UniversityApplicationListService
      *     university: Post,
      *     students: Collection,
      *     application_status_filter: int|null,
+     *     subject_filter: int|null,
+     *     subjects: Collection,
      *     filtered_status_name: string|null,
+     *     filtered_subject_name: string|null,
+     *     list_route_query: array<string, int|string>,
+     *     reset_url: string,
+     *     export_url: string,
      *     title: string,
      *     type: string,
      *     url: string
@@ -26,29 +33,32 @@ class UniversityApplicationListService
      */
     public function listViewData(UniversityApplicationListFilterRequest $filterRequest): array
     {
-        $universityId = $filterRequest->universityId();
-        $applicationStatusId = $filterRequest->applicationStatusId();
-        $university = Post::findOrFail($universityId);
-
-        $students = UniversityApplicationListQuery::make(
-            $universityId,
-            $applicationStatusId,
-            $this->branchIdForCurrentUser()
-        )
-            ->with(array_merge(
-                ['studentCscaExams.cscaExam'],
-                UniversityApplicationListQuery::listEagerLoads($universityId)
-            ))
-            ->get();
-
-        $filteredStatusName = $this->resolveStatusName($applicationStatusId);
+        $university = $this->university($filterRequest->universityId());
+        $statusId = $filterRequest->applicationStatusId();
+        $subjectId = $filterRequest->subjectId();
+        $statusName = $this->resolveStatusName($statusId);
+        $subjectName = $this->resolveSubjectName($subjectId);
 
         return [
             'university' => $university,
-            'students' => $students,
-            'application_status_filter' => $applicationStatusId,
-            'filtered_status_name' => $filteredStatusName,
-            'title' => UniversityApplicationListQuery::pageTitle($university, $filteredStatusName),
+            'students' => $this->studentsQuery($filterRequest)
+                ->with(array_merge(
+                    ['studentCscaExams.cscaExam'],
+                    UniversityApplicationListQuery::listEagerLoads($university->id)
+                ))
+                ->get(),
+            'application_status_filter' => $statusId,
+            'subject_filter' => $subjectId,
+            'subjects' => UniversityApplicationListQuery::subjectsForUniversity($university->id),
+            'filtered_status_name' => $statusName,
+            'filtered_subject_name' => $subjectName,
+            'list_route_query' => $filterRequest->routeQuery(),
+            'reset_url' => route('students.index', $filterRequest->baseRouteQuery()),
+            'export_url' => route('students.index', array_merge(
+                $filterRequest->routeQuery(),
+                ['export' => 'yes']
+            )),
+            'title' => UniversityApplicationListQuery::pageTitle($university, $statusName, $subjectName),
             'type' => 'report',
             'url' => 'students',
         ];
@@ -59,16 +69,10 @@ class UniversityApplicationListService
      */
     public function exportRows(UniversityApplicationListFilterRequest $filterRequest): array
     {
-        $universityId = $filterRequest->universityId();
-        $applicationStatusId = $filterRequest->applicationStatusId();
-        $university = Post::findOrFail($universityId);
+        $university = $this->university($filterRequest->universityId());
 
-        $students = UniversityApplicationListQuery::make(
-            $universityId,
-            $applicationStatusId,
-            $this->branchIdForCurrentUser()
-        )
-            ->with(UniversityApplicationListQuery::exportEagerLoads($universityId))
+        $students = $this->studentsQuery($filterRequest)
+            ->with(UniversityApplicationListQuery::exportEagerLoads($university->id))
             ->get();
 
         return UniversityApplicationListQuery::toExportRows($students, $university);
@@ -76,10 +80,13 @@ class UniversityApplicationListService
 
     public function exportFilename(UniversityApplicationListFilterRequest $filterRequest): string
     {
-        $university = Post::findOrFail($filterRequest->universityId());
-        $statusName = $this->resolveStatusName($filterRequest->applicationStatusId());
+        $university = $this->university($filterRequest->universityId());
 
-        return UniversityApplicationListQuery::exportFilename($university, $statusName);
+        return UniversityApplicationListQuery::exportFilename(
+            $university,
+            $this->resolveStatusName($filterRequest->applicationStatusId()),
+            $this->resolveSubjectName($filterRequest->subjectId())
+        );
     }
 
     public function resolveFilterRequest(Request $request): UniversityApplicationListFilterRequest
@@ -89,6 +96,21 @@ class UniversityApplicationListService
         $filterRequest->setContainer(app())->setRedirector(app('redirect'))->validateResolved();
 
         return $filterRequest;
+    }
+
+    private function studentsQuery(UniversityApplicationListFilterRequest $filterRequest): Builder
+    {
+        return UniversityApplicationListQuery::make(
+            $filterRequest->universityId(),
+            $filterRequest->applicationStatusId(),
+            $this->branchIdForCurrentUser(),
+            $filterRequest->subjectId()
+        );
+    }
+
+    private function university(int $id): Post
+    {
+        return Post::findOrFail($id);
     }
 
     private function branchIdForCurrentUser(): ?int
@@ -113,5 +135,14 @@ class UniversityApplicationListService
         }
 
         return UniversityStatus::whereKey($statusId)->value('name');
+    }
+
+    private function resolveSubjectName(?int $subjectId): ?string
+    {
+        if ($subjectId === null) {
+            return null;
+        }
+
+        return Subject::whereKey($subjectId)->value('name');
     }
 }

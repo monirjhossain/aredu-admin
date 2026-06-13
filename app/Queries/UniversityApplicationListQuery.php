@@ -5,6 +5,7 @@ namespace App\Queries;
 use App\Models\Post\Post;
 use App\Models\Student\Student;
 use App\Models\Student\StudentUniversity;
+use App\Models\Subject;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -13,7 +14,7 @@ use Illuminate\Support\Collection;
  */
 final class UniversityApplicationListQuery
 {
-    public static function make(int $universityId, ?int $applicationStatusId = null, ?int $branchId = null): Builder
+    public static function make(int $universityId, ?int $applicationStatusId = null, ?int $branchId = null, ?int $subjectId = null): Builder
     {
         $query = Student::query()
             ->select('students.*')
@@ -26,11 +27,46 @@ final class UniversityApplicationListQuery
             $query->where('student_university.status_id', $applicationStatusId);
         }
 
+        if ($subjectId !== null) {
+            $query->where('student_university.subject_id', $subjectId);
+        }
+
         if ($branchId !== null) {
             $query->where('students.branch_id', $branchId);
         }
 
         return $query->orderBy('student_university.status_id');
+    }
+
+    /**
+     * Subjects used on applications for this university (dropdown options).
+     *
+     * @return Collection<int, Subject>
+     */
+    public static function subjectsForUniversity(int $universityId): Collection
+    {
+        return Subject::query()
+            ->select('subjects.id', 'subjects.name')
+            ->whereIn('subjects.id', function ($query) use ($universityId) {
+                $query->select('subject_id')
+                    ->from('student_university')
+                    ->where('university_id', $universityId)
+                    ->whereNotNull('subject_id')
+                    ->distinct();
+            })
+            ->orderBy('subjects.name')
+            ->get();
+    }
+
+    public static function resolveOptionalId($raw): ?int
+    {
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+
+        $id = (int) $raw;
+
+        return $id > 0 ? $id : null;
     }
 
     /**
@@ -67,28 +103,21 @@ final class UniversityApplicationListQuery
         ];
     }
 
-    public static function resolveApplicationStatusId(?string $raw): ?int
-    {
-        if ($raw === null || $raw === '') {
-            return null;
-        }
-
-        $id = (int) $raw;
-
-        return $id > 0 ? $id : null;
-    }
-
-    public static function pageTitle(Post $university, ?string $statusName): string
+    public static function pageTitle(Post $university, ?string $statusName, ?string $subjectName = null): string
     {
         $title = 'Application List - ' . $university->post_title;
+        $parts = array_filter([$statusName, $subjectName]);
 
-        return $statusName ? $title . ' (' . $statusName . ')' : $title;
+        return $parts !== []
+            ? $title . ' (' . implode(', ', $parts) . ')'
+            : $title;
     }
 
-    public static function exportFilename(Post $university, ?string $statusName): string
+    public static function exportFilename(Post $university, ?string $statusName, ?string $subjectName = null): string
     {
-        $suffix = $statusName
-            ? '_' . preg_replace('/[^A-Za-z0-9_-]+/', '_', $statusName)
+        $suffixParts = array_filter([$statusName, $subjectName]);
+        $suffix = $suffixParts !== []
+            ? '_' . preg_replace('/[^A-Za-z0-9_-]+/', '_', implode('_', $suffixParts))
             : '';
 
         return $university->post_title . '_Application_Report' . $suffix . '.csv';

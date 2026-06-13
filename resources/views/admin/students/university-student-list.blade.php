@@ -48,6 +48,11 @@
                         @include('admin.students.partials.application-list-toolbar', [
                             'university' => $university,
                             'application_status_filter' => $application_status_filter ?? null,
+                            'subject_filter' => $subject_filter ?? null,
+                            'subjects' => $subjects ?? [],
+                            'reset_url' => $reset_url ?? null,
+                            'export_url' => $export_url ?? null,
+                            'list_route_query' => $list_route_query ?? null,
                         ])
                     </div>
 
