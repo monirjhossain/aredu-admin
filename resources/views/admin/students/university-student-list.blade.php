@@ -137,7 +137,19 @@
                                                 @endif
                                             </td>
                                             <td>
-                                                -
+                                                @if($item->studentCscaExams->isNotEmpty())
+                                                    @foreach($item->studentCscaExams as $csca)
+                                                        <span class="badge badge-info">
+                                                            {{ $csca->cscaExam->name ?? 'CSCA' }}: {{ $csca->result }}
+                                                        </span><br>
+                                                    @endforeach
+                                                @elseif((int)($item->has_csca ?? 0) === 1)
+                                                    <span class="badge badge-secondary">Math: {{ $item->csca_math ?? '-' }}</span><br>
+                                                    <span class="badge badge-secondary">Physics: {{ $item->csca_physics ?? '-' }}</span><br>
+                                                    <span class="badge badge-secondary">Chemistry: {{ $item->csca_chemistry ?? '-' }}</span>
+                                                @else
+                                                    -
+                                                @endif
                                             </td>
                                             <td>
                                                 <div class="btn-group">

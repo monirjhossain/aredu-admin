@@ -105,4 +105,21 @@ class StudentDisplay
             'show_empty' => !$hasExamRows && $legacyScores === [],
         ];
     }
+
+    public static function cscaSummary(Student $student, string $empty = '-'): string
+    {
+        if ($student->relationLoaded('studentCscaExams') && $student->studentCscaExams->isNotEmpty()) {
+            return $student->studentCscaExams
+                ->map(fn ($csca) => ($csca->cscaExam->name ?? 'CSCA') . ': ' . ($csca->result ?: '-'))
+                ->implode(', ');
+        }
+
+        if ((int) ($student->has_csca ?? 0) === 1) {
+            return 'Math: ' . ($student->csca_math ?? '-')
+                . ', Physics: ' . ($student->csca_physics ?? '-')
+                . ', Chemistry: ' . ($student->csca_chemistry ?? '-');
+        }
+
+        return $empty;
+    }
 }

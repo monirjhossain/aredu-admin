@@ -6,6 +6,7 @@ use App\Models\Post\Post;
 use App\Models\Student\Student;
 use App\Models\Student\StudentUniversity;
 use App\Models\Subject;
+use App\Support\StudentDisplay;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -93,6 +94,7 @@ final class UniversityApplicationListQuery
             'student_status',
             'branchInfo',
             'subjects',
+            'studentCscaExams.cscaExam',
             'universitiesAppStatus' => function ($query) use ($universityId) {
                 $query->where('university_id', $universityId)
                     ->with(['statusUni', 'subject']);
@@ -155,7 +157,7 @@ final class UniversityApplicationListQuery
                 'Link' => $university->getMeta('link') ?? '',
                 'User' => self::exportLoginUser($application, $university),
                 'Password' => self::exportLoginPassword($application, $university),
-                'CSCA' => '-',
+                'CSCA' => StudentDisplay::cscaSummary($student),
                 'Junior Counselor' => optional($student->jncounselor)->name ?? '',
                 'Note' => $application->note ?? '',
                 'Remarks' => $application->remarks ?? '',
