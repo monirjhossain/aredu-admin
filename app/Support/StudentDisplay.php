@@ -122,4 +122,11 @@ class StudentDisplay
 
         return $empty;
     }
+
+    public static function officeStudentId(Student $student, string $empty = ''): string
+    {
+        $id = trim((string) ($student->st_office_id ?? ''));
+
+        return $id !== '' ? $id : $empty;
+    }
 }

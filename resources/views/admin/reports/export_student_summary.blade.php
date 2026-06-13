@@ -2,7 +2,8 @@
     <thead>
         <tr>
             <th>#</th>
-            <th>Student</th>
+            <th>Student ID</th>
+            <th>Student Name</th>
             <th>Description</th>
             <th>Reference</th>
             <th>Income BDT</th>
@@ -16,6 +17,7 @@
         @foreach($entries as $key => $entry)
             <tr>
                 <td>{{ $key+1 }}</td>
+                <td>{{ $entry->student->st_office_id ?? '' }}</td>
                 <td>{{ $entry->student->full_name ?? '' }}</td>
                 <td>{{ $entry->description }}</td>
                 <td>{{ $entry->reference }}</td>

@@ -208,6 +208,7 @@
                                     'currentStatusId' => $item->status,
                                     'statuses' => $student_statuses,
                                     'tone' => \App\Support\StatusTone::forStatusId((int) $item->status),
+                                    'compact' => true,
                                     'wrapClass' => 'student-office-status-wrap',
                                 ])
                                 <span class="badge badge-primary mt-1">{{ $item->intake }}</span>

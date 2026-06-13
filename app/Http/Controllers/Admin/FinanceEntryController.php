@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\FinanceEntriesListExport;
 use App\Http\Controllers\Controller;
 use App\Models\Account\FinanceEntry;
 use App\Models\Account\Wallet;
@@ -10,6 +11,8 @@ use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\Student\Student;
+use App\Support\StudentDisplay;
+use App\Support\StyledExcel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -89,37 +92,36 @@ class FinanceEntryController extends Controller
             ->when($endDate, function ($query) use ($endDate) {
                 $query->whereDate('transaction_date', '<=', $endDate);
             })
+            ->with(['student', 'expense', 'income', 'creator'])
             ->get();
 
-        $exportData = $entries->map(function($entry) {
-            return [
-                'ID' => $entry->id,
-                'Date' => $entry->transaction_date,
-                'Type' => $entry->type,
-                'Student' => $entry->student->full_name ?? '',
-                'Category' => $entry->expense->name ?? $entry->income->name ?? '',
-                'Description' => $entry->description,
-                'Reference' => $entry->reference,
-                'Amount' => $entry->amount,
-                'Currency' => $entry->currency,
-                'Created By' => $entry->creator->name ?? '',
-            ];
-        });
-
         try {
-            // Use Laravel Excel 3.x+ to export when available.
-            $export = new class($exportData) implements \Maatwebsite\Excel\Concerns\FromCollection, \Maatwebsite\Excel\Concerns\WithHeadings {
-                protected $data;
-                public function __construct($data) { $this->data = $data; }
-                public function collection() { return collect($this->data); }
-                public function headings(): array { return array_keys($this->data->first() ?? []); }
-            };
-            return \Maatwebsite\Excel\Facades\Excel::download($export, 'FinanceEntriesReport.xlsx');
+            return StyledExcel::download(
+                new FinanceEntriesListExport($entries),
+                'FinanceEntriesReport.xlsx'
+            );
         } catch (Throwable $e) {
             report($e);
 
-            // Fallback for servers where Excel package binding is unavailable.
-            return $this->downloadAsCsv($exportData, 'FinanceEntriesReport.csv');
+            $exportData = $entries->map(static function ($entry) {
+                return [
+                    'ID' => $entry->id,
+                    'Date' => $entry->transaction_date,
+                    'Type' => $entry->type,
+                    'Student ID' => $entry->student instanceof Student
+                        ? StudentDisplay::officeStudentId($entry->student)
+                        : '',
+                    'Student Name' => $entry->student->full_name ?? '',
+                    'Category' => $entry->expense->name ?? $entry->income->name ?? '',
+                    'Description' => $entry->description,
+                    'Reference' => $entry->reference,
+                    'Amount' => $entry->amount,
+                    'Currency' => $entry->currency,
+                    'Created By' => $entry->creator->name ?? '',
+                ];
+            });
+
+            return StyledExcel::streamCsv($exportData->all(), 'FinanceEntriesReport.csv');
         }
     }
     

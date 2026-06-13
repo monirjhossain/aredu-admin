@@ -2,16 +2,24 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\StylesWorksheet;
 use App\Models\Account\Invoice;
+use App\Models\Student\Student;
+use App\Support\StudentDisplay;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 
-class InvoicesListExport implements FromCollection, WithHeadings, WithMapping
+class InvoicesListExport implements FromCollection, WithHeadings, WithMapping, WithEvents
 {
+    use StylesWorksheet;
+
     /** @var Collection */
     private $invoices;
+
+    protected string $sheetTitle = 'Invoices';
 
     public function __construct(Collection $invoices)
     {
@@ -36,6 +44,7 @@ class InvoicesListExport implements FromCollection, WithHeadings, WithMapping
         return [
             'ID',
             'Invoice No',
+            'Student ID',
             'Student Name',
             'Phone',
             'Subtotal',
@@ -59,6 +68,9 @@ class InvoicesListExport implements FromCollection, WithHeadings, WithMapping
         return [
             $invoice->id,
             $invoice->invoice_no,
+            $invoice->student instanceof Student
+                ? StudentDisplay::officeStudentId($invoice->student)
+                : '',
             $invoice->displayStudentFullName(),
             $invoice->displayStudentPhone(),
             $invoice->subtotal,

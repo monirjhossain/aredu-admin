@@ -30,6 +30,8 @@ use App\Models\UniversityStatus;
 use App\Models\Subject;
 use App\Models\Tag;
 use App\Models\User;
+use App\Support\StudentDisplay;
+use App\Support\StyledExcel;
 use App\Traits\UploadAble;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -130,9 +132,10 @@ class StudentController extends Controller
                 $filterRequest = $this->applicationListService->resolveFilterRequest($request);
 
                 if ($request->input('export') === 'yes') {
-                    return $this->downloadRowsAsCsv(
+                    return StyledExcel::downloadRows(
                         $this->applicationListService->exportRows($filterRequest),
-                        $this->applicationListService->exportFilename($filterRequest)
+                        $this->applicationListService->exportFilename($filterRequest),
+                        'Applications'
                     );
                 }
 
@@ -304,6 +307,7 @@ class StudentController extends Controller
                     ->implode(', ');
 
                     return [
+                        'Student ID' => StudentDisplay::officeStudentId($student),
                         'Name' => $student->full_name ?? '',
                         'Passport Number' => $student->passport ?? '',
                         'Application Number' => $applicationNumbers,
@@ -338,6 +342,7 @@ class StudentController extends Controller
 
             if (empty($rows)) {
                 $rows[] = [
+                    'Student ID' => '',
                     'Name' => 'No data found for selected filters',
                     'Passport Number' => '',
                     'Application Number' => '',
@@ -354,7 +359,7 @@ class StudentController extends Controller
                 ];
             }
 
-            return $this->downloadRowsAsCsv($rows, 'Students_Filtered_Report.csv');
+            return StyledExcel::downloadRows($rows, 'Students_Filtered_Report.csv', 'Students');
         }
 
         $totalStudent = $students->count();

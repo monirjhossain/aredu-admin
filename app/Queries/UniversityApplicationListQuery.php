@@ -122,7 +122,7 @@ final class UniversityApplicationListQuery
             ? '_' . preg_replace('/[^A-Za-z0-9_-]+/', '_', implode('_', $suffixParts))
             : '';
 
-        return $university->post_title . '_Application_Report' . $suffix . '.csv';
+        return $university->post_title . '_Application_Report' . $suffix . '.xlsx';
     }
 
     /**
@@ -145,6 +145,7 @@ final class UniversityApplicationListQuery
             $rows[] = [
                 'Sl' => (string) $sl++,
                 'Application No' => $application->application_no ?? '',
+                'Student ID' => StudentDisplay::officeStudentId($student),
                 'Name' => $student->full_name ?? '',
                 'Passport' => $student->passport ?? '',
                 'CGPA' => optional($education)->result ?? '',
@@ -175,6 +176,7 @@ final class UniversityApplicationListQuery
         return [
             'Sl' => '',
             'Application No' => '',
+            'Student ID' => '',
             'Name' => $message,
             'Passport' => '',
             'CGPA' => '',
