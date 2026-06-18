@@ -44,8 +44,11 @@
 .post-list-table tbody td {
     padding: 0.9rem 0.8rem;
     vertical-align: top;
-    overflow: hidden;
     box-sizing: border-box;
+}
+
+.post-list-table tbody td:not(.post-list-td-title):not(.post-list-td-actions) {
+    overflow: hidden;
 }
 
 .post-list-table tbody td.post-list-td-actions {
@@ -68,19 +71,32 @@
     display: block;
 }
 
-/* Title — max 3 lines, no endless row height */
+.post-list-table thead th:nth-child(2),
+.post-list-table tbody td:nth-child(2) {
+    width: 70px;
+    min-width: 70px;
+    max-width: 70px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.post-list-th-title {
+    min-width: 220px;
+}
+
+/* Title — full text, wrap naturally */
 .post-list-td-title {
-    max-width: 200px;
+    min-width: 220px;
+    max-width: none;
+    overflow: visible;
+    white-space: normal;
 }
 
 .post-list-cell-title {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-    overflow: hidden;
-    line-height: 1.4;
-    max-height: 4.2em;
+    line-height: 1.45;
     word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: normal;
 }
 
 /* Subjects, category, credentials — fixed cell height + inner scroll */

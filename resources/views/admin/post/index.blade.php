@@ -170,7 +170,7 @@
 @endsection
 
 @section('styles')
-    <link href="{{ asset('css/admin/post-index.css') }}?v=2" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('css/admin/post-index.css') }}?v=3" rel="stylesheet" type="text/css" />
 @endsection
 
 @section('scripts')
