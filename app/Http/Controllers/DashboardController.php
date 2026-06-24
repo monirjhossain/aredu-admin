@@ -5,50 +5,48 @@ namespace App\Http\Controllers;
 use App\Models\Post\Post;
 use App\Models\Student\Student;
 use App\Models\User;
-use App\Models\Todo;
+use App\Services\Dashboard\DashboardAnalyticsService;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
+    /** @var DashboardAnalyticsService */
+    private $analytics;
+
+    public function __construct(DashboardAnalyticsService $analytics)
+    {
+        $this->analytics = $analytics;
+    }
+
     public function index()
     {
         $currentUser = Auth::user();
-        $allStudent = Student::where('branch_id', $currentUser->branch)->count();
-        // $intakes = $students->whereIn('intake', ['March-2024', 'September-2024']);
-        // $totalStudents = $students->count();
-        $admittedToUs = Student::orderBy('id', 'DESC')->whereIn('intake', ['March-2024', 'September-2024'])->where('status', 'Admitted to us')->count();
-        $Rejected = Student::orderBy('id', 'DESC')->whereIn('intake', ['March-2024', 'September-2024'])->where('status', 'Rejected')->count();
-        $paperSubmitted = Student::orderBy('id', 'DESC')->whereIn('intake', ['March-2024', 'September-2024'])->where('status', 'LIKE', '%Paper submitted%')->count();
-        $AdmissionCancel = Student::orderBy('id', 'DESC')->whereIn('intake', ['March-2024', 'September-2024'])->where('status', 'LIKE', '%Admission cancel%')->count();
-        $totalStudents = $admittedToUs + $paperSubmitted + $Rejected + $AdmissionCancel;
+        $analytics = $this->analytics->forUser($currentUser);
 
-        $students = Student::orderBy('id', 'DESC');
-        // $students->where('resp_person_id', $currentUser->id);
-        // $students->orwhere('senior_counselor', $currentUser->id);
-        $students->orwhere('junior_counselor', $currentUser->id);
-        
-        $data['total_user'] = User::where('branch', $currentUser->branch)->count();
-        $data['total_todo'] = Todo::all()->count();
-        $data['universities'] = Post::where('post_type', 'university')->count();
-        $data['page_title'] = 'Dashboard - AR EDUCATION';
-        $data['admittedToUs'] = $admittedToUs;
-        $data['totalStudents'] = $totalStudents;
-        $data['myStudents'] = $students->count();
-        $data['allStudent'] = $allStudent;
-        $data['paperSubmitted'] = $paperSubmitted;
-        $data['Rejected'] = $Rejected;
-        $data['AdmissionCancel'] = $AdmissionCancel;
+        $students = Student::query()->orderByDesc('id');
+        $students->where(function ($q) use ($currentUser) {
+            $q->where('junior_counselor', $currentUser->id);
+        });
 
-        // return $data;
-        return view('dashboard.main')->with($data);
-
+        return view('dashboard.main', [
+            'page_title' => 'Dashboard - AR EDUCATION',
+            'analytics' => $analytics,
+            'cards' => $analytics['cards'],
+            'charts' => $analytics['charts'],
+            'counselor_only' => $analytics['counselor_only'],
+            'myStudents' => $students->count(),
+            'allStudent' => Student::where('branch_id', $currentUser->branch)->count(),
+            'total_user' => User::where('branch', $currentUser->branch)->count(),
+            'universities' => Post::where('post_type', 'university')->count(),
+        ]);
     }
+
     public function logincheck()
     {
         if (Auth::check()) {
             return redirect('dashboard');
-        } else {
-            return redirect('login');
         }
+
+        return redirect('login');
     }
 }
