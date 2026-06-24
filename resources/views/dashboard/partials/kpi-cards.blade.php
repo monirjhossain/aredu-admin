@@ -1,19 +1,23 @@
 @php
     $c = $cards ?? [];
-    $isCounselorView = $counselor_only ?? false;
+    $access = $access ?? [];
+    $sections = $access['sections'] ?? [];
+    $hasStudentKpi = ($sections['kpi_students'] ?? false) && (isset($c['total_students']) || isset($c['new_students_month']));
+    $hasApplicationKpi = ($sections['kpi_applications'] ?? false) && isset($c['total_applications']);
+    $hasRevenueKpi = ($sections['kpi_revenue'] ?? false) && isset($c['total_revenue']);
+    $hasAnyKpi = $hasStudentKpi || $hasApplicationKpi || $hasRevenueKpi;
+    $scopeLabel = $access['scope'] ?? (($counselor_only ?? false) ? 'My assigned students' : 'Branch overview');
 @endphp
 
+@if ($hasAnyKpi)
 <div class="dashboard-kpi-section mb-4 mb-md-5">
     <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 dashboard-kpi-section__head">
         <h4 class="dashboard-section-title mb-0">Business Overview</h4>
-        @if ($isCounselorView)
-            <span class="badge badge-light-primary">My assigned students</span>
-        @else
-            <span class="badge badge-light-success">Branch overview</span>
-        @endif
+        <span class="badge badge-light-primary">{{ $scopeLabel }}</span>
     </div>
 
     <div class="row">
+        @if ($hasStudentKpi)
         <div class="col-12 col-sm-6 col-xl-3 mb-3 mb-md-4">
             <div class="dashboard-kpi-card dashboard-kpi-card--primary">
                 <div class="dashboard-kpi-card__icon"><i class="fas fa-users"></i></div>
@@ -35,7 +39,9 @@
                 <a href="{{ route('students.index') }}" class="dashboard-kpi-card__link">View students</a>
             </div>
         </div>
+        @endif
 
+        @if ($hasApplicationKpi)
         <div class="col-12 col-sm-6 col-xl-3 mb-3 mb-md-4">
             <div class="dashboard-kpi-card dashboard-kpi-card--purple">
                 <div class="dashboard-kpi-card__icon"><i class="fas fa-file-alt"></i></div>
@@ -79,7 +85,9 @@
                 <a href="{{ route('students.index', ['universitylist' => 1]) }}" class="dashboard-kpi-card__link">View applications</a>
             </div>
         </div>
+        @endif
 
+        @if ($hasRevenueKpi)
         <div class="col-12 col-sm-6 col-xl-3 mb-3 mb-md-4">
             <div class="dashboard-kpi-card dashboard-kpi-card--teal">
                 <div class="dashboard-kpi-card__icon"><i class="fas fa-money-bill-wave"></i></div>
@@ -101,5 +109,7 @@
                 <a href="{{ route('finance_entries.invoices.index') }}" class="dashboard-kpi-card__link">Invoices</a>
             </div>
         </div>
+        @endif
     </div>
 </div>
+@endif

@@ -10,6 +10,7 @@ use App\Models\Student\StudentUniversity;
 use App\Models\StudentStatus;
 use App\Models\UniversityStatus;
 use App\Models\User;
+use App\Support\DashboardAccess;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -25,52 +26,63 @@ class DashboardAnalyticsService
      */
     public function forUser(User $user): array
     {
+        $access = DashboardAccess::for($user);
         $branchId = (int) $user->branch;
-        $counselorOnly = !$this->seesBranchOverview($user);
+        $counselorOnly = $access['counselor_only'];
+
+        $cards = [];
+        if ($access['sections']['kpi_students'] ?? false) {
+            $cards = array_merge($cards, $this->studentKpiCards($user, $branchId, $counselorOnly));
+        }
+        if ($access['sections']['kpi_applications'] ?? false) {
+            $cards = array_merge($cards, $this->applicationKpiCards($user, $branchId, $counselorOnly));
+        }
+        if ($access['sections']['kpi_revenue'] ?? false) {
+            $cards = array_merge($cards, $this->revenueKpiCards($branchId));
+        }
+
+        $charts = [];
+        if ($access['sections']['charts_applications'] ?? false) {
+            $charts['applications_by_status'] = $this->applicationsByStatus($user, $branchId, $counselorOnly);
+        }
+        if ($access['sections']['charts_students'] ?? false) {
+            $charts['monthly_students'] = $this->monthlyNewStudents($user, $branchId, $counselorOnly);
+            $charts['office_student_status'] = $this->officeStudentStatus($user, $branchId, $counselorOnly);
+            $charts['students_by_intake'] = $this->studentsByIntake($user, $branchId, $counselorOnly);
+        }
+        if ($access['sections']['charts_branch'] ?? false) {
+            $charts['students_by_branch'] = $this->studentsByBranch();
+        }
+        if ($access['sections']['charts_counselor'] ?? false) {
+            $charts['counselor_wise_students'] = $this->counselorWiseStudents($user, $branchId, $counselorOnly);
+        }
+        if ($access['sections']['charts_finance'] ?? false) {
+            $charts['monthly_revenue'] = $this->monthlyRevenue($branchId);
+            $charts['paid_vs_due'] = $this->paidVsDueMonthly($branchId);
+            $charts['income_vs_expense'] = $this->incomeVsExpenseMonthly($branchId);
+            $charts['monthly_invoice_count'] = $this->monthlyInvoiceCount($branchId);
+        }
 
         return [
-            'cards' => $this->overviewCards($user, $branchId, $counselorOnly),
-            'charts' => [
-                'applications_by_status' => $this->applicationsByStatus($user, $branchId, $counselorOnly),
-                'monthly_students' => $this->monthlyNewStudents($user, $branchId, $counselorOnly),
-                'monthly_revenue' => $this->monthlyRevenue($branchId),
-                'office_student_status' => $this->officeStudentStatus($user, $branchId, $counselorOnly),
-                'students_by_branch' => $this->studentsByBranch($counselorOnly),
-                'students_by_intake' => $this->studentsByIntake($user, $branchId, $counselorOnly),
-                'counselor_wise_students' => $this->counselorWiseStudents($user, $branchId, $counselorOnly),
-                'paid_vs_due' => $this->paidVsDueMonthly($branchId),
-                'income_vs_expense' => $this->incomeVsExpenseMonthly($branchId),
-                'monthly_invoice_count' => $this->monthlyInvoiceCount($branchId),
-            ],
+            'access' => $access,
+            'cards' => $cards,
+            'charts' => $charts,
             'counselor_only' => $counselorOnly,
         ];
     }
 
     public function seesBranchOverview(User $user): bool
     {
-        return in_array((int) $user->role_id, config('dashboard.branch_overview_role_ids', [1, 2, 3]), true);
+        return DashboardAccess::seesBranchOverview($user);
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<string, int|float>
      */
-    private function overviewCards(User $user, int $branchId, bool $counselorOnly): array
+    private function studentKpiCards(User $user, int $branchId, bool $counselorOnly): array
     {
         $studentQuery = $this->studentsQuery($user, $branchId, $counselorOnly);
-        $applicationQuery = $this->applicationsQuery($user, $branchId, $counselorOnly);
-        $groups = $this->statusGroupIds();
-
         $now = Carbon::now();
-
-        $totalRevenue = (float) Invoice::query()
-            ->where('branch_id', $branchId)
-            ->sum('paid');
-
-        $revenueThisMonth = (float) Invoice::query()
-            ->where('branch_id', $branchId)
-            ->whereYear('invoice_date', $now->year)
-            ->whereMonth('invoice_date', $now->month)
-            ->sum('paid');
 
         return [
             'total_students' => (clone $studentQuery)->count(),
@@ -78,12 +90,39 @@ class DashboardAnalyticsService
                 ->whereYear('created_at', $now->year)
                 ->whereMonth('created_at', $now->month)
                 ->count(),
+        ];
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function applicationKpiCards(User $user, int $branchId, bool $counselorOnly): array
+    {
+        $applicationQuery = $this->applicationsQuery($user, $branchId, $counselorOnly);
+        $groups = $this->statusGroupIds();
+
+        return [
             'total_applications' => (clone $applicationQuery)->count(),
             'pending_applications' => $this->countApplicationsByStatusIds($applicationQuery, $groups['pending']),
             'approved_applications' => $this->countApplicationsByStatusIds($applicationQuery, $groups['approved']),
             'rejected_applications' => $this->countApplicationsByStatusIds($applicationQuery, $groups['rejected']),
-            'total_revenue' => $totalRevenue,
-            'revenue_this_month' => $revenueThisMonth,
+        ];
+    }
+
+    /**
+     * @return array<string, float>
+     */
+    private function revenueKpiCards(int $branchId): array
+    {
+        $now = Carbon::now();
+
+        return [
+            'total_revenue' => (float) Invoice::query()->where('branch_id', $branchId)->sum('paid'),
+            'revenue_this_month' => (float) Invoice::query()
+                ->where('branch_id', $branchId)
+                ->whereYear('invoice_date', $now->year)
+                ->whereMonth('invoice_date', $now->month)
+                ->sum('paid'),
         ];
     }
 
@@ -202,16 +241,12 @@ class DashboardAnalyticsService
     }
 
     /**
-     * All branches — branch overview roles only.
+     * All branches — Super Admin / Admin / Manager only.
      *
      * @return array{categories: string[], data: int[]}
      */
-    private function studentsByBranch(bool $counselorOnly): array
+    private function studentsByBranch(): array
     {
-        if ($counselorOnly) {
-            return ['categories' => [], 'data' => []];
-        }
-
         $rows = Student::query()
             ->select('students.branch_id', DB::raw('COUNT(*) as total'))
             ->whereNotNull('students.branch_id')

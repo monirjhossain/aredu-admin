@@ -31,6 +31,7 @@ class DashboardController extends Controller
         return view('dashboard.main', [
             'page_title' => 'Dashboard - AR EDUCATION',
             'analytics' => $analytics,
+            'access' => $analytics['access'],
             'cards' => $analytics['cards'],
             'charts' => $analytics['charts'],
             'counselor_only' => $analytics['counselor_only'],

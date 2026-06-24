@@ -6,8 +6,6 @@ return [
     |--------------------------------------------------------------------------
     | University application status groups (by name)
     |--------------------------------------------------------------------------
-    | Names are matched against university_statuses.name (case-insensitive).
-    | Update when new statuses are added in admin.
     */
     'application_status_groups' => [
         'pending' => [
@@ -33,16 +31,44 @@ return [
         ],
     ],
 
-    /** Role IDs that see full branch stats (not counselor-only). */
-    'branch_overview_role_ids' => [1, 2, 3],
+    /*
+    |--------------------------------------------------------------------------
+    | Role IDs (from roles table / RolesTableSeeder order)
+    | 1 Super Admin, 2 Admin, 3 Manager, 4 Branch Manager,
+    | 5 Account, 6 IT Officer, 7 Editor, 8 Counselor, 9 Student
+    |--------------------------------------------------------------------------
+    */
+    'counselor_scope_role_ids' => [8],
 
-    /** Months of history for trend charts. */
+    'branch_overview_role_ids' => [1, 2, 3, 4],
+
+    'all_branches_role_ids' => [1, 2],
+
+    /**
+     * Which role_id can see each dashboard section.
+     */
+    'permissions' => [
+        // KPI cards
+        'kpi_students' => [1, 2, 3, 4, 8],
+        'kpi_applications' => [1, 2, 3, 4, 8],
+        'kpi_revenue' => [1, 2, 3, 4, 5],
+
+        // Charts
+        'charts_applications' => [1, 2, 3, 4, 8],
+        'charts_students' => [1, 2, 3, 4, 8],
+        'charts_branch' => [1, 2, 3],
+        'charts_counselor' => [1, 2, 3, 4],
+        'charts_finance' => [1, 2, 3, 4, 5],
+
+        // Quick access tiles
+        'quick_my_students' => [1, 2, 3, 4, 5, 6, 7, 8],
+        'quick_all_students' => [1, 2, 3, 4],
+        'quick_universities' => [1, 2, 3, 4],
+        'quick_users' => [1, 2],
+    ],
+
     'chart_months' => 12,
-
-    /** Max counselors shown on counselor-wise chart. */
     'counselor_chart_limit' => 10,
-
-    /** Max intake labels on intake chart. */
     'intake_chart_limit' => 12,
 
 ];
