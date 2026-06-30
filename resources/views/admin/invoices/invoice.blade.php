@@ -187,11 +187,6 @@ table th:last-child {
     font-size: 12px;
 }
 
-
-
-
-
-
 .main-box {
       width: 800px;
       background: #fff;
@@ -259,9 +254,6 @@ table th:last-child {
 
     <div class="clear">
     </div>
-    {{-- <div>
-        <p class="invoice-text">Invoice</p>
-    </div> --}}
     <h3>Invoice to:</h3>
     <p class="marginNull"><span class="bold-text">Student ID: </span>{{$student->st_office_id ?? ''}}</p>
     <p class="marginNull"><span class="bold-text">Student Name: </span>{{$student->first_name. ' '. $student->last_name}}</p>
@@ -292,24 +284,15 @@ table th:last-child {
                 <td style="text-align: right;">{{ number_format($invoice['products']['price'][$index]) }}</td>
             </tr>
         @endforeach
-
-        {{-- @foreach($invoice->products as $item)
-        <tr>
-          <td>01</td>
-          <td>MHP22AM/A</td>
-          <td>150,000.00</td>
-        </tr> --}}
       </tbody>
     </table>
 
     <div class="total">
       <p class="marginNull">Subtotal: {{number_format($invoice->subtotal)}}</p>
-      {{-- Previously paid amount (computed in controller) --}}
       @if (isset($previousPaid) && $previousPaid > 0)
         <p class="marginNull"><strong>Previously Paid: -{{ number_format($previousPaid) }}</strong></p>
       @endif
 
-      {{-- Current invoice paid amount --}}
       @if ($invoice->paid != 0)
       <p class="marginNull"><strong>{{$invoice->is_readable == 1 ? "" : "(Non-refundable)"}} File Opening Fee Paid: -{{number_format($invoice->paid)}}</strong></p>
       @endif
@@ -342,27 +325,9 @@ table th:last-child {
           @foreach($documents as $doc)
               @if(is_array($invoice['documents']) && in_array($doc['id'], $invoice['documents']))
                   <li>{{ $doc['name'] }}</li>
-              {{-- @else
-                    <li>No documents are attached</li> --}}
               @endif
           @endforeach
         </ul>
-        <div>
-          
-          {{-- <div style="margin-top: 80px; text-align:right">
-              <p>__________________________</p>
-              <p>Authorized Signature <br>
-                Invoice by <b>{{$user->name}}</b>
-              </p>
-          </div> --}}
-
-          {{-- <div style="margin-top: 60px; text-align:right">
-              <p>File Recieved By <b>{{$student->responsiblePerson->name ?? ''}}</b><br>
-                 Phone Number : <b>{{$student->responsiblePerson->mobile_no ?? ''}}</b>
-              </p>
-          </div> --}}
-          
-        </div>
       </div>
 
       <div class="info-box" >
@@ -390,25 +355,18 @@ table th:last-child {
 <div class="footer-blocks">
   <div class="footer-box">
     <strong>Phone</strong><br>
-    <!-- {{ $student->branchInfo->phone}} -->
     {!! str_replace(',', '<br>', $student->branchInfo->phone) !!}
-    <!-- +880 1768-820865<br>
-    +880 1736-318321<br>
-    +880 1811-256545 -->
   </div>
 
   <div class="footer-box">
     <strong>Address</strong><br>
     {{ $student->branchInfo->address}}
-    <!-- Tropical Tower, 10th Floor,<br>
-    Bata Signal, Elephant Road -->
   </div>
 
   <div class="footer-box">
     <strong>Website</strong><br>
     <a href="https://areducation.net">areducation.net</a><br>
     {{$student->branchInfo->email}}
-    <!-- areducation16@gmail.com -->
   </div>
 </div>
 

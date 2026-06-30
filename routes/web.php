@@ -140,6 +140,8 @@ Route::middleware('auth')->group(function () {
     });
     Route::group(['prefix'=>'student', 'as' => 'student.'], function(){
         Route::get('invoices/export', [StudentInvoiceController::class, 'export'])->name('invoices.export');
+        Route::get('invoices/{invoice}/service-completed', [StudentInvoiceController::class, 'serviceCompletedPdf'])
+            ->name('invoices.service-completed');
         Route::resource('invoices', StudentInvoiceController::class);
         Route::patch('application/{application}/status', [StudentApplicationController::class, 'updateStatus'])
             ->name('application.update-status');

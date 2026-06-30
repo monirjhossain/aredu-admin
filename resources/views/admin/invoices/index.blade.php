@@ -139,9 +139,16 @@
                             </td>
 
 
-                            <td class="d-flex">
+                            <td class="d-flex flex-wrap">
                                 <a href="{{ route($url.'.edit', [$item->id]) }}" class="btn btn-sm btn-primary mr-1"> <i class="fas fa-edit"></i> </a>
                                 <a target="_blank" href="{{ route($url.'.show', [$item->id]) }}" class="btn btn-sm btn-primary mr-1"> <i class="fas fa-eye"></i> </a>
+                                @if (($serviceCompletedInvoiceId ?? null) === $item->id && $url === 'student.invoices')
+                                <a href="{{ route('student.invoices.service-completed', $item->id) }}"
+                                    class="btn btn-sm btn-success mr-1"
+                                    title="Download Service Completed PDF">
+                                    <i class="fas fa-file-pdf"></i>
+                                </a>
+                                @endif
                                 <form id="deleteForm{{ $item->id }}" action="{{ route($url.'.destroy', [$item->id]) }}"
                                     class="mr-1" method="POST">
                                     @method('DELETE')

@@ -173,6 +173,31 @@ class Invoice extends Model
                       ->where('created_at', '<', $this->created_at)
                       ->exists();
     }
+
+    public static function lastForStudent(int $studentId): ?self
+    {
+        return static::query()
+            ->where('student_id', $studentId)
+            ->orderByRaw('COALESCE(invoice_date, DATE(created_at)) DESC')
+            ->orderByDesc('id')
+            ->first();
+    }
+
+    public function isLastForStudent(): bool
+    {
+        if (!$this->student_id) {
+            return false;
+        }
+
+        $last = static::lastForStudent((int) $this->student_id);
+
+        return $last && (int) $last->id === (int) $this->id;
+    }
+
+    public function isFullyPaid(): bool
+    {
+        return (float) $this->due === 0.0;
+    }
     protected static function boot()
     {
         parent::boot();

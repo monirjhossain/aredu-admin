@@ -17,6 +17,10 @@ use App\Models\User;
 use App\Models\Student\Student;
 use App\Exports\InvoicesListExport;
 use App\Services\InvoiceCreationService;
+use App\Services\ServiceCompletedDocumentService;
+use App\Services\Student\OfficeStatusService;
+use App\Support\PdfGenerator;
+use App\Support\StudentDisplay;
 use App\Traits\UploadAble;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -61,6 +65,13 @@ class StudentInvoiceController extends Controller
         $data['type'] = 'invoice';
         $data['student'] = $student;
         $data['url'] = $student ? 'student.invoices' : 'finance_entries.invoices';
+        $data['serviceCompletedInvoiceId'] = null;
+        if ($student) {
+            $lastInvoice = Invoice::lastForStudent((int) $student->id);
+            if ($lastInvoice && $lastInvoice->isFullyPaid()) {
+                $data['serviceCompletedInvoiceId'] = $lastInvoice->id;
+            }
+        }
 
         return view('admin.invoices.index')->with($data);
     }
@@ -226,6 +237,39 @@ class StudentInvoiceController extends Controller
         $data['previousPaid'] = $prevQuery->sum('paid');
         // return $data;
         return view('admin.invoices.invoice')->with($data);
+    }
+
+    public function serviceCompletedPdf(
+        Invoice $invoice,
+        ServiceCompletedDocumentService $documentService,
+        OfficeStatusService $officeStatusService,
+        PdfGenerator $pdfGenerator
+    ) {
+        $currentUser = Auth::user();
+
+        try {
+            $payload = $documentService->build($invoice, $currentUser);
+
+            DB::transaction(function () use ($documentService, $officeStatusService, $payload) {
+                $officeStatusService->update(
+                    $payload['student'],
+                    $documentService->resolveOfficeStatusId()
+                );
+            });
+
+            $payload['student']->load('student_status');
+
+            $html = view('pdf.service-completed', $payload)->render();
+            $studentId = StudentDisplay::officeStudentId($payload['student']) ?: ('student-' . $payload['student']->id);
+            $filename = 'Service-Completed-' . preg_replace('/[^A-Za-z0-9\-_]/', '-', $studentId) . '.pdf';
+
+            return $pdfGenerator->download($html, $filename);
+        } catch (\Throwable $th) {
+            report($th);
+            Session::flash('error', $th->getMessage() ?: 'Could not generate Service Completed certificate.');
+
+            return redirect()->back();
+        }
     }
 
     public function edit(Invoice $invoice)
