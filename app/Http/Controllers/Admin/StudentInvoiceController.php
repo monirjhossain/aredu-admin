@@ -243,10 +243,11 @@ class StudentInvoiceController extends Controller
         Invoice $invoice,
         ServiceCompletedDocumentService $documentService,
         OfficeStatusService $officeStatusService,
-        PdfGenerator $pdfGenerator
+        PdfGenerator $pdfGenerator,
+        Request $request
     ) {
         $currentUser = Auth::user();
-
+        // return $invoice;
         try {
             $payload = $documentService->build($invoice, $currentUser);
 
@@ -259,11 +260,29 @@ class StudentInvoiceController extends Controller
 
             $payload['student']->load('student_status');
 
-            $html = view('pdf.service-completed', $payload)->render();
-            $studentId = StudentDisplay::officeStudentId($payload['student']) ?: ('student-' . $payload['student']->id);
-            $filename = 'Service-Completed-' . preg_replace('/[^A-Za-z0-9\-_]/', '-', $studentId) . '.pdf';
+            // $html = view('pdf.service-completed', $payload)->render();
+            // $studentId = StudentDisplay::officeStudentId($payload['student']) ?: ('student-' . $payload['student']->id);
+            // $filename = 'Service-Completed-' . preg_replace('/[^A-Za-z0-9\-_]/', '-', $studentId) . '.pdf';
+        
+        // $data['invoice'] = $invoice;
+        // $data['student'] = $student;
+        $student = Student::findOrFail($invoice->student_id);
+        // $payload['application'] = $student->universitiesAppStatus;
+        $payload['title'] = 'Invoice Edit';
+        $payload['type'] = 'student';
+        $payload['url'] = 'student.invoices';
+        $payload['universities'] = Post::select('id', 'post_title')->orderby('id', 'DESC')->where('post_type', 'university')->get();
+        // $data['studies'] = \App\Models\Study::all();
+        // $data['documents'] = \App\Models\Document::all();
 
-            return $pdfGenerator->download($html, $filename);
+            // return view('admin/invoices.service-completed')->with($payload);
+            // return $payload;
+            if(isset($request->view_page) && $request->view_page == 'yes'){
+                return view('admin.invoices.service-view')->with($payload);
+            }
+        return view('admin.invoices.service-completed')->with($payload);
+
+            // return $pdfGenerator->download($html, $filename);
         } catch (\Throwable $th) {
             report($th);
             Session::flash('error', $th->getMessage() ?: 'Could not generate Service Completed certificate.');
