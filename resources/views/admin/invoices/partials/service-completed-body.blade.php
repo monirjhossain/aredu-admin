@@ -128,6 +128,7 @@ I also confirm that I have received from AR Education Consultancy all documents 
         <th>Invoice</th>
         <th>Date</th>
         <th>Description</th>
+        <th class="num">Method</th>
         <th class="num">Amount</th>
         <th class="num">Discount</th>
         <th class="num">Paid</th>
@@ -140,6 +141,7 @@ I also confirm that I have received from AR Education Consultancy all documents 
             <td>{{ $inv->invoice_no }}</td>
             <td>{{ $inv->invoice_date ?: optional($inv->created_at)->format('Y-m-d') }}</td>
             <td>{{ $services ?: '—' }}</td>
+            <td>{{ $inv->wallet->name ?: '—' }}</td>
             <td class="num">{{ number_format((float) $inv->grandtotal, 2) }}</td>
             <td class="num">{{ number_format((float) $inv->discount, 2) }}</td>
             <td class="num">{{ number_format((float) $inv->paid, 2) }}</td>
@@ -150,14 +152,14 @@ I also confirm that I have received from AR Education Consultancy all documents 
             <td colspan="7" style="text-align: center;">No invoices found.</td>
         </tr>
     @endforelse
-    <tr class="totals-row">
+    {{-- <tr class="totals-row">
         <td colspan="4" class="num">Total</td>
         <td class="num">{{ number_format($invoice_summary['grandtotal'], 2) }}</td>
         <td class="num">{{ number_format($invoice_summary['discount'], 2) }}</td>
         <td class="num">{{ number_format($invoice_summary['paid'], 2) }}</td>
-        {{-- <td class="num">{{ number_format($invoice_summary['due'], 2) }}</td> --}}
+        <td class="num">{{ number_format($invoice_summary['due'], 2) }}</td>
         <td class="num">0.00</td>
-    </tr>
+    </tr> --}}
 </table>
 
 {{-- <div class="declaration">{{ $declaration }}</div> --}}

@@ -145,7 +145,7 @@
                                 @if ($url === 'student.invoices' && $item->canGenerateServiceCompleted())
                                 <a href="{{ route('student.invoices.service-completed', $item->id) }}"
                                     class="btn btn-sm btn-success mr-1"
-                                    title="Download Service Completed PDF">
+                                    title="Download Service Completed PDF" target="_blank">
                                     <i class="fas fa-file-pdf"></i>
                                 </a>
                                 @endif
