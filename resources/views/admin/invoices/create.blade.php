@@ -199,19 +199,19 @@
                                             <div class="col-lg-4 col-md-4 col-sm-12">
                                                 <div class="form-group">
                                                     <label for="grandtotal">Grand Total</label>
-                                                    <input type="text" name="grandtotal" class="form-control" placeholder="0" readonly id="grandtotal">
+                                                    <input type="number" step="0.01" name="grandtotal" class="form-control" placeholder="0" readonly id="grandtotal">
                                                 </div>
                                             </div>
                                             <div class="col-lg-4 col-md-4 col-sm-12">
                                                 <div class="form-group">
                                                     <label for="paid">Paid</label>
-                                                    <input type="text" name="paid" onkeyup="calculation()" value="0" class="form-control" placeholder="0" id="paid">
+                                                    <input type="number" step="0.01" name="paid" oninput="calculation()" value="0" class="form-control" placeholder="0" id="paid">
                                                 </div>
                                             </div>
                                             <div class="col-lg-4 col-md-4 col-sm-12">
                                                 <div class="form-group">
                                                     <label for="due">Due</label>
-                                                    <input type="text" name="due" class="form-control" placeholder="0" readonly id="due">
+                                                    <input type="number" step="0.01" name="due" class="form-control" placeholder="0" readonly id="due">
                                                 </div>
                                             </div>
                                         </div>
@@ -293,26 +293,32 @@
     });
 
     document.getElementById('datePicker').valueAsDate = new Date();
-    function calculation(){
+    function parseNumber(value) {
+        if (value === null || value === undefined) {
+            return 0;
+        }
+        var normalized = value.toString().replace(/,/g, '').trim();
+        var parsed = parseFloat(normalized);
+        return Number.isFinite(parsed) ? parsed : 0;
+    }
 
+    function calculation(){
         let subtotal = 0;
 
         // Loop over all inputs with IDs starting with "Price"
         $('input[id^="Price"]').each(function () {
-            let val = parseInt($(this).val()) || 0;
+            let val = parseNumber($(this).val());
             subtotal += val;
         });
 
-        // let price1 = parseInt($('#Price1').val());
-        // let price2 = parseInt($('#Price2').val());
-        let paid = parseInt($('#paid').val());
-        let discount = parseInt($('#discount').val());
-        // let subtotal = eval(price1+price2);
-        let grandtotal = eval(subtotal-discount);
-        let due = eval(grandtotal-paid);
-        $('#subtotal').val(subtotal);
-        $('#grandtotal').val(grandtotal);
-        $('#due').val(due);
+        let paid = parseNumber($('#paid').val());
+        let discount = parseNumber($('#discount').val());
+        let grandtotal = subtotal - discount;
+        let due = grandtotal - paid;
+
+        $('#subtotal').val(subtotal.toFixed(2));
+        $('#grandtotal').val(grandtotal.toFixed(2));
+        $('#due').val(due.toFixed(2));
     }
     function RemoveSec(id){
         $('#item'+id).hide();

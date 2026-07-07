@@ -40,12 +40,23 @@
         <td><strong>Senior Counselor:</strong> {{ optional($student->sncounselor)->name ?? '—' }}</td>
         <td><strong>Junior Counselor:</strong> {{ optional($student->jncounselor)->name ?? '—' }}</td>
     </tr>
+    @php
+        $scholarshipStatus = request('scholarship_status');
+        $scholarshipDetails = old('scholarship_details', request('scholarship_details'));
+    @endphp
     <tr>
         <td><strong>Applied Program:</strong> {{ 'bachelor' }}</td>
-        <td><strong>Scholarship:</strong> 
-            Yes<input type="radio" name="scholarship"> 
-            No<input name="scholarship" type="radio">
-            <input  name="scholarship" type="textbox">
+        <td>
+            <strong>Scholarship:</strong>
+            <label style="margin-left: 8px; margin-right: 12px;">
+                <input type="radio" name="scholarship_status" value="yes" {{ $scholarshipStatus === 'yes' ? 'checked' : '' }}> Yes
+            </label>
+            <label style="margin-right: 12px;">
+                <input type="radio" name="scholarship_status" value="no" {{ $scholarshipStatus === 'no' ? 'checked' : '' }}> No
+            </label>
+            <div id="scholarship-details-wrapper" style="margin-top: 8px; display: {{ $scholarshipStatus === 'yes' ? 'block' : 'none' }};">
+                <input type="text" name="scholarship_details" placeholder="Scholarship details" value="{{ $scholarshipDetails }}" style="width: 100%; max-width: 400px; padding: 6px;" />
+            </div>
         </td>
     </tr>
 </table>
@@ -57,39 +68,26 @@
         <th>University</th>
         <th>Subject</th>
         <th>Intake</th>
-        <th>Status</th>
         <th>Application No</th>
     </tr>
-    <tr>
-        {{-- <td>
-            <input type="radio" name="application_no">
-        </td>
-        <td>{{ optional($app->university)->post_title ?? '—' }}</td>
-        <td>{{ optional($app->subject)->name ?? '—' }}</td>
-        <td>{{ $display_intake ?? ($app->intake ?: ($student->intake ?: '—')) }}</td>
-        <td>{{ optional($app->statusUni)->name ?? '—' }}</td>
-        <td>{{ $app->application_no ?: '—' }}</td> --}}
-        {{-- @if($student->universities_app_status->count())
-    @foreach($student->universities_app_status as $application)
+    @forelse($student->universitiesAppStatus as $application)
         <tr>
-            <td>{{ $application->university->post_title ?? 'N/A' }}</td>
-            <td>{{ $application->subject->name ?? 'N/A' }}</td>
-            <td>{{ $application->intake }}</td>
-            <td>{{ $application->status_uni->name ?? 'N/A' }}</td>
-        </tr>
-    @endforeach
-@endif --}}
-        {{-- @foreach ($student[universities_app_status] as $item)
-            <td>
-                <input type="radio" name="application_no">
+            <td style="width: 1px; white-space: nowrap;">
+                <label style="display: inline-flex; align-items: center;">
+                    <input type="checkbox" name="application_ids[]" value="{{ $application->id }}"
+                        {{ in_array($application->id, $selected_application_ids ?? []) ? 'checked' : '' }}>
+                </label>
             </td>
-            <td>{{ optional($app->university)->post_title ?? '—' }}</td>
-            <td>{{ optional($app->subject)->name ?? '—' }}</td>
-            <td>{{ $display_intake ?? ($app->intake ?: ($student->intake ?: '—')) }}</td>
-            <td>{{ optional($app->statusUni)->name ?? '—' }}</td>
-            <td>{{ $app->application_no ?: '—' }}</td>
-        @endforeach --}}
-    </tr>
+            <td>{{ optional($application->university)->post_title ?? '—' }}</td>
+            <td>{{ optional($application->subject)->name ?? '—' }}</td>
+            <td>{{ $application->intake ?: '—' }}</td>
+            <td>{{ $application->application_no ?: '—' }}</td>
+        </tr>
+    @empty
+        <tr>
+            <td colspan="5" style="text-align: center;">No applications found.</td>
+        </tr>
+    @endforelse
 </table>
 
 <div>

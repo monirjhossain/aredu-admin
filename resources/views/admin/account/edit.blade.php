@@ -58,8 +58,8 @@
                                     <option value="">None</option>
                                     @foreach ($students as $item)
                                         <option value="{{ $item->id }}"
-                                            {{ old('student_id', $financeEntry->student_id) == $item->id ? 'selected' : '' }}>
-                                            {{ $item->id . '. ' . $item->full_name . ($item?->passport ? ' - ' . $item->passport : '') }}
+                                        {{ old('student_id', isset($financeEntry) ? $financeEntry->student_id : null) == $item->id ? 'selected' : '' }}>
+                                        {{ $item->id . '. ' . $item->full_name . ($item->passport ? ' - ' . $item->passport : '') }}
                                         </option>
                                     @endforeach
                                 </select>

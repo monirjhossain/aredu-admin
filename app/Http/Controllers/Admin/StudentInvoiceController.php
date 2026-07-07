@@ -277,6 +277,16 @@ class StudentInvoiceController extends Controller
 
             // return view('admin/invoices.service-completed')->with($payload);
             // return $payload;
+            $payload['scholarship_status'] = $request->input('scholarship_status');
+            $payload['scholarship_details'] = $request->input('scholarship_details');
+
+            $selectedApplicationIds = $request->input('application_ids', []);
+            $selectedApplicationIds = is_array($selectedApplicationIds) ? array_map('intval', $selectedApplicationIds) : [];
+            $payload['selected_application_ids'] = $selectedApplicationIds;
+            $payload['selected_applications'] = $payload['student']->universitiesAppStatus
+                ->whereIn('id', $selectedApplicationIds)
+                ->values();
+
             if(isset($request->view_page) && $request->view_page == 'yes'){
                 return view('admin.invoices.service-view')->with($payload);
             }

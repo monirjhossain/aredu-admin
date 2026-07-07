@@ -177,5 +177,28 @@
 <script>
     var options = {selector: "#kt_docs_tinymce_basic", height : "480"};
     tinymce.init(options);
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var scholarshipYes = document.querySelector('input[name="scholarship_status"][value="yes"]');
+        var scholarshipNo = document.querySelector('input[name="scholarship_status"][value="no"]');
+        var detailsWrapper = document.getElementById('scholarship-details-wrapper');
+
+        function toggleScholarshipDetails() {
+            if (scholarshipYes && scholarshipYes.checked) {
+                detailsWrapper.style.display = 'block';
+            } else {
+                detailsWrapper.style.display = 'none';
+            }
+        }
+
+        if (scholarshipYes) {
+            scholarshipYes.addEventListener('change', toggleScholarshipDetails);
+        }
+        if (scholarshipNo) {
+            scholarshipNo.addEventListener('change', toggleScholarshipDetails);
+        }
+
+        toggleScholarshipDetails();
+    });
 </script>
 @endsection

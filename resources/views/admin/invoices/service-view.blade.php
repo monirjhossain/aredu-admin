@@ -337,50 +337,65 @@
          <div class="">
             <div class="">
                <div class="copy-block">
-                  <h1>Complete Declaration Form of Service Received</h1>
                   <div class="section-title">Student Information</div>
                   <table class="data-table">
                      <tr>
-                        <td width="50%"><strong>Student ID:</strong> DHA2026-006</td>
-                        <td width="50%"><strong>Name:</strong> Dsfsdf Fdsf</td>
+                        <td width="50%"><strong>Student ID:</strong> {{ $student->st_office_id ?? '—' }}</td>
+                        <td width="50%"><strong>Name:</strong> {{ trim($student->first_name . ' ' . $student->last_name) ?: '—' }}</td>
                      </tr>
                      <tr>
-                        <td><strong>Passport:</strong> dfdsfsdf</td>
-                        <td colspan="2"><strong>Address:</strong> AR EDUCATION, 218, Trapical Tower (10th Floor), Bata Signal, Elephant Road, Dhaka, Bangladesh</td>
+                        <td><strong>Passport:</strong> {{ $student->passport ?: '—' }}</td>
+                        <td colspan="2"><strong>Address:</strong> {{ $student->address ?: '—' }}</td>
                      </tr>
                      <tr>
                      </tr>
                      <tr>
                      </tr>
                      <tr>
-                        <td><strong>Senior Counselor:</strong> Branch Manager</td>
-                        <td><strong>Junior Counselor:</strong> Manager</td>
+                        <td><strong>Senior Counselor:</strong> {{ optional($student->sncounselor)->name ?? '—' }}</td>
+                        <td><strong>Junior Counselor:</strong> {{ optional($student->jncounselor)->name ?? '—' }}</td>
                      </tr>
                      <tr>
-                        <td><strong>Applied Program:</strong> bachelor</td>
-                        <td><strong>Scholarship:</strong> 
-                           Yes<input type="radio" name="scholarship"> 
-                           No<input name="scholarship" type="radio">
-                           <input  name="scholarship" type="textbox">
+                        <td><strong>Applied Program:</strong> {{ $student->program ?? 'bachelor' }}</td>
+                        <td>
+                            <strong>Scholarship:</strong>
+                            @if(isset($scholarship_status) && $scholarship_status === 'yes')
+                                Yes
+                            @elseif(isset($scholarship_status) && $scholarship_status === 'no')
+                                No
+                            @else
+                                —
+                            @endif
+                            @if(isset($scholarship_status) && $scholarship_status === 'yes' && !empty($scholarship_details))
+                                <div style="margin-top: 8px;">{{ $scholarship_details }}</div>
+                            @endif
                         </td>
                      </tr>
                   </table>
-                  <div class="section-title">Application List</div>
+                  <div class="section-title">Admitted University</div>
                   <table class="data-table">
                      <tr>
-                        <th>Check</th>
                         <th>University</th>
                         <th>Subject</th>
                         <th>Intake</th>
-                        <th>Status</th>
                         <th>Application No</th>
                      </tr>
-                     <tr>
-                     </tr>
+                     @forelse($selected_applications as $application)
+                         <tr>
+                             <td>{{ optional($application->university)->post_title ?? '—' }}</td>
+                             <td>{{ optional($application->subject)->name ?? '—' }}</td>
+                             <td>{{ $application->intake ?: '—' }}</td>
+                             <td>{{ $application->application_no ?: '—' }}</td>
+                         </tr>
+                     @empty
+                         <tr>
+                             <td colspan="4" style="text-align: center;">No applications were selected.</td>
+                         </tr>
+                     @endforelse
                   </table>
                   <div>
                      <br>
-                     I, <b>Dsfsdf Fdsf</b>, hereby declare that I have received complete assistance from <b>AR Education Consultancy</b> in relation to my university application, admission process, and visa processing. Their service has been helpful, professional, and satisfactory. I am fully satisfied with the service provided, including the service fee charged, and I have no complaints regarding their support.
+                     I, <b>{{ $student->full_name }}</b>, hereby declare that I have received complete assistance from <b>AR Education Consultancy</b> in relation to my university application, admission process, and visa processing. Their service has been helpful, professional, and satisfactory. I am fully satisfied with the service provided, including the service fee charged, and I have no complaints regarding their support.
                      <br><br>
                      I fully understand that upon my arrival at the university, I will be personally responsible for the following expenses, and that AR Education Consultancy will not bear or be liable for any of these costs:
                      <br><br>
@@ -416,32 +431,31 @@
                         <th class="num">Paid</th>
                         <th class="num">Due</th>
                      </tr>
-                     <tr>
-                        <td>1</td>
-                        <td>2026078</td>
-                        <td>2026-07-02</td>
-                        <td>Processing Cost</td>
-                        <td class="num">120,000.00</td>
-                        <td class="num">0.00</td>
-                        <td class="num">20,000.00</td>
-                        <td class="num">100,000.00</td>
-                     </tr>
-                     <tr>
-                        <td>2</td>
-                        <td>2026079</td>
-                        <td>2026-07-02</td>
-                        <td>Processing Cost</td>
-                        <td class="num">100,000.00</td>
-                        <td class="num">0.00</td>
-                        <td class="num">100,000.00</td>
-                        <td class="num">0.00</td>
-                     </tr>
+                     @forelse($invoices as $index => $inv)
+                         @php
+                             $services = implode(', ', \App\Services\ServiceCompletedDocumentService::invoiceServiceLines($inv));
+                         @endphp
+                         <tr>
+                            <td>{{ $index + 1 }}</td>
+                            <td>{{ $inv->invoice_no ?: '—' }}</td>
+                            <td>{{ optional($inv->invoice_date)->format('Y-m-d') ?: optional($inv->created_at)->format('Y-m-d') ?: '—' }}</td>
+                            <td>{{ $services ?: '—' }}</td>
+                            <td class="num">{{ number_format((float) $inv->grandtotal, 2) }}</td>
+                            <td class="num">{{ number_format((float) $inv->discount, 2) }}</td>
+                            <td class="num">{{ number_format((float) $inv->paid, 2) }}</td>
+                            <td class="num">{{ number_format((float) $inv->due, 2) }}</td>
+                         </tr>
+                     @empty
+                         <tr>
+                             <td colspan="8" style="text-align: center;">No invoice history available.</td>
+                         </tr>
+                     @endforelse
                      <tr class="totals-row">
                         <td colspan="4" class="num">Total</td>
-                        <td class="num">220,000.00</td>
-                        <td class="num">0.00</td>
-                        <td class="num">120,000.00</td>
-                        <td class="num">0.00</td>
+                        <td class="num">{{ number_format((float) ($invoice_summary['grandtotal'] ?? 0), 2) }}</td>
+                        <td class="num">{{ number_format((float) ($invoice_summary['discount'] ?? 0), 2) }}</td>
+                        <td class="num">{{ number_format((float) ($invoice_summary['paid'] ?? 0), 2) }}</td>
+                        <td class="num">{{ number_format((float) ($invoice_summary['due'] ?? 0), 2) }}</td>
                      </tr>
                   </table>
                </div>
