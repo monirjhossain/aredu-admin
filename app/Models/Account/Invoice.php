@@ -198,6 +198,12 @@ class Invoice extends Model
     {
         return (float) $this->due === 0.0;
     }
+
+    public function canGenerateServiceCompleted(): bool
+    {
+        return $this->isFullyPaid();
+    }
+
     protected static function boot()
     {
         parent::boot();

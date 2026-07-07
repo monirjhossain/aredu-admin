@@ -111,36 +111,45 @@ class ServiceCompletedDocumentService
 
     private function findAdmittedApplication(Student $student): ?StudentUniversity
     {
-        $admittedNames = (array) config('service_completed.admitted_status_names', []);
-        $statusIds = UniversityStatus::query()
-            ->whereIn('name', $admittedNames)
-            ->pluck('id');
-
-        if ($statusIds->isEmpty()) {
-            return null;
-        }
-
-        $applications = $student->universitiesAppStatus
-            ->whereIn('status_id', $statusIds->all());
+        $admittedNames = array_values(array_filter(array_map('trim', (array) config('service_completed.admitted_status_names', []))));
+        $applications = $student->universitiesAppStatus;
 
         if ($applications->isEmpty()) {
             return null;
         }
 
-        $rank = array_flip($admittedNames);
+        if (!empty($admittedNames)) {
+            $statusIds = UniversityStatus::query()
+                ->whereIn('name', $admittedNames)
+                ->pluck('id');
 
-        return $applications
-            ->sort(function (StudentUniversity $a, StudentUniversity $b) use ($rank) {
-                $rankA = $rank[optional($a->statusUni)->name ?? ''] ?? -1;
-                $rankB = $rank[optional($b->statusUni)->name ?? ''] ?? -1;
+            if (!$statusIds->isEmpty()) {
+                $matchedApplications = $applications->filter(function (StudentUniversity $application) use ($statusIds): bool {
+                    return in_array((int) $application->status_id, $statusIds->all(), true);
+                });
 
-                if ($rankA !== $rankB) {
-                    return $rankB <=> $rankA;
+                if ($matchedApplications->isNotEmpty()) {
+                    $rank = array_flip($admittedNames);
+
+                    return $matchedApplications
+                        ->sort(function (StudentUniversity $a, StudentUniversity $b) use ($rank) {
+                            $rankA = $rank[optional($a->statusUni)->name ?? ''] ?? -1;
+                            $rankB = $rank[optional($b->statusUni)->name ?? ''] ?? -1;
+
+                            if ($rankA !== $rankB) {
+                                return $rankB <=> $rankA;
+                            }
+
+                            return $b->updated_at <=> $a->updated_at;
+                        })
+                        ->first();
                 }
+            }
+        }
 
-                return $b->updated_at <=> $a->updated_at;
-            })
-            ->first();
+        return $applications->sort(function (StudentUniversity $a, StudentUniversity $b) {
+            return $b->updated_at <=> $a->updated_at;
+        })->first();
     }
 
     private function resolveIntake(Student $student, StudentUniversity $application): string

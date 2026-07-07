@@ -19,7 +19,6 @@ use App\Exports\InvoicesListExport;
 use App\Services\InvoiceCreationService;
 use App\Services\ServiceCompletedDocumentService;
 use App\Services\Student\OfficeStatusService;
-use App\Support\PdfGenerator;
 use App\Support\StudentDisplay;
 use App\Traits\UploadAble;
 use Illuminate\Database\Eloquent\Builder;
@@ -243,7 +242,6 @@ class StudentInvoiceController extends Controller
         Invoice $invoice,
         ServiceCompletedDocumentService $documentService,
         OfficeStatusService $officeStatusService,
-        PdfGenerator $pdfGenerator,
         Request $request
     ) {
         $currentUser = Auth::user();
