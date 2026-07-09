@@ -104,6 +104,13 @@ class ServiceCompletedDocumentService
 
     private function assertBranchAccess(Invoice $invoice, User $currentUser): void
     {
+        $roleType = optional($currentUser->role)->user_type;
+
+        // Admin and Super Admin can access invoices of any branch
+        if (in_array($roleType, ['Admin', 'Super Admin','manager'], true)) {
+            return;
+        }
+
         if ((int) $invoice->branch_id !== (int) $currentUser->branch) {
             throw new RuntimeException('You do not have permission to access this invoice.');
         }
