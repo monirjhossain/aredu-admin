@@ -164,23 +164,30 @@
                                             <div class="col-lg-12 col-md-12 col-sm-12">
                                                 <h4>Fees</h4>
                                             </div>
+                                            <div class="col-lg-12 col-md-12 col-sm-12 mb-2">
+                                                <div class="form-row align-items-end">
+                                                    <div class="col-md-8 col-sm-10">
+                                                        <div class="form-group mb-0">
+                                                            <label for="feeProductSelect">Select Fee</label>
+                                                            <select id="feeProductSelect" class="form-control">
+                                                                <option value="">Select a fee</option>
+                                                                @foreach ($products as $item)
+                                                                    <option value="{{ $item->id }}" data-name="{{ $item->name }}">{{ $item->name }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4 col-sm-2">
+                                                        <button type="button" id="addFeeBtn" class="btn btn-success btn-block" title="Add fee">
+                                                            <i class="fas fa-plus"></i> Add
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
                                             <div class="col-lg-12 col-md-12 col-sm-12">
-                                                <div  class="table-responsive">
-                                                    <table class="table">
-                                                        @foreach ($products as $key => $item)
-                                                            <tr>
-                                                                <td>
-                                                                    <input type="hidden" name="ids[]" value="{{$item->id}}" class="form-control">
-
-                                                                    <select name="product[]" class="form-control">
-                                                                        <option value="{{$item->name}}">{{$item->name}}</option>
-                                                                    </select>
-                                                                </td>
-                                                                <td>
-                                                                    <input type="number" name="price[]" onkeyup="calculation()" value="0" class="form-control" placeholder="Amount" id="Price{{$key+1}}">
-                                                                </td>
-                                                            </tr>
-                                                        @endforeach
+                                                <div class="table-responsive">
+                                                    <table class="table" id="feesTable">
+                                                        <tbody id="feesRows"></tbody>
                                                     </table>
                                                 </div>
                                             </div>
@@ -279,20 +286,21 @@
 @section('scripts')
 <script>
     $(document).ready(function() {
-        document.getElementById('StudentList').addEventListener('change', function () {
-            console.log('mk');
-            const selected = this.options[this.selectedIndex];
-            console.log(selected);
-            console.log(selected.dataset.first_name);
-            document.getElementById('first_name').value = selected.dataset.first_name || '';
-            document.getElementById('last_name').value = selected.dataset.last_name || '';
-            document.getElementById('email').value = selected.dataset.email || '';
-            document.getElementById('address').value = selected.dataset.address || '';
-            document.getElementById('mobile_no').value = selected.dataset.mobile_no || '';
-        });
+        var studentList = document.getElementById('StudentList');
+        if (studentList) {
+            studentList.addEventListener('change', function () {
+                const selected = this.options[this.selectedIndex];
+                document.getElementById('first_name').value = selected.dataset.first_name || '';
+                document.getElementById('last_name').value = selected.dataset.last_name || '';
+                document.getElementById('email').value = selected.dataset.email || '';
+                document.getElementById('address').value = selected.dataset.address || '';
+                document.getElementById('mobile_no').value = selected.dataset.mobile_no || '';
+            });
+        }
     });
 
     document.getElementById('datePicker').valueAsDate = new Date();
+
     function parseNumber(value) {
         if (value === null || value === undefined) {
             return 0;
@@ -305,7 +313,6 @@
     function calculation(){
         let subtotal = 0;
 
-        // Loop over all inputs with IDs starting with "Price"
         $('input[id^="Price"]').each(function () {
             let val = parseNumber($(this).val());
             subtotal += val;
@@ -320,26 +327,84 @@
         $('#grandtotal').val(grandtotal.toFixed(2));
         $('#due').val(due.toFixed(2));
     }
+
     function RemoveSec(id){
         $('#item'+id).hide();
     }
-   $(document).ready(function() {
-    var max_fields      = 50; //maximum input boxes allowed
-    var wrapper         = $(".input_fields_wrap"); //Fields wrapper
-    var add_button      = $(".add_field_button"); //Add button ID
 
-    var x = 1; //initlal text box count
-    $(add_button).click(function(e){ //on add input button click
-        e.preventDefault();
-        if(x < max_fields){ //max input box allowed
-            x++; //text box increment
-            $(wrapper).append('<tr id="item'+ x + '"> <td> <div> <select name="documents[]" class="form-control"> @foreach ($documents as $item) <option value="{{$item->id}}">{{$item->name}}</option> @endforeach </select> </div> </td> <td> <button type="button" onclick="RemoveSec('+x+')" class="btn btn-primary add_field_button">Remove</button> </td> </tr>'); //add input box
-        }
+    $(document).ready(function() {
+        var feeRowIndex = 0;
+        var $feeSelect = $('#feeProductSelect');
+        var $feesRows = $('#feesRows');
+
+        $('#addFeeBtn').on('click', function () {
+            var $option = $feeSelect.find('option:selected');
+            var productId = $option.val();
+            var productName = $option.data('name') || $option.text();
+
+            if (!productId) {
+                alert('Please select a fee first.');
+                return;
+            }
+
+            feeRowIndex++;
+            var priceId = 'Price' + feeRowIndex;
+
+            var $row = $('<tr class="fee-row"></tr>');
+            var $nameCell = $('<td></td>');
+            $nameCell.append($('<input>', { type: 'hidden', name: 'ids[]', value: productId }));
+            $nameCell.append($('<input>', { type: 'hidden', name: 'product[]', value: productName }));
+            $nameCell.append($('<input>', { type: 'text', class: 'form-control', value: productName, readonly: true }));
+
+            var $priceCell = $('<td></td>');
+            $priceCell.append($('<input>', {
+                type: 'number',
+                step: '0.01',
+                name: 'price[]',
+                value: '0',
+                class: 'form-control',
+                placeholder: 'Amount',
+                id: priceId,
+                oninput: 'calculation()'
+            }));
+
+            var $actionCell = $('<td style="width: 60px;"></td>');
+            $actionCell.append(
+                $('<button>', {
+                    type: 'button',
+                    class: 'btn btn-danger remove-fee-btn',
+                    title: 'Remove fee',
+                    html: '<i class="fas fa-minus"></i>'
+                })
+            );
+
+            $row.append($nameCell, $priceCell, $actionCell);
+            $feesRows.append($row);
+            $feeSelect.val('');
+            calculation();
+        });
+
+        $feesRows.on('click', '.remove-fee-btn', function () {
+            $(this).closest('tr').remove();
+            calculation();
+        });
+
+        var max_fields      = 50;
+        var wrapper         = $(".input_fields_wrap");
+        var add_button      = $(".add_field_button");
+
+        var x = 1;
+        $(add_button).click(function(e){
+            e.preventDefault();
+            if(x < max_fields){
+                x++;
+                $(wrapper).append('<tr id="item'+ x + '"> <td> <div> <select name="documents[]" class="form-control"> @foreach ($documents as $item) <option value="{{$item->id}}">{{$item->name}}</option> @endforeach </select> </div> </td> <td> <button type="button" onclick="RemoveSec('+x+')" class="btn btn-primary add_field_button">Remove</button> </td> </tr>');
+            }
+        });
+
+        $(wrapper).on("click",".remove_field", function(e){
+            e.preventDefault(); $(this).parent('div').remove(); x--;
+        });
     });
-
-    $(wrapper).on("click",".remove_field", function(e){ //user click on remove text
-        e.preventDefault(); $(this).parent('div').remove(); x--;
-    })
-});
 </script>
 @endsection
