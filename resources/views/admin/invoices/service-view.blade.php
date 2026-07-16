@@ -337,7 +337,9 @@
          <div class="">
             <div class="">
                <div class="copy-block">
-                  <div class="section-title">Student Information</div>
+                  <div class="section-title">
+                     <h4>Student Information</h4>
+                  </div>
                   <table class="data-table">
                      <tr>
                         <td width="50%"><strong>Student ID:</strong> {{ $student->st_office_id ?? '—' }}</td>
@@ -372,7 +374,9 @@
                         </td>
                      </tr>
                   </table>
-                  <div class="section-title">Admitted University</div>
+                  <div class="section-title">
+                     <h4>University Info</h4>
+                     </div>
                   <table class="data-table">
                      <tr>
                         <th>University</th>
@@ -394,11 +398,9 @@
                      @endforelse
                   </table>
                   <div>
-                     <br>
                      I, <b>{{ $student->full_name }}</b>, hereby declare that I have received complete assistance from <b>AR Education Consultancy</b> in relation to my university application, admission process, and visa processing. Their service has been helpful, professional, and satisfactory. I am fully satisfied with the service provided, including the service fee charged, and I have no complaints regarding their support.
                      <br><br>
                      I fully understand that upon my arrival at the university, I will be personally responsible for the following expenses, and that AR Education Consultancy will not bear or be liable for any of these costs:
-                     <br><br>
                      <ul>
                         <li>Tuition Fee (if applicable)</li>
                         <li>Hostel/Accommodation Fee (if applicable)</li>
@@ -409,8 +411,7 @@
                         <li>Any other personal expenses</li>
                      </ul>
                      I also confirm that I have received from AR Education Consultancy all documents I had submitted, as well as the University Admission Notice, Visa Letter, and Visa.
-                  </div>
-                  <br><br><br>
+                  </div><br><br>
                   <table width="100%" cellpadding="0" cellspacing="0" class="signature">
                      <tr>
                         <td width="33%">Student Signature</td>
@@ -418,7 +419,6 @@
                         <td width="33%">Authorized Officer</td>
                      </tr>
                   </table>
-                  <br><br>
                   <div class="section-title">Payment History</div>
                   <table class="data-table">
                      <tr>
@@ -426,6 +426,7 @@
                         <th>Invoice</th>
                         <th>Date</th>
                         <th>Description</th>
+                        <th>Method</th>
                         <th class="num">Amount</th>
                         <th class="num">Discount</th>
                         <th class="num">Paid</th>
@@ -440,6 +441,7 @@
                             <td>{{ $inv->invoice_no ?: '—' }}</td>
                             <td>{{ optional($inv->invoice_date)->format('Y-m-d') ?: optional($inv->created_at)->format('Y-m-d') ?: '—' }}</td>
                             <td>{{ $services ?: '—' }}</td>
+                            <td>{{ $inv->wallet->name ?: '—' }}</td>
                             <td class="num">{{ number_format((float) $inv->grandtotal, 2) }}</td>
                             <td class="num">{{ number_format((float) $inv->discount, 2) }}</td>
                             <td class="num">{{ number_format((float) $inv->paid, 2) }}</td>
@@ -450,13 +452,13 @@
                              <td colspan="8" style="text-align: center;">No invoice history available.</td>
                          </tr>
                      @endforelse
-                     <tr class="totals-row">
+                     {{-- <tr class="totals-row">
                         <td colspan="4" class="num">Total</td>
                         <td class="num">{{ number_format((float) ($invoice_summary['grandtotal'] ?? 0), 2) }}</td>
                         <td class="num">{{ number_format((float) ($invoice_summary['discount'] ?? 0), 2) }}</td>
                         <td class="num">{{ number_format((float) ($invoice_summary['paid'] ?? 0), 2) }}</td>
                         <td class="num">{{ number_format((float) ($invoice_summary['due'] ?? 0), 2) }}</td>
-                     </tr>
+                     </tr> --}}
                   </table>
                </div>
             </div>
