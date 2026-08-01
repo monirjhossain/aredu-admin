@@ -2,10 +2,8 @@
 
 namespace App\Http\Requests\Inquiry;
 
-// use Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Request;
 
 class InquiryRequest extends FormRequest
 {
@@ -27,22 +25,18 @@ class InquiryRequest extends FormRequest
             'message' => 'nullable|string|max:5000',
             'mobile_no' => 'required|string|max:50',
             'type' => 'nullable|string|max:255',
-            'university_id' => [
-                'nullable',
+            'university_ids' => 'nullable|array',
+            'university_ids.*' => [
                 'integer',
                 Rule::exists('posts', 'id')->where(function ($q) {
                     $q->where('post_type', 'university');
                 }),
             ],
-            'subject_id' => 'nullable|integer|exists:subjects,id',
+            'subject_ids' => 'nullable|array',
+            'subject_ids.*' => 'integer|exists:subjects,id',
         ];
     }
 
-    /**
-     * Get custom attributes for validator errors.
-     *
-     * @return array
-     */
     public function attributes()
     {
         return [
@@ -51,31 +45,15 @@ class InquiryRequest extends FormRequest
             'country_preferred' => 'country preferred',
             'last_education' => 'last education',
             'course' => 'preferred course',
-            'university_id' => 'university',
-            'subject_id' => 'subject',
-            // 'address' => 'Address',
-            // 'city' =>  'City',
-            // 'condominium_name' =>  'Condominium Name',
-            // 'country' =>  'Country',
-            // 'fiscal_code' =>  'Fiscal Code',
-            // 'iban' =>  'IBAN',
-            // 'pec' =>  'PEC',
-            // 'sdi' =>  'SDI',
-            // 'zip_code' =>  'Zip Code',
+            'university_ids' => 'university',
+            'university_ids.*' => 'university',
+            'subject_ids' => 'subject',
+            'subject_ids.*' => 'subject',
         ];
     }
 
-    /**
-     * Get the error messages for the defined validation rules.
-     *
-     * @return array
-     */
     public function messages()
     {
-        return [
-            // 'video_url.different' => __('the_main_video_and_demo_video_must_be_different'),
-            // 'video_url.regex' => __('support_only_vimeo_url'),
-            // 'lesson.demo.regex' => __('support_only_vimeo_url'),
-        ];
+        return [];
     }
 }

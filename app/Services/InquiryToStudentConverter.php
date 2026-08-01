@@ -49,25 +49,40 @@ class InquiryToStudentConverter
                 'subject' => $inquiry->subject,
                 'note' => $this->buildNote($inquiry),
                 'intake' => (string) date('Y'),
-                'ref' => 'Inquiry #' . $inquiry->id,
+                'ref' => $inquiry->tracking_id ?: ('Inquiry #' . $inquiry->id),
                 'status' => 1,
             ]);
 
             if ($inquiry->university) {
-                $university = Post::where('post_type', 'university')
-                    ->where('post_title', $inquiry->university)
-                    ->first();
+                $universityNames = collect(preg_split('/\s*,\s*/', $inquiry->university))
+                    ->filter()
+                    ->map(function ($name) {
+                        return trim($name);
+                    });
 
-                if ($university) {
-                    $student->universities()->syncWithoutDetaching([$university->id]);
+                $universityIds = Post::where('post_type', 'university')
+                    ->whereIn('post_title', $universityNames->all())
+                    ->pluck('id')
+                    ->all();
+
+                if (!empty($universityIds)) {
+                    $student->universities()->syncWithoutDetaching($universityIds);
                 }
             }
 
             if ($inquiry->subject) {
-                $subject = Subject::where('name', $inquiry->subject)->first();
+                $subjectNames = collect(preg_split('/\s*,\s*/', $inquiry->subject))
+                    ->filter()
+                    ->map(function ($name) {
+                        return trim($name);
+                    });
 
-                if ($subject) {
-                    $student->subjects()->syncWithoutDetaching([$subject->id]);
+                $subjectIds = Subject::whereIn('name', $subjectNames->all())
+                    ->pluck('id')
+                    ->all();
+
+                if (!empty($subjectIds)) {
+                    $student->subjects()->syncWithoutDetaching($subjectIds);
                 }
             }
 
@@ -85,6 +100,7 @@ class InquiryToStudentConverter
         $parts = array_filter([
             $inquiry->message,
             $inquiry->type ? 'Source: ' . $inquiry->type : null,
+            $inquiry->tracking_id ? 'Tracking ID: ' . $inquiry->tracking_id : null,
             $inquiry->university ? 'University: ' . $inquiry->university : null,
             $inquiry->subject ? 'Subject: ' . $inquiry->subject : null,
         ]);

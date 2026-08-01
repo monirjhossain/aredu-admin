@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Student\Student;
 use App\Models\Tag;
 use App\Models\User;
+use App\Services\ApplicationTrackingIdGenerator;
 use App\Traits\ModelSearchAble;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,6 +23,7 @@ class Inquiry extends Model
     
     protected $table = 'inquiries';
     protected $fillable = [
+        'tracking_id',
         'type',
         'branch_id',
         'first_name',
@@ -65,9 +67,16 @@ class Inquiry extends Model
                 $inquire->user_id = Auth::id();
             }
         });
-        static::creating(function ($student) {
-            if (Auth::check() && empty($student->branch_id)) {
-                $student->branch_id = Auth::user()->branch;
+        static::creating(function ($inquiry) {
+            if (Auth::check() && empty($inquiry->branch_id)) {
+                $inquiry->branch_id = Auth::user()->branch;
+            }
+
+            if (empty($inquiry->tracking_id) && !empty($inquiry->branch_id)) {
+                $branch = Branch::find($inquiry->branch_id);
+                if ($branch) {
+                    $inquiry->tracking_id = app(ApplicationTrackingIdGenerator::class)->generate($branch);
+                }
             }
         });
     }

@@ -76,6 +76,7 @@
                         <thead>
                             <tr>
                                 <th style="width: 50px;">#</th>
+                                <th>Tracking ID</th>
                                 <th>Type</th>
                                 <th>Branch</th>
                                 <th>Name</th>
@@ -96,6 +97,13 @@
                             @forelse ($inquiries as $inquiry)
                             <tr>
                                 <td>{{ $inquiry->id }}</td>
+                                <td>
+                                    @if ($inquiry->tracking_id)
+                                        <span class="badge badge-light-warning font-weight-bold">{{ $inquiry->tracking_id }}</span>
+                                    @else
+                                        —
+                                    @endif
+                                </td>
                                 <td><span class="text-muted font-size-sm">{{ $inquiry->type ?? '—' }}</span></td>
                                 <td>{{ optional($inquiry->branchInfo)->name ?? '—' }}</td>
                                 <td class="font-weight-bold">
@@ -150,7 +158,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="15" class="text-center py-10">
+                                <td colspan="16" class="text-center py-10">
                                     <span class="text-muted font-size-h6">No inquiries found for this branch.</span>
                                 </td>
                             </tr>

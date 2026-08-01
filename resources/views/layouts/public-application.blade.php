@@ -411,6 +411,62 @@
         .text-center { text-align: center; }
         .card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); }
         .card-body { padding: 24px; }
+
+        /* Multi-select (University & Subject) */
+        .ms-wrap { position: relative; }
+        .ms-box {
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            background: #fafafa;
+            padding: 10px 12px;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+        .ms-box:focus-within {
+            border-color: var(--primary);
+            background: var(--white);
+            box-shadow: 0 0 0 4px var(--primary-glow);
+        }
+        .ms-box.is-invalid { border-color: #fca5a5; background: #fffafa; }
+        .ms-chips { display: flex; flex-wrap: wrap; gap: 8px; min-height: 0; margin-bottom: 8px; }
+        .ms-chips:empty { display: none; margin-bottom: 0; }
+        .ms-chip {
+            display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
+            border-radius: 999px; background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+            color: #9a3412; font-size: 0.82rem; font-weight: 700; line-height: 1.2;
+        }
+        .ms-chip button {
+            border: none; background: rgba(154, 52, 18, 0.12); color: #9a3412;
+            width: 18px; height: 18px; border-radius: 50%; cursor: pointer;
+            font-size: 0.9rem; line-height: 1; padding: 0;
+        }
+        .ms-search {
+            width: 100%; border: none; background: transparent; font: inherit;
+            font-size: 0.92rem; padding: 4px 2px; outline: none; color: var(--text);
+        }
+        .ms-search::placeholder { color: #9ca3af; }
+        .ms-dropdown {
+            display: none; position: absolute; left: 0; right: 0; top: calc(100% + 6px);
+            max-height: 220px; overflow-y: auto; background: #fff; border: 1px solid var(--border);
+            border-radius: 14px; box-shadow: 0 18px 40px rgba(17, 24, 39, 0.12); z-index: 50;
+        }
+        .ms-dropdown.open { display: block; }
+        .ms-option {
+            padding: 11px 14px; cursor: pointer; font-size: 0.9rem; font-weight: 600;
+            color: #374151; border-bottom: 1px solid #f3f4f6;
+        }
+        .ms-option:last-child { border-bottom: none; }
+        .ms-option:hover, .ms-option.focused { background: #fff7ed; color: #c2410c; }
+        .ms-empty { padding: 14px; text-align: center; color: #9ca3af; font-size: 0.86rem; }
+        .ms-native { display: none !important; }
+        .ms-hint { margin-top: 6px; font-size: 0.78rem; color: #9ca3af; }
+        .ms-label-row {
+            display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 7px;
+        }
+        .ms-label-row label { margin-bottom: 0 !important; }
+        .ms-count {
+            font-size: 0.72rem; font-weight: 700; color: var(--primary-dark);
+            background: var(--primary-light); padding: 3px 8px; border-radius: 999px;
+        }
     </style>
     @stack('styles')
 </head>

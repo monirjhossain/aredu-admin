@@ -65,4 +65,5 @@
     var options = {selector: "#kt_docs_tinymce_basic", height : "480"};
     tinymce.init(options);
 </script>
+@include('shared.inquiry-multi-select-script', ['multiSelectTheme' => 'select2'])
 @endsection

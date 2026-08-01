@@ -64,6 +64,29 @@ class InquiryFormDataService
             ->get();
     }
 
+    public function getSubjectsForUniversities(array $universityIds): Collection
+    {
+        $universityIds = array_values(array_unique(array_filter(array_map('intval', $universityIds))));
+
+        if (empty($universityIds)) {
+            return Subject::select('id', 'name')
+                ->where('status', 1)
+                ->orderBy('name')
+                ->get();
+        }
+
+        $subjects = collect();
+
+        foreach ($universityIds as $universityId) {
+            $subjects = $subjects->merge($this->getSubjectsForUniversity($universityId));
+        }
+
+        return $subjects
+            ->unique('id')
+            ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
+            ->values();
+    }
+
     private function lastEducationLevels(): Collection
     {
         $defaults = collect([

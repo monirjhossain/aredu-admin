@@ -14,6 +14,7 @@ use App\Models\Inquiry\Inquiry;
 use App\Models\Post\Post;
 use App\Models\Subject;
 use App\Services\InquiryFormDataService;
+use App\Services\InquirySelectionResolver;
 use App\Services\InquiryToStudentConverter;
 use App\Support\BranchApplicationQr;
 use App\Support\InquiryBranchAccess;
@@ -36,12 +37,17 @@ class InquiryController extends Controller
     /** @var InquiryToStudentConverter */
     private $inquiryToStudentConverter;
 
+    /** @var InquirySelectionResolver */
+    private $selectionResolver;
+
     public function __construct(
         InquiryFormDataService $formDataService,
-        InquiryToStudentConverter $inquiryToStudentConverter
+        InquiryToStudentConverter $inquiryToStudentConverter,
+        InquirySelectionResolver $selectionResolver
     ) {
         $this->formDataService = $formDataService;
         $this->inquiryToStudentConverter = $inquiryToStudentConverter;
+        $this->selectionResolver = $selectionResolver;
     }
 
     /**
@@ -225,19 +231,7 @@ class InquiryController extends Controller
         try {
             $nameParts = preg_split('/\s+/', trim($request->input('student_name')), 2);
 
-            $universityName = null;
-            if ($request->filled('university_id')) {
-                $universityName = Post::where('post_type', 'university')
-                    ->where('id', $request->input('university_id'))
-                    ->value('post_title');
-            }
-
-            $subjectName = null;
-            if ($request->filled('subject_id')) {
-                $subjectName = Subject::where('id', $request->input('subject_id'))->value('name');
-            }
-
-            Inquiry::create([
+            $inquiry = Inquiry::create([
                 'type' => 'Public QR Application',
                 'branch_id' => $branch->id,
                 'first_name' => $nameParts[0] ?? '',
@@ -248,8 +242,8 @@ class InquiryController extends Controller
                 'country_preferred' => $request->input('country_preferred'),
                 'last_education' => $request->input('last_education'),
                 'course' => $request->input('course'),
-                'university' => $universityName,
-                'subject' => $subjectName,
+                'university' => $this->selectionResolver->universityNamesFromRequest($request),
+                'subject' => $this->selectionResolver->subjectNamesFromRequest($request),
                 'message' => $request->input('message'),
                 'status' => 1,
                 'view' => 0,
@@ -259,7 +253,8 @@ class InquiryController extends Controller
 
             return redirect()
                 ->route('application-form.thank-you')
-                ->with('success', 'Your application has been submitted successfully!');
+                ->with('success', 'Your application has been submitted successfully!')
+                ->with('application_tracking_id', $inquiry->tracking_id);
         } catch (\Throwable $th) {
             DB::rollBack();
 
@@ -280,9 +275,13 @@ class InquiryController extends Controller
 
     public function applicationSubjects(Request $request): JsonResponse
     {
-        $subjects = $this->formDataService->getSubjectsForUniversity(
-            $request->filled('university_id') ? (int) $request->input('university_id') : null
-        );
+        $universityIds = array_filter(array_map('intval', (array) $request->input('university_ids', [])));
+
+        if (empty($universityIds) && $request->filled('university_id')) {
+            $universityIds = [(int) $request->input('university_id')];
+        }
+
+        $subjects = $this->formDataService->getSubjectsForUniversities($universityIds);
 
         return response()->json([
             'subjects' => $subjects,
@@ -361,19 +360,8 @@ class InquiryController extends Controller
             $payload['last_name'] = $nameParts[1] ?? '';
         }
 
-        if ($request->filled('university_id')) {
-            $payload['university'] = Post::where('post_type', 'university')
-                ->where('id', $request->input('university_id'))
-                ->value('post_title');
-        } else {
-            $payload['university'] = null;
-        }
-
-        if ($request->filled('subject_id')) {
-            $payload['subject'] = Subject::where('id', $request->input('subject_id'))->value('name');
-        } else {
-            $payload['subject'] = null;
-        }
+        $payload['university'] = $this->selectionResolver->universityNamesFromRequest($request);
+        $payload['subject'] = $this->selectionResolver->subjectNamesFromRequest($request);
 
         if (empty($payload['type'])) {
             $payload['type'] = 'Manual Inquiry';

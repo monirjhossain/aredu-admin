@@ -4,8 +4,6 @@
 
 @php
     $studentName = old('student_name');
-    $selectedUniversityId = old('university_id');
-    $selectedSubjectId = old('subject_id');
 @endphp
 
 @section('content')
@@ -163,37 +161,19 @@
                 </div>
             </div>
 
-            {{-- Step 3: University --}}
+            {{-- Step 3: University & Subject (multiple select) --}}
             <div class="step-panel" data-step="3">
                 <h2 class="step-heading">University & Subject</h2>
-                <p class="step-subtitle">Choose where and what you want to study. You can skip if undecided.</p>
+                <p class="step-subtitle">Select one or more universities and subjects. Search, tap to add, and remove with ×.</p>
 
                 <div class="field-grid">
-                    <div class="form-group" data-field="university_id">
-                        <label for="university_id">University</label>
-                        <select name="university_id" id="university_id" class="form-control @error('university_id') server-invalid @enderror">
-                            <option value="">Select university</option>
-                            @foreach ($universities as $university)
-                                <option value="{{ $university->id }}" {{ (string) $selectedUniversityId === (string) $university->id ? 'selected' : '' }}>
-                                    {{ $university->post_title }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('university_id')<span class="invalid-feedback">{{ $message }}</span>@enderror
-                    </div>
-
-                    <div class="form-group" data-field="subject_id">
-                        <label for="subject_id">Subject</label>
-                        <select name="subject_id" id="subject_id" class="form-control @error('subject_id') server-invalid @enderror">
-                            <option value="">Select subject</option>
-                            @foreach ($subjects as $subject)
-                                <option value="{{ $subject->id }}" {{ (string) $selectedSubjectId === (string) $subject->id ? 'selected' : '' }}>
-                                    {{ $subject->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('subject_id')<span class="invalid-feedback">{{ $message }}</span>@enderror
-                    </div>
+                    @include('shared.inquiry-university-subject-fields', [
+                        'columnClass' => 'form-group',
+                        'groupClass' => null,
+                        'multiSelectTheme' => 'chip',
+                        'includeMultiSelectScript' => false,
+                        'withDataField' => true,
+                    ])
                 </div>
 
                 <div class="wizard-actions">
@@ -216,8 +196,8 @@
                     <div class="review-row"><span>Last Education</span><span data-review="last_education">—</span></div>
                     <div class="review-row"><span>Preferred Country</span><span data-review="country_preferred">—</span></div>
                     <div class="review-row"><span>Preferred Course</span><span data-review="course">—</span></div>
-                    <div class="review-row"><span>University</span><span data-review="university_id">—</span></div>
-                    <div class="review-row"><span>Subject</span><span data-review="subject_id">—</span></div>
+                    <div class="review-row"><span>University</span><span data-review="university_ids">—</span></div>
+                    <div class="review-row"><span>Subject</span><span data-review="subject_ids">—</span></div>
                 </div>
 
                 <div class="form-group" data-field="message">
@@ -242,7 +222,7 @@
 @endsection
 
 @push('scripts')
-@include('shared.inquiry-subject-script')
+@include('shared.inquiry-multi-select-script', ['multiSelectTheme' => 'chip'])
 <script>
 (function () {
     const form = document.getElementById('applicationForm');
@@ -265,15 +245,29 @@
     const fieldStepMap = {
         student_name: 1, email: 1, mobile_no: 1, country: 1,
         last_education: 2, country_preferred: 2, course: 2,
-        university_id: 3, subject_id: 3,
+        university_ids: 3, subject_ids: 3,
+        'university_ids[]': 3, 'subject_ids[]': 3,
         message: 4
     };
 
+    function getMultiSelectLabel(name) {
+        const select = document.getElementById(name);
+        if (!select) return '—';
+        const labels = Array.from(select.selectedOptions).map(function (option) {
+            return option.text;
+        }).filter(Boolean);
+        return labels.length ? labels.join(', ') : '—';
+    }
+
     function getField(name) {
-        return form.querySelector('[name="' + name + '"]');
+        return form.querySelector('[name="' + name + '"]') || document.getElementById(name);
     }
 
     function getFieldLabel(name) {
+        if (name === 'university_ids' || name === 'subject_ids') {
+            return getMultiSelectLabel(name);
+        }
+
         const field = getField(name);
         if (!field) return name;
         if (field.tagName === 'SELECT') {
@@ -314,7 +308,7 @@
     }
 
     function updateReview() {
-        ['student_name', 'email', 'mobile_no', 'country', 'last_education', 'country_preferred', 'course', 'university_id', 'subject_id'].forEach(function (name) {
+        ['student_name', 'email', 'mobile_no', 'country', 'last_education', 'country_preferred', 'course', 'university_ids', 'subject_ids'].forEach(function (name) {
             const target = document.querySelector('[data-review="' + name + '"]');
             if (target) target.textContent = getFieldLabel(name);
         });
@@ -339,6 +333,9 @@
         }
 
         if (currentStep === totalSteps) updateReview();
+        if (currentStep === 3 && typeof window.refreshApplicationMultiSelect === 'function') {
+            window.refreshApplicationMultiSelect();
+        }
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -371,6 +368,15 @@
         if (field) {
             field.addEventListener('input', function () { validateField(name); });
             field.addEventListener('blur', function () { validateField(name); });
+        }
+    });
+
+    ['university_ids', 'subject_ids'].forEach(function (name) {
+        const select = document.getElementById(name);
+        if (select) {
+            select.addEventListener('change', function () {
+                if (currentStep === totalSteps) updateReview();
+            });
         }
     });
 

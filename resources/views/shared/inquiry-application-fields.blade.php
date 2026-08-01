@@ -6,18 +6,6 @@
         $studentName = trim(($inquiry->first_name ?? '') . ' ' . ($inquiry->last_name ?? ''));
     }
 
-    $selectedUniversityId = old('university_id');
-    if ($selectedUniversityId === null && isset($inquiry) && !empty($inquiry->university)) {
-        $matchedUniversity = $universities->firstWhere('post_title', $inquiry->university);
-        $selectedUniversityId = $matchedUniversity ? $matchedUniversity->id : null;
-    }
-
-    $selectedSubjectId = old('subject_id');
-    if ($selectedSubjectId === null && isset($inquiry) && !empty($inquiry->subject)) {
-        $matchedSubject = $subjects->firstWhere('name', $inquiry->subject);
-        $selectedSubjectId = $matchedSubject ? $matchedSubject->id : null;
-    }
-
     $selectedBranchId = old('branch_id', $inquiry->branch_id ?? ($branchId ?? null));
     $inputClass = ($compact ?? false) ? 'form-control form-control-sm' : 'form-control';
     $groupClass = array_key_exists('groupClass', get_defined_vars()) && $groupClass === null
@@ -139,35 +127,13 @@
         @if ($groupClass)</div>@endif
     </div>
 
-    <div class="{{ $columnClass }}">
-        @if ($groupClass)<div class="{{ $groupClass }}">@endif
-            <label for="university_id">University</label>
-            <select name="university_id" id="university_id" class="{{ $inputClass }} @error('university_id') is-invalid @enderror">
-                <option value="">— Select university —</option>
-                @foreach ($universities as $university)
-                    <option value="{{ $university->id }}" {{ (string) $selectedUniversityId === (string) $university->id ? 'selected' : '' }}>
-                        {{ $university->post_title }}
-                    </option>
-                @endforeach
-            </select>
-            @error('university_id')<span class="invalid-feedback d-block">{{ $message }}</span>@enderror
-        @if ($groupClass)</div>@endif
-    </div>
-
-    <div class="{{ $columnClass }}">
-        @if ($groupClass)<div class="{{ $groupClass }}">@endif
-            <label for="subject_id">Subject</label>
-            <select name="subject_id" id="subject_id" class="{{ $inputClass }} @error('subject_id') is-invalid @enderror">
-                <option value="">— Select subject —</option>
-                @foreach ($subjects as $subject)
-                    <option value="{{ $subject->id }}" {{ (string) $selectedSubjectId === (string) $subject->id ? 'selected' : '' }}>
-                        {{ $subject->name }}
-                    </option>
-                @endforeach
-            </select>
-            @error('subject_id')<span class="invalid-feedback d-block">{{ $message }}</span>@enderror
-        @if ($groupClass)</div>@endif
-    </div>
+    @include('shared.inquiry-university-subject-fields', [
+        'columnClass' => $columnClass,
+        'groupClass' => $groupClass ?: null,
+        'multiSelectTheme' => $multiSelectTheme ?? 'select2',
+        'includeMultiSelectScript' => $includeSubjectScript ?? true,
+        'inquiry' => $inquiry ?? null,
+    ])
 
     <div class="{{ $messageColumnClass }}">
         @if ($groupClass)<div class="{{ $groupClass }}">@endif
@@ -179,7 +145,3 @@
         @if ($groupClass)</div>@endif
     </div>
 </div>
-
-@if ($includeSubjectScript ?? true)
-@include('shared.inquiry-subject-script')
-@endif

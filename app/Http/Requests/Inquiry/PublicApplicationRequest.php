@@ -22,18 +22,15 @@ class PublicApplicationRequest extends FormRequest
             'country_preferred' => 'nullable|string|max:255',
             'last_education' => 'required|string|max:255',
             'course' => 'nullable|string|max:255',
-            'university_id' => [
-                'nullable',
+            'university_ids' => 'nullable|array',
+            'university_ids.*' => [
                 'integer',
                 Rule::exists('posts', 'id')->where(function ($q) {
                     $q->where('post_type', 'university');
                 }),
             ],
-            'subject_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('subjects', 'id'),
-            ],
+            'subject_ids' => 'nullable|array',
+            'subject_ids.*' => 'integer|exists:subjects,id',
             'message' => 'nullable|string|max:5000',
             'branch_id' => 'required|integer|exists:branches,id',
         ];
@@ -47,8 +44,10 @@ class PublicApplicationRequest extends FormRequest
             'country_preferred' => 'country preferred',
             'last_education' => 'last education',
             'course' => 'preferred course',
-            'university_id' => 'university',
-            'subject_id' => 'subject',
+            'university_ids' => 'university',
+            'university_ids.*' => 'university',
+            'subject_ids' => 'subject',
+            'subject_ids.*' => 'subject',
         ];
     }
 }
