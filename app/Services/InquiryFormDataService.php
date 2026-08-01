@@ -7,7 +7,9 @@ use App\Models\Post\Post;
 use App\Models\Student\Student;
 use App\Models\Study;
 use App\Models\Subject;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 
 class InquiryFormDataService
 {
@@ -82,19 +84,8 @@ class InquiryFormDataService
             ->orderBy('name')
             ->pluck('name');
 
-        $fromStudents = Student::query()
-            ->whereNotNull('last_education')
-            ->where('last_education', '!=', '')
-            ->distinct()
-            ->orderBy('last_education')
-            ->pluck('last_education');
-
-        $fromInquiries = Inquiry::query()
-            ->whereNotNull('last_education')
-            ->where('last_education', '!=', '')
-            ->distinct()
-            ->orderBy('last_education')
-            ->pluck('last_education');
+        $fromStudents = $this->distinctColumnValues(new Student(), 'last_education');
+        $fromInquiries = $this->distinctColumnValues(new Inquiry(), 'last_education');
 
         $ordered = $defaults
             ->merge($fromStudies)
@@ -127,19 +118,8 @@ class InquiryFormDataService
 
     private function distinctCountries(): Collection
     {
-        $fromStudents = Student::query()
-            ->whereNotNull('country')
-            ->where('country', '!=', '')
-            ->distinct()
-            ->orderBy('country')
-            ->pluck('country');
-
-        $fromInquiries = Inquiry::query()
-            ->whereNotNull('country')
-            ->where('country', '!=', '')
-            ->distinct()
-            ->orderBy('country')
-            ->pluck('country');
+        $fromStudents = $this->distinctColumnValues(new Student(), 'country');
+        $fromInquiries = $this->distinctColumnValues(new Inquiry(), 'country');
 
         $defaults = collect([
             'Bangladesh',
@@ -158,19 +138,8 @@ class InquiryFormDataService
 
     private function distinctPreferredCountries(): Collection
     {
-        $fromStudents = Student::query()
-            ->whereNotNull('preferred_country')
-            ->where('preferred_country', '!=', '')
-            ->distinct()
-            ->orderBy('preferred_country')
-            ->pluck('preferred_country');
-
-        $fromInquiries = Inquiry::query()
-            ->whereNotNull('country_preferred')
-            ->where('country_preferred', '!=', '')
-            ->distinct()
-            ->orderBy('country_preferred')
-            ->pluck('country_preferred');
+        $fromStudents = $this->distinctColumnValues(new Student(), 'preferred_country');
+        $fromInquiries = $this->distinctColumnValues(new Inquiry(), 'country_preferred');
 
         $defaults = collect([
             'China',
@@ -194,5 +163,21 @@ class InquiryFormDataService
             ->unique()
             ->sort()
             ->values();
+    }
+
+    private function distinctColumnValues(Model $model, string $column): Collection
+    {
+        $table = $model->getTable();
+
+        if (!Schema::hasColumn($table, $column)) {
+            return collect();
+        }
+
+        return $model->newQuery()
+            ->whereNotNull($column)
+            ->where($column, '!=', '')
+            ->distinct()
+            ->orderBy($column)
+            ->pluck($column);
     }
 }
