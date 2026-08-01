@@ -58,10 +58,14 @@ Auth::routes([
     'confirm'  => false,  // for additional password confirmations
     'verify'   => false,  // for email verification
 ]);
-Route::get('application-form', [StudentController::class, 'applicationForm']);
-Route::post('application-form', [StudentController::class, 'applicationFormSubmit'])->name('application-form.store');
-Route::get('application-show/{slug}', [StudentController::class, 'applicationShow'])->name('application.show');
+Route::get('student-application-form', [StudentController::class, 'applicationForm']);
+Route::post('student-application-form', [StudentController::class, 'applicationFormSubmit'])->name('student-application-form.store');
+Route::get('student-application-show/{slug}', [StudentController::class, 'applicationShow'])->name('student-application.show');
 Route::get('success-story-of-areducation/{slug}', [SuccessStoryController::class, 'show'])->name('successstory.show');
+Route::get('application-form', [InquiryController::class, 'applicationForm']);
+Route::post('application-form', [InquiryController::class, 'applicationFormSubmit'])->name('application-form.store');
+Route::get('application-form/thank-you', [InquiryController::class, 'applicationThankYou'])->name('application-form.thank-you');
+Route::get('application-form/subjects', [InquiryController::class, 'applicationSubjects'])->name('application-form.subjects');
 
 
 Route::get('/', [DashboardController::class, 'logincheck']);
@@ -84,6 +88,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('category', CategoryController::class);
     Route::resource('tag', TagController::class);
     Route::resource('inquiries', InquiryController::class);
+    Route::get('application-qr-codes', [InquiryController::class, 'applicationQrCodes'])->name('application-qr-codes');
+    Route::get('application-qr-codes/{branch}', [InquiryController::class, 'applicationQr'])->name('application-qr-codes.show');
+    Route::post('inquiries/{inquiry}/convert-to-student', [InquiryController::class, 'convertToStudent'])
+        ->name('inquiries.convert-to-student');
     Route::patch('students/{student}/office-status', [StudentController::class, 'updateOfficeStatus'])
         ->name('students.update-office-status');
     Route::post('students/{student}/subjects', [StudentController::class, 'attachSubject'])

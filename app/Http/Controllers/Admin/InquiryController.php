@@ -8,15 +8,41 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Inquiry\InquiryRequest;
+use App\Http\Requests\Inquiry\PublicApplicationRequest;
+use App\Models\Branch;
 use App\Models\Inquiry\Inquiry;
+use App\Models\Post\Post;
+use App\Models\Subject;
+use App\Services\InquiryFormDataService;
+use App\Services\InquiryToStudentConverter;
+use App\Support\BranchApplicationQr;
+use App\Support\InquiryBranchAccess;
 use App\Traits\UploadAble;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 
 class InquiryController extends Controller
 {
 
     use UploadAble;
+
+    /** @var InquiryFormDataService */
+    private $formDataService;
+
+    /** @var InquiryToStudentConverter */
+    private $inquiryToStudentConverter;
+
+    public function __construct(
+        InquiryFormDataService $formDataService,
+        InquiryToStudentConverter $inquiryToStudentConverter
+    ) {
+        $this->formDataService = $formDataService;
+        $this->inquiryToStudentConverter = $inquiryToStudentConverter;
+    }
 
     /**
      * Display a listing of the resource.
@@ -24,11 +50,45 @@ class InquiryController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function index()
+    public function index(Request $request)
     {
-        $inquiries = Inquiry::orderBy('created_at', 'DESC')->paginate(20);
-        $type = Inquiry::select('type')->groupBy('type')->get();
-        return view('admin.inquiries.index', compact('inquiries', 'type'));
+        $currentUser = Auth::user();
+        $branchId = InquiryBranchAccess::resolveBranchFilter($currentUser, $request->input('branch_id'));
+        $canManageAnyBranch = InquiryBranchAccess::canManageAnyBranch($currentUser);
+
+        $inquiries = Inquiry::with(['student', 'branchInfo'])
+            ->orderBy('created_at', 'DESC');
+
+        InquiryBranchAccess::applyListScope($inquiries, $currentUser, $branchId);
+
+        if ($request->filled('type')) {
+            $inquiries->where('type', $request->input('type'));
+        }
+
+        $inquiries = $inquiries->paginate(20)->appends($request->query());
+
+        $typeQuery = Inquiry::query()
+            ->select('type')
+            ->whereNotNull('type');
+
+        InquiryBranchAccess::applyListScope($typeQuery, $currentUser, $branchId);
+
+        $type = $typeQuery
+            ->groupBy('type')
+            ->orderBy('type')
+            ->get();
+
+        $branches = $canManageAnyBranch
+            ? Branch::select('id', 'name')->orderBy('name')->get()
+            : Branch::select('id', 'name')->where('id', $currentUser->branch)->orderBy('name')->get();
+
+        return view('admin.inquiries.index', compact(
+            'inquiries',
+            'type',
+            'branches',
+            'branchId',
+            'canManageAnyBranch'
+        ));
     }
 
     /**
@@ -38,9 +98,13 @@ class InquiryController extends Controller
      */
     public function create()
     {
-        $data['title'] = 'Inquiry Create';
-        $data['type'] = 'inquiry';
-        $data['url'] = 'inquiries';
+        $data = array_merge($this->formDataService->getFormOptions(), [
+            'title' => 'Inquiry Create',
+            'type' => 'inquiry',
+            'url' => 'inquiries',
+            'branches' => $this->branchesForForm(Auth::user()),
+        ]);
+
         return view('admin.inquiries.create')->with($data);
     }
 
@@ -55,7 +119,7 @@ class InquiryController extends Controller
         DB::beginTransaction();
         try {
             $inquiry = new Inquiry();
-            $inquiryFillableData = $request->only($inquiry->getFillable());
+            $inquiryFillableData = $this->mapInquiryPayload($request);
             $inquiry->fill($inquiryFillableData)->save();
             DB::commit();
             Session::flash('success', 'Created successfully');
@@ -80,18 +144,26 @@ class InquiryController extends Controller
 
     public function edit(Inquiry $inquiry)
     {
-        $data['inquiry'] = $inquiry;
-        $data['title'] = 'Inquiry Edit';
-        $data['type'] = 'inquiry';
-        $data['url'] = 'inquiries';
+        $this->ensureInquiryInUserBranch($inquiry);
+
+        $data = array_merge($this->formDataService->getFormOptions(), [
+            'inquiry' => $inquiry,
+            'title' => 'Inquiry Edit',
+            'type' => 'inquiry',
+            'url' => 'inquiries',
+            'branches' => $this->branchesForForm(Auth::user()),
+        ]);
+
         return view('admin.inquiries.edit')->with($data);
     }
 
     public function update(InquiryRequest $request, Inquiry $inquiry)
     {
+        $this->ensureInquiryInUserBranch($inquiry);
+
         DB::beginTransaction();
         try {
-            $inquiryFillableData = $request->only($inquiry->getFillable());
+            $inquiryFillableData = $this->mapInquiryPayload($request);
             $inquiry->fill($inquiryFillableData)->save();
             DB::commit();
             Session::flash('success', 'Updated Successfully');
@@ -105,10 +177,253 @@ class InquiryController extends Controller
 
     public function destroy(Inquiry $inquiry)
     {
+        $this->ensureInquiryInUserBranch($inquiry);
+
         if($inquiry){
             $inquiry->delete();
             Session::flash('success', 'Inquiry deleted successfully');
             return redirect()->route('inquiries.index');
         }
+    }
+
+    public function applicationForm(Request $request): View
+    {
+        if (!$request->filled('branch')) {
+            abort(404, 'Invalid application link. Please scan your branch QR code.');
+        }
+
+        $branch = Branch::find($request->input('branch'));
+
+        if (!$branch) {
+            abort(404, 'Branch not found. Please scan a valid branch QR code.');
+        }
+
+        $branchLogo = $branch->logo ? asset($branch->logo) : asset('media/custom/logo.png');
+
+        return view('frontend.applications.create', array_merge(
+            $this->formDataService->getFormOptions(),
+            [
+                'title' => 'Student Application Form',
+                'branch' => $branch,
+                'branchId' => $branch->id,
+                'logoUrl' => $branchLogo,
+            ]
+        ));
+    }
+
+    public function applicationFormSubmit(PublicApplicationRequest $request): RedirectResponse
+    {
+        $branchId = (int) $request->query('branch', $request->input('branch_id'));
+        $branch = Branch::find($branchId);
+
+        if (!$branch) {
+            abort(404, 'Invalid application link. Please scan your branch QR code.');
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $nameParts = preg_split('/\s+/', trim($request->input('student_name')), 2);
+
+            $universityName = null;
+            if ($request->filled('university_id')) {
+                $universityName = Post::where('post_type', 'university')
+                    ->where('id', $request->input('university_id'))
+                    ->value('post_title');
+            }
+
+            $subjectName = null;
+            if ($request->filled('subject_id')) {
+                $subjectName = Subject::where('id', $request->input('subject_id'))->value('name');
+            }
+
+            Inquiry::create([
+                'type' => 'Public QR Application',
+                'branch_id' => $branch->id,
+                'first_name' => $nameParts[0] ?? '',
+                'last_name' => $nameParts[1] ?? '',
+                'email' => $request->input('email'),
+                'mobile_no' => $request->input('mobile_no'),
+                'country' => $request->input('country'),
+                'country_preferred' => $request->input('country_preferred'),
+                'last_education' => $request->input('last_education'),
+                'course' => $request->input('course'),
+                'university' => $universityName,
+                'subject' => $subjectName,
+                'message' => $request->input('message'),
+                'status' => 1,
+                'view' => 0,
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->route('application-form.thank-you')
+                ->with('success', 'Your application has been submitted successfully!');
+        } catch (\Throwable $th) {
+            DB::rollBack();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Something went wrong. Please try again.');
+        }
+    }
+
+    public function applicationThankYou(): View
+    {
+        return view('frontend.applications.thank-you', [
+            'title' => 'Thank You',
+            'logoUrl' => asset('media/custom/logo.png'),
+        ]);
+    }
+
+    public function applicationSubjects(Request $request): JsonResponse
+    {
+        $subjects = $this->formDataService->getSubjectsForUniversity(
+            $request->filled('university_id') ? (int) $request->input('university_id') : null
+        );
+
+        return response()->json([
+            'subjects' => $subjects,
+        ]);
+    }
+
+    public function applicationQrCodes(Request $request): View
+    {
+        $currentUser = Auth::user();
+        $canManageAnyBranch = InquiryBranchAccess::canManageAnyBranch($currentUser);
+
+        $branchesQuery = Branch::query()->orderBy('name');
+
+        if (!$canManageAnyBranch && $currentUser->branch) {
+            $branchesQuery->where('id', $currentUser->branch);
+        }
+
+        $branches = $branchesQuery->get();
+
+        return view('admin.inquiries.qr-codes', [
+            'title' => 'Application Form QR Codes',
+            'branches' => $branches,
+        ]);
+    }
+
+    public function applicationQr(Branch $branch): View
+    {
+        $currentUser = Auth::user();
+
+        if ($currentUser && !InquiryBranchAccess::canManageAnyBranch($currentUser)) {
+            if ((int) $currentUser->branch !== (int) $branch->id) {
+                abort(403, 'You can only view QR codes for your branch.');
+            }
+        }
+
+        return view('admin.inquiries.qr-show', [
+            'title' => 'Application QR — ' . $branch->name,
+            'branch' => $branch,
+            'formUrl' => BranchApplicationQr::formUrl($branch),
+            'qrImageUrl' => BranchApplicationQr::imageUrl($branch, 360),
+            'logoUrl' => BranchApplicationQr::logoUrl($branch),
+        ]);
+    }
+
+    public function convertToStudent(Inquiry $inquiry): RedirectResponse
+    {
+        $this->ensureInquiryInUserBranch($inquiry);
+
+        try {
+            $alreadyLinked = (bool) $inquiry->student_id;
+            $student = $this->inquiryToStudentConverter->convert($inquiry);
+
+            Session::flash(
+                'success',
+                $alreadyLinked
+                    ? 'This inquiry is already linked to a student.'
+                    : 'Inquiry converted to student successfully.'
+            );
+
+            return redirect()->route('students.show', $student->id);
+        } catch (\Throwable $th) {
+            Session::flash('error', $th->getMessage() ?: 'Could not convert inquiry to student.');
+
+            return redirect()->back();
+        }
+    }
+
+    private function mapInquiryPayload(InquiryRequest $request): array
+    {
+        $inquiry = new Inquiry();
+        $payload = $request->only($inquiry->getFillable());
+
+        if ($request->filled('student_name')) {
+            $nameParts = preg_split('/\s+/', trim($request->input('student_name')), 2);
+            $payload['first_name'] = $nameParts[0] ?? '';
+            $payload['last_name'] = $nameParts[1] ?? '';
+        }
+
+        if ($request->filled('university_id')) {
+            $payload['university'] = Post::where('post_type', 'university')
+                ->where('id', $request->input('university_id'))
+                ->value('post_title');
+        } else {
+            $payload['university'] = null;
+        }
+
+        if ($request->filled('subject_id')) {
+            $payload['subject'] = Subject::where('id', $request->input('subject_id'))->value('name');
+        } else {
+            $payload['subject'] = null;
+        }
+
+        if (empty($payload['type'])) {
+            $payload['type'] = 'Manual Inquiry';
+        }
+
+        $payload['branch_id'] = $this->resolveBranchIdForSave($request);
+
+        return $payload;
+    }
+
+    private function resolveBranchIdForSave(InquiryRequest $request): ?int
+    {
+        $user = Auth::user();
+
+        if ($user && !InquiryBranchAccess::canManageAnyBranch($user)) {
+            return $user->branch ? (int) $user->branch : null;
+        }
+
+        if ($request->filled('branch_id')) {
+            return (int) $request->input('branch_id');
+        }
+
+        return $user && $user->branch ? (int) $user->branch : null;
+    }
+
+    private function branchesForForm($user)
+    {
+        if (!$user) {
+            return collect();
+        }
+
+        if (InquiryBranchAccess::canManageAnyBranch($user)) {
+            return Branch::select('id', 'name')->orderBy('name')->get();
+        }
+
+        if ($user->branch) {
+            return Branch::select('id', 'name')->where('id', $user->branch)->orderBy('name')->get();
+        }
+
+        return collect();
+    }
+
+    private function ensureInquiryInUserBranch(Inquiry $inquiry): void
+    {
+        $currentUser = Auth::user();
+
+        if (!$currentUser || InquiryBranchAccess::canAccessInquiry($currentUser, $inquiry)) {
+            return;
+        }
+
+        abort(403, 'You can only manage inquiries for your branch.');
     }
 }

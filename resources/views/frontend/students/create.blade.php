@@ -30,7 +30,7 @@
                     <div class="card-body p-0">
                         <div class="row">
                             <div class="col-12">
-                                <form action="{{ route('application-form.store') }}" method="POST" enctype="multipart/form-data">
+                                <form action="{{ route('student-application-form.store') }}" method="POST" enctype="multipart/form-data">
                                     @csrf
                                     {{-- <input type="hidden" name="post_type" value="{{$type}}"> --}}
                                     <div class="card-body">

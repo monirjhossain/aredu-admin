@@ -310,7 +310,7 @@ class StudentUniversityController extends Controller
             DB::commit();
             Session::flash('success', 'Created successfully');
             // return redirect()->route('students.index');
-            return redirect()->route('application.show', $student->id . '-' . $student->full_name);
+            return redirect()->route('student-application.show', $student->id . '-' . $student->full_name);
         } catch (\Throwable $th) {
             DB::rollback();
             Session::flash('error', 'Something went wrong!');

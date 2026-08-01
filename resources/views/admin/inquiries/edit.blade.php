@@ -29,7 +29,21 @@
                     <div class="card-header">
                         <div class="d-flex justify-content-between align-items-center">
                             <h3 class="">{{$title}}</h3>
-                            <a href="{{ route($url.'.index') }}" class="btn btn-primary">Go Back to {{$type}} List</a>
+                            <div>
+                                @if ($inquiry->student_id)
+                                    <a href="{{ route('students.show', $inquiry->student_id) }}" class="btn btn-success mr-2">
+                                        <i class="fas fa-user-graduate"></i> View Student
+                                    </a>
+                                @else
+                                    <form action="{{ route('inquiries.convert-to-student', $inquiry->id) }}" class="d-inline mr-2" method="POST" onsubmit="return confirm('Convert this inquiry to a student?');">
+                                        @csrf
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-user-plus"></i> Convert to Student
+                                        </button>
+                                    </form>
+                                @endif
+                                <a href="{{ route($url.'.index') }}" class="btn btn-primary">Go Back to {{$type}} List</a>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body p-0">
@@ -40,82 +54,7 @@
                                     @method('PUT')
                                     <div class="card-body">
                                         @include('includes.errors')
-                                        <div class="row">
-                                            <div class="col-lg-6 col-md-6 col-sm-12">
-                                                <div class="form-group">
-                                                    <label for="type">Type</label>
-                                                    <input type="text" name="type" value="{{ $inquiry->type }}" class="form-control" placeholder="Type here">
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-6 col-md-6 col-sm-12">
-                                                <div class="form-group">
-                                                    <label for="first_name">First Name</label>
-                                                    <input type="text" name="first_name" value="{{ $inquiry->first_name }}" class="form-control" placeholder="Type here">
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-6 col-md-6 col-sm-12">
-                                                <div class="form-group">
-                                                    <label for="last_name">Last Name</label>
-                                                    <input type="text" name="last_name" value="{{ $inquiry->last_name }}" class="form-control" placeholder="Type here">
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-6 col-md-6 col-sm-12">
-                                                <div class="form-group">
-                                                    <label for="email">Email</label>
-                                                    <input type="text" name="email" value="{{ $inquiry->email }}" class="form-control" placeholder="Type here">
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-6 col-md-6 col-sm-12">
-                                                <div class="form-group">
-                                                    <label for="mobile_no">Phone No</label>
-                                                    <input type="text" name="mobile_no" value="{{ $inquiry->mobile_no }}" class="form-control" placeholder="Type here">
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-6 col-md-6 col-sm-12">
-                                                <div class="form-group">
-                                                    <label for="country">Country</label>
-                                                    {{-- <input type="text" name="country" value="{{ $inquiry->country }}" class="form-control" placeholder="Type here"> --}}
-                                                    <select name="country" class="form-control"  id="">
-                                                        <option>{{ $inquiry->country }}</option>
-                                                        <option>Bangladesh</option>
-                                                        <option>India</option>
-                                                        <option>Pakistan</option>
-                                                        <option>Nepal</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-6 col-md-6 col-sm-12">
-                                                <div class="form-group">
-                                                    <label for="country_preferred">Country Preferred</label>
-                                                    <select name="country_preferred" class="form-control"  id="">
-                                                        <option>{{ $inquiry->country_preferred }}</option>
-                                                        <option>China</option>
-                                                        <option>Spain</option>
-                                                        <option>Japan</option>
-                                                        <option>Pakistan</option>
-                                                        <option>India</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-6 col-md-6 col-sm-12">
-                                                <div class="form-group">
-                                                    <label for="last_education">Last Education</label>
-                                                    <input type="text" name="last_education" value="{{ $inquiry->last_education }}" class="form-control" placeholder="Type here">
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-6 col-md-6 col-sm-12">
-                                                <div class="form-group">
-                                                    <label for="course">Course Preferred</label>
-                                                    <input type="text" name="course" value="{{ $inquiry->course }}" class="form-control" placeholder="Type here">
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-12 col-md-12 col-sm-12">
-                                                <div class="form-group">
-                                                    <label for="message">Message</label>
-                                                    <textarea name="message" id=""  rows="3" class="form-control">{{ $inquiry->message }}</textarea>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        @include('admin.inquiries._form', ['inquiry' => $inquiry])
                                     </div>
                                     <div class="card-footer">
                                         <button type="submit" class="btn btn-lg btn-primary">Submit</button>

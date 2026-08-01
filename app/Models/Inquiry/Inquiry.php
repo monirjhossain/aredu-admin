@@ -2,7 +2,9 @@
 
 namespace App\Models\Inquiry;
 
+use App\Models\Branch;
 use App\Models\Category;
+use App\Models\Student\Student;
 use App\Models\Tag;
 use App\Models\User;
 use App\Traits\ModelSearchAble;
@@ -28,6 +30,8 @@ class Inquiry extends Model
         'country',
         'country_preferred',
         'course',
+        'university',
+        'subject',
         'last_education',
         'email',
         'oppurtunity',
@@ -35,11 +39,22 @@ class Inquiry extends Model
         'status',
         'view',
         'user_id',
+        'student_id',
     ];
 
     protected $appends = ['full_name'];
     public function getFullNameAttribute() {
         return ucfirst($this->first_name) . ' ' . ucfirst($this->last_name);
+    }
+
+    public function student()
+    {
+        return $this->belongsTo(Student::class);
+    }
+
+    public function branchInfo()
+    {
+        return $this->belongsTo(Branch::class, 'branch_id');
     }
 
     protected static function boot()

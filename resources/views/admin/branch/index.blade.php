@@ -37,6 +37,7 @@
                             </td>
                             <td>
                                 <form id="deleteForm" action="{{ route('branches.destroy', $row->id) }}" method="POST">
+                                <a href="{{ route('application-qr-codes.show', $row->id) }}" class="btn btn-warning btn-shadow btn-sm font-weight-bold pt-1 pb-1 mb-1" target="_blank">QR</a>
                                 <a href="{{ route('branches.show', $row->id) }}" class="btn btn-primary btn-shadow btn-sm font-weight-bold pt-1 pb-1 mb-1">Details</a>
                                 <a href="{{ route('branches.edit', $row->id) }}" class="btn btn-success btn-shadow btn-sm font-weight-bold pt-1 pb-1 mb-1">Edit</a>
                                     @csrf
