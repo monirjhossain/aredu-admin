@@ -332,18 +332,31 @@ class InquiryController extends Controller
 
         try {
             $alreadyLinked = (bool) $inquiry->student_id;
-            $student = $this->inquiryToStudentConverter->convert($inquiry);
+            $student = $this->inquiryToStudentConverter->convert($inquiry->fresh());
 
             Session::flash(
                 'success',
                 $alreadyLinked
                     ? 'This inquiry is already linked to a student.'
-                    : 'Inquiry converted to student successfully.'
+                    : 'Inquiry converted to student successfully. Tracking: ' . ($inquiry->fresh()->tracking_id ?: ('#' . $inquiry->id))
             );
 
-            return redirect()->route('students.show', $student->id);
+            if (Auth::user()->can('view', $student)) {
+                return redirect()->route('students.show', $student->id);
+            }
+
+            return redirect()->route('inquiries.index');
         } catch (\Throwable $th) {
-            Session::flash('error', $th->getMessage() ?: 'Could not convert inquiry to student.');
+            \Log::error('Inquiry convertToStudent failed', [
+                'inquiry_id' => $inquiry->id,
+                'user_id' => Auth::id(),
+                'message' => $th->getMessage(),
+            ]);
+
+            Session::flash(
+                'error',
+                'Convert failed: ' . ($th->getMessage() ?: 'Could not convert inquiry to student.')
+            );
 
             return redirect()->back();
         }

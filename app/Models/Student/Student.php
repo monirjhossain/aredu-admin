@@ -49,8 +49,10 @@ class Student extends Model
             'height',
             'marital_status',
             'study_level',
+            'subject',
             'last_education',
             'education_level_id',
+            'st_office_id',
             'father_name',
             'father_occoupation',
             'father_mobile_no',
@@ -154,38 +156,45 @@ class Student extends Model
                 return;
             }
 
-            $branch = $student->branchInfo;
+            $branch = $student->branch_id
+                ? Branch::find($student->branch_id)
+                : null;
 
             if (!$branch) {
-                throw new \Exception('Branch not found.');
+                throw new \Exception('Branch not found. Please set a valid branch before creating the student.');
             }
 
-            $branchShort = strtoupper($branch->short_name);
+            $branchShort = strtoupper(trim((string) ($branch->short_name ?: ('BR' . $branch->id))));
 
             // Extract year from intake
-            preg_match('/\d{4}/', $student->intake, $matches);
+            preg_match('/\d{4}/', (string) $student->intake, $matches);
 
             $year = $matches[0] ?? date('Y');
 
             $prefix = "{$branchShort}{$year}-";
 
-            // Get last serial
-            $lastStudent = self::where('st_office_id', 'like', $prefix . '%')
+            // Include soft-deleted rows so unique st_office_id never collides
+            $lastStudent = self::withTrashed()
+                ->where('st_office_id', 'like', $prefix . '%')
                 ->orderByDesc('id')
                 ->first();
 
             $nextSerial = 1;
 
             if ($lastStudent) {
-
-                preg_match('/-(\d+)$/', $lastStudent->st_office_id, $serialMatch);
-
+                preg_match('/-(\d+)$/', (string) $lastStudent->st_office_id, $serialMatch);
                 $nextSerial = ((int) ($serialMatch[1] ?? 0)) + 1;
             }
 
-            $serial = str_pad($nextSerial, 3, '0', STR_PAD_LEFT);
+            // Keep generating until unique (handles concurrent creates / legacy gaps)
+            do {
+                $serial = str_pad((string) $nextSerial, 3, '0', STR_PAD_LEFT);
+                $candidate = "{$prefix}{$serial}";
+                $exists = self::withTrashed()->where('st_office_id', $candidate)->exists();
+                $nextSerial++;
+            } while ($exists);
 
-            $student->st_office_id = "{$prefix}{$serial}";
+            $student->st_office_id = $candidate;
         });
 
     }
