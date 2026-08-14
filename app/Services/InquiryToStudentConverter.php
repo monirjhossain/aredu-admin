@@ -45,7 +45,10 @@ class InquiryToStudentConverter
                     $study = Study::where('name', $inquiry->course)->first();
                 }
 
-                $payload = [
+                $subjectParts = preg_split('/\s*,\s*/', (string) $inquiry->subject);
+                $firstSubject = $subjectParts ? trim((string) $subjectParts[0]) : null;
+
+                $payload = $this->filterExistingColumns([
                     'branch_id' => $branchId,
                     'user_id' => Auth::id(),
                     'first_name' => $inquiry->first_name,
@@ -56,21 +59,13 @@ class InquiryToStudentConverter
                     'preferred_country' => $inquiry->country_preferred,
                     'study_level' => $inquiry->course,
                     'study_id' => $study ? $study->id : null,
+                    'subject' => $firstSubject ?: null,
+                    'last_education' => $inquiry->last_education,
                     'note' => $this->buildNote($inquiry),
                     'intake' => (string) date('Y'),
                     'ref' => $inquiry->tracking_id ?: ('Inquiry #' . $inquiry->id),
                     'status' => 1,
-                ];
-
-                if (Schema::hasColumn('students', 'last_education')) {
-                    $payload['last_education'] = $inquiry->last_education;
-                }
-
-                if (Schema::hasColumn('students', 'subject')) {
-                    // Keep first subject text for legacy column; full list synced via relation
-                    $subjectParts = preg_split('/\s*,\s*/', (string) $inquiry->subject);
-                    $payload['subject'] = $subjectParts ? trim((string) $subjectParts[0]) : null;
-                }
+                ]);
 
                 $student = Student::create($payload);
 
@@ -95,6 +90,23 @@ class InquiryToStudentConverter
 
             throw $e;
         }
+    }
+
+    /**
+     * Keep only columns that actually exist on students table.
+     * Live DB schema can differ from migrations/local.
+     */
+    private function filterExistingColumns(array $payload): array
+    {
+        $filtered = [];
+
+        foreach ($payload as $column => $value) {
+            if (Schema::hasColumn('students', $column)) {
+                $filtered[$column] = $value;
+            }
+        }
+
+        return $filtered;
     }
 
     private function syncUniversities(Student $student, Inquiry $inquiry): void
