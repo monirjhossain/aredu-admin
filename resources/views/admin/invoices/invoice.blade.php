@@ -265,7 +265,7 @@ table th:last-child {
       <p>Senior Counselor: <b>{{$student->sncounselor->name ?? ''}}</b></p>
     </div>
     <div class="half">
-      <p>Junior Counselor: <b>{{$student->jncounselor->name ?? ''}}</b></p>
+      <p>Assistant Counselor: <b>{{$student->jncounselor->name ?? ''}}</b></p>
     </div>
   </div>
     <table>

@@ -38,7 +38,7 @@
     </tr>
     <tr>
         <td><strong>Senior Counselor:</strong> {{ optional($student->sncounselor)->name ?? '—' }}</td>
-        <td><strong>Junior Counselor:</strong> {{ optional($student->jncounselor)->name ?? '—' }}</td>
+        <td><strong>Assistant Counselor:</strong> {{ optional($student->jncounselor)->name ?? '—' }}</td>
     </tr>
     @php
         $scholarshipStatus = request('scholarship_status');
