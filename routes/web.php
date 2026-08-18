@@ -66,6 +66,12 @@ Route::get('application-form', [InquiryController::class, 'applicationForm']);
 Route::post('application-form', [InquiryController::class, 'applicationFormSubmit'])->name('application-form.store');
 Route::get('application-form/thank-you', [InquiryController::class, 'applicationThankYou'])->name('application-form.thank-you');
 Route::get('application-form/subjects', [InquiryController::class, 'applicationSubjects'])->name('application-form.subjects');
+Route::get('inquiry-form/{type}', [InquiryController::class, 'publicInquiryForm'])
+    ->where('type', 'csca|chinese-basic-language-course|english-spoken-course')
+    ->name('inquiry-forms.show');
+Route::post('inquiry-form/{type}', [InquiryController::class, 'publicInquiryFormSubmit'])
+    ->where('type', 'csca|chinese-basic-language-course|english-spoken-course')
+    ->name('inquiry-forms.store');
 
 
 Route::get('/', [DashboardController::class, 'logincheck']);
@@ -90,6 +96,12 @@ Route::middleware('auth')->group(function () {
     Route::resource('inquiries', InquiryController::class);
     Route::get('application-qr-codes', [InquiryController::class, 'applicationQrCodes'])->name('application-qr-codes');
     Route::get('application-qr-codes/{branch}', [InquiryController::class, 'applicationQr'])->name('application-qr-codes.show');
+    Route::get('inquiry-qr-codes/{type}', [InquiryController::class, 'courseQrCodes'])
+        ->where('type', 'csca|chinese-basic-language-course|english-spoken-course')
+        ->name('inquiry-qr-codes');
+    Route::get('inquiry-qr-codes/{type}/{branch}', [InquiryController::class, 'courseQr'])
+        ->where('type', 'csca|chinese-basic-language-course|english-spoken-course')
+        ->name('inquiry-qr-codes.show');
     Route::post('inquiries/{inquiry}/convert-to-student', [InquiryController::class, 'convertToStudent'])
         ->name('inquiries.convert-to-student');
     Route::patch('students/{student}/office-status', [StudentController::class, 'updateOfficeStatus'])

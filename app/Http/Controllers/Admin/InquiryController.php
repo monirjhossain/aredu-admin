@@ -7,9 +7,11 @@ use App\Models\Category;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Inquiry\CourseInquiryRequest;
 use App\Http\Requests\Inquiry\InquiryRequest;
 use App\Http\Requests\Inquiry\PublicApplicationRequest;
 use App\Models\Branch;
+use App\Models\CSCAExam;
 use App\Models\Inquiry\Inquiry;
 use App\Models\Post\Post;
 use App\Models\Subject;
@@ -109,6 +111,7 @@ class InquiryController extends Controller
             'type' => 'inquiry',
             'url' => 'inquiries',
             'branches' => $this->branchesForForm(Auth::user()),
+            'cscaExams' => CSCAExam::orderBy('name')->get(),
         ]);
 
         return view('admin.inquiries.create')->with($data);
@@ -158,6 +161,7 @@ class InquiryController extends Controller
             'type' => 'inquiry',
             'url' => 'inquiries',
             'branches' => $this->branchesForForm(Auth::user()),
+            'cscaExams' => CSCAExam::orderBy('name')->get(),
         ]);
 
         return view('admin.inquiries.edit')->with($data);
@@ -241,6 +245,7 @@ class InquiryController extends Controller
                 'country' => $request->input('country'),
                 'country_preferred' => $request->input('country_preferred'),
                 'last_education' => $request->input('last_education'),
+                'result' => $request->input('result'),
                 'course' => $request->input('course'),
                 'university' => $this->selectionResolver->universityNamesFromRequest($request),
                 'subject' => $this->selectionResolver->subjectNamesFromRequest($request),
@@ -273,6 +278,77 @@ class InquiryController extends Controller
         ]);
     }
 
+    public function publicInquiryForm(Request $request, string $type): View
+    {
+        $config = $this->publicFormConfig($type);
+        $branch = $this->resolvePublicFormBranch($request);
+
+        $branchLogo = $branch->logo ? asset($branch->logo) : asset('media/custom/logo.png');
+
+        return view('frontend.applications.create', array_merge(
+            $this->formDataService->getFormOptions(),
+            [
+                'title' => $config['title'],
+                'subtitle' => $config['subtitle'],
+                'typeKey' => $type,
+                'typeLabel' => $config['type'],
+                'showCscaField' => $type === 'csca',
+                'branch' => $branch,
+                'branchId' => $branch->id,
+                'storeUrl' => route('inquiry-forms.store', ['type' => $type, 'branch' => $branch->id]),
+                'cscaExams' => $type === 'csca' ? CSCAExam::orderBy('name')->get() : collect(),
+                'logoUrl' => $branchLogo,
+            ]
+        ));
+    }
+
+    public function publicInquiryFormSubmit(CourseInquiryRequest $request, string $type): RedirectResponse
+    {
+        $config = $this->publicFormConfig($type);
+        $branch = $this->resolvePublicFormBranch($request);
+
+        DB::beginTransaction();
+
+        try {
+            $nameParts = preg_split('/\s+/', trim($request->input('student_name')), 2);
+
+            $inquiry = Inquiry::create([
+                'type' => $config['type'],
+                'branch_id' => $branch->id,
+                'first_name' => $nameParts[0] ?? '',
+                'last_name' => $nameParts[1] ?? '',
+                'email' => $request->input('email'),
+                'mobile_no' => $request->input('mobile_no'),
+                'country' => $request->input('country'),
+                'country_preferred' => $request->input('country_preferred'),
+                'last_education' => $request->input('last_education'),
+                'result' => $request->input('result'),
+                'course' => $request->input('course'),
+                'university' => $this->selectionResolver->universityNamesFromRequest($request),
+                'subject' => $this->selectionResolver->subjectNamesFromRequest($request),
+                'message' => $request->input('message'),
+                'csca_subjects' => $type === 'csca' ? $this->cscaSubjectNamesFromRequest($request) : null,
+                'status' => 1,
+                'view' => 0,
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->route('application-form.thank-you')
+                ->with('success', $config['success'])
+                ->with('application_tracking_id', $inquiry->tracking_id)
+                ->with('inquiry_form_url', route('inquiry-forms.show', ['type' => $type, 'branch' => $branch->id]));
+        } catch (\Throwable $th) {
+            DB::rollBack();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Something went wrong. Please try again.');
+        }
+    }
+
     public function applicationSubjects(Request $request): JsonResponse
     {
         $universityIds = array_filter(array_map('intval', (array) $request->input('university_ids', [])));
@@ -290,32 +366,16 @@ class InquiryController extends Controller
 
     public function applicationQrCodes(Request $request): View
     {
-        $currentUser = Auth::user();
-        $canManageAnyBranch = InquiryBranchAccess::canManageAnyBranch($currentUser);
-
-        $branchesQuery = Branch::query()->orderBy('name');
-
-        if (!$canManageAnyBranch && $currentUser->branch) {
-            $branchesQuery->where('id', $currentUser->branch);
-        }
-
-        $branches = $branchesQuery->get();
-
         return view('admin.inquiries.qr-codes', [
             'title' => 'Application Form QR Codes',
-            'branches' => $branches,
+            'branches' => $this->branchesForQrCodes(),
+            'publicForms' => config('inquiry.public_forms', []),
         ]);
     }
 
     public function applicationQr(Branch $branch): View
     {
-        $currentUser = Auth::user();
-
-        if ($currentUser && !InquiryBranchAccess::canManageAnyBranch($currentUser)) {
-            if ((int) $currentUser->branch !== (int) $branch->id) {
-                abort(403, 'You can only view QR codes for your branch.');
-            }
-        }
+        $this->ensureQrBranchAccess($branch);
 
         return view('admin.inquiries.qr-show', [
             'title' => 'Application QR — ' . $branch->name,
@@ -323,6 +383,34 @@ class InquiryController extends Controller
             'formUrl' => BranchApplicationQr::formUrl($branch),
             'qrImageUrl' => BranchApplicationQr::imageUrl($branch, 360),
             'logoUrl' => BranchApplicationQr::logoUrl($branch),
+        ]);
+    }
+
+    public function courseQrCodes(string $type): View
+    {
+        $config = $this->publicFormConfig($type);
+
+        return view('admin.inquiries.qr-codes', [
+            'title' => $config['type'] . ' QR Codes',
+            'branches' => $this->branchesForQrCodes(),
+            'formType' => $type,
+        ]);
+    }
+
+    public function courseQr(string $type, Branch $branch): View
+    {
+        $config = $this->publicFormConfig($type);
+        $this->ensureQrBranchAccess($branch);
+
+        return view('admin.inquiries.qr-show', [
+            'title' => $config['type'] . ' QR — ' . $branch->name,
+            'branch' => $branch,
+            'formUrl' => BranchApplicationQr::courseFormUrl($branch, $type),
+            'qrImageUrl' => BranchApplicationQr::courseImageUrl($branch, $type, 360),
+            'logoUrl' => BranchApplicationQr::logoUrl($branch),
+            'subtitle' => $config['type'] . ' — Scan QR Code',
+            'hint' => 'Scan this QR code to open the ' . $config['type'] . ' form.',
+            'backUrl' => route('inquiry-qr-codes', ['type' => $type]),
         ]);
     }
 
@@ -375,6 +463,7 @@ class InquiryController extends Controller
 
         $payload['university'] = $this->selectionResolver->universityNamesFromRequest($request);
         $payload['subject'] = $this->selectionResolver->subjectNamesFromRequest($request);
+        $payload['csca_subjects'] = $this->cscaSubjectNamesFromRequest($request);
 
         if (empty($payload['type'])) {
             $payload['type'] = 'Manual Inquiry';
@@ -426,5 +515,64 @@ class InquiryController extends Controller
         }
 
         abort(403, 'You can only manage inquiries for your branch.');
+    }
+
+    private function branchesForQrCodes()
+    {
+        $currentUser = Auth::user();
+        $branchesQuery = Branch::query()->orderBy('name');
+
+        if ($currentUser && !InquiryBranchAccess::canManageAnyBranch($currentUser) && $currentUser->branch) {
+            $branchesQuery->where('id', $currentUser->branch);
+        }
+
+        return $branchesQuery->get();
+    }
+
+    private function ensureQrBranchAccess(Branch $branch): void
+    {
+        $currentUser = Auth::user();
+
+        if ($currentUser && !InquiryBranchAccess::canManageAnyBranch($currentUser)) {
+            if ((int) $currentUser->branch !== (int) $branch->id) {
+                abort(403, 'You can only view QR codes for your branch.');
+            }
+        }
+    }
+
+    private function resolvePublicFormBranch(Request $request): Branch
+    {
+        $branchId = (int) $request->query('branch', $request->input('branch_id'));
+        $branch = Branch::find($branchId);
+
+        if (!$branch) {
+            abort(404, 'Invalid form link. Please use a valid branch inquiry form.');
+        }
+
+        return $branch;
+    }
+
+    private function publicFormConfig(string $type): array
+    {
+        $config = config('inquiry.public_forms.' . $type);
+
+        if (!$config) {
+            abort(404, 'Inquiry form not found.');
+        }
+
+        return $config;
+    }
+
+    private function cscaSubjectNamesFromRequest($request): ?string
+    {
+        $examIds = array_values(array_unique(array_filter(array_map('intval', (array) $request->input('csca_subject_ids', [])))));
+
+        if (empty($examIds)) {
+            return null;
+        }
+
+        $names = CSCAExam::whereIn('id', $examIds)->orderBy('name')->pluck('name')->filter()->implode(', ');
+
+        return $names !== '' ? $names : null;
     }
 }

@@ -84,16 +84,16 @@
         <div class="card">
             <img src="{{ $logoUrl }}" alt="Logo" class="logo">
             <h1>{{ $branch->name }}</h1>
-            <p class="subtitle">Student Application Form — Scan QR Code</p>
-            <img src="{{ $qrImageUrl }}" alt="Application Form QR Code" class="qr">
+            <p class="subtitle">{{ $subtitle ?? 'Student Application Form — Scan QR Code' }}</p>
+            <img src="{{ $qrImageUrl }}" alt="Form QR Code" class="qr">
             <div class="url">{{ $formUrl }}</div>
             <p class="hint">
-                Scan this QR code to open the branch application form.<br>
+                {{ $hint ?? 'Scan this QR code to open the branch application form.' }}<br>
                 Submitted applications will appear in the Inquiry List for this branch.
             </p>
             <div class="actions">
                 <a href="javascript:window.print()" class="btn btn-primary">Print QR</a>
-                <a href="{{ route('application-qr-codes') }}" class="btn btn-light">All QR Codes</a>
+                <a href="{{ $backUrl ?? route('application-qr-codes') }}" class="btn btn-light">All QR Codes</a>
             </div>
         </div>
     </div>

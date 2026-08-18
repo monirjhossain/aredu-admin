@@ -38,6 +38,10 @@ class InquiryBranchAccess
             return (int) $user->branch === $branchId ? $branchId : (int) $user->branch;
         }
 
+        if (self::canManageAnyBranch($user)) {
+            return null;
+        }
+
         return $user->branch ? (int) $user->branch : null;
     }
 

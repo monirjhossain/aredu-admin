@@ -11,6 +11,17 @@ class BranchApplicationQr
         return url('/application-form?branch=' . $branch->id);
     }
 
+    public static function courseFormUrl(Branch $branch, string $type): string
+    {
+        return url('/inquiry-form/' . $type . '?branch=' . $branch->id);
+    }
+
+    public static function courseImageUrl(Branch $branch, string $type, int $size = 220): string
+    {
+        return 'https://api.qrserver.com/v1/create-qr-code/?size=' . $size . 'x' . $size . '&data='
+            . rawurlencode(self::courseFormUrl($branch, $type));
+    }
+
     public static function imageUrl(Branch $branch, int $size = 320): string
     {
         return 'https://api.qrserver.com/v1/create-qr-code/?size=' . $size . 'x' . $size . '&data='

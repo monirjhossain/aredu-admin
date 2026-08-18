@@ -4,6 +4,11 @@
 
 @php
     $studentName = old('student_name');
+    $storeUrl = $storeUrl ?? route('application-form.store', ['branch' => $branchId]);
+    $subtitle = $subtitle ?? 'Complete your application in a few simple steps. Our counselors will contact you shortly.';
+    $showCscaField = !empty($showCscaField);
+    $cscaExams = $cscaExams ?? collect();
+    $selectedCscaIds = array_map('intval', (array) old('csca_subject_ids', []));
 @endphp
 
 @section('content')
@@ -12,9 +17,9 @@
         <img src="{{ $logoUrl }}" alt="AR Education Logo">
     </div>
     <h1>{{ $title }}</h1>
-    <p>Complete your application in a few simple steps. Our counselors will contact you shortly.</p>
+    <p>{{ $subtitle }}</p>
     @if (!empty($branch))
-        <div class="branch-badge">{{ $branch->name }} Branch</div>
+        <div class="branch-badge">{{ $branch->name }} Branch @if (!empty($typeLabel)) · {{ $typeLabel }} @endif</div>
     @endif
 </div>
 
@@ -59,7 +64,7 @@
             </div>
         @endif
 
-        <form action="{{ route('application-form.store', ['branch' => $branchId]) }}" method="POST" id="applicationForm" novalidate>
+        <form action="{{ $storeUrl }}" method="POST" id="applicationForm" novalidate>
             @csrf
             <input type="hidden" name="branch_id" value="{{ $branchId }}">
 
@@ -132,6 +137,15 @@
                         @error('last_education')<span class="invalid-feedback">{{ $message }}</span>@enderror
                     </div>
 
+                    <div class="form-group" data-field="result">
+                        <label for="result" class="required">Last Result</label>
+                        <input type="text" name="result" id="result" value="{{ old('result') }}"
+                            class="form-control @error('result') server-invalid @enderror"
+                            placeholder="GPA / Division" required>
+                        <span class="field-error">Please enter your last result.</span>
+                        @error('result')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                    </div>
+
                     <div class="form-group" data-field="country_preferred">
                         <label for="country_preferred">Preferred Country</label>
                         <select name="country_preferred" id="country_preferred" class="form-control @error('country_preferred') server-invalid @enderror">
@@ -154,6 +168,33 @@
                         @error('course')<span class="invalid-feedback">{{ $message }}</span>@enderror
                     </div>
                 </div>
+
+                @if ($showCscaField)
+                    <div class="form-group" data-field="csca_subject_ids">
+                        <div class="ms-label-row">
+                            <label for="csca_subject_ids" class="required">CSCA Subjects</label>
+                            <span class="ms-count" data-ms-count="csca_subject_ids">0 selected</span>
+                        </div>
+                        <div class="ms-wrap" data-multi-select data-ms-id="csca_subject_ids">
+                            <div class="ms-box @error('csca_subject_ids') is-invalid @enderror @error('csca_subject_ids.*') is-invalid @enderror">
+                                <div class="ms-chips"></div>
+                                <input type="text" class="ms-search" placeholder="Search and select CSCA subjects..." autocomplete="off">
+                            </div>
+                            <div class="ms-dropdown"></div>
+                            <select name="csca_subject_ids[]" id="csca_subject_ids" class="ms-native" multiple>
+                                @foreach ($cscaExams as $exam)
+                                    <option value="{{ $exam->id }}" {{ in_array((int) $exam->id, $selectedCscaIds, true) ? 'selected' : '' }}>
+                                        {{ $exam->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="ms-hint">You can select multiple CSCA subjects</div>
+                        </div>
+                        <span class="field-error">Please select at least one CSCA subject.</span>
+                        @error('csca_subject_ids')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                        @error('csca_subject_ids.*')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                    </div>
+                @endif
 
                 <div class="wizard-actions">
                     <button type="button" class="btn btn-back" data-action="prev">Back</button>
@@ -194,10 +235,14 @@
                     <div class="review-row"><span>Phone</span><span data-review="mobile_no">—</span></div>
                     <div class="review-row"><span>Country</span><span data-review="country">—</span></div>
                     <div class="review-row"><span>Last Education</span><span data-review="last_education">—</span></div>
+                    <div class="review-row"><span>Last Result</span><span data-review="result">—</span></div>
                     <div class="review-row"><span>Preferred Country</span><span data-review="country_preferred">—</span></div>
                     <div class="review-row"><span>Preferred Course</span><span data-review="course">—</span></div>
                     <div class="review-row"><span>University</span><span data-review="university_ids">—</span></div>
                     <div class="review-row"><span>Subject</span><span data-review="subject_ids">—</span></div>
+                    @if ($showCscaField)
+                        <div class="review-row"><span>CSCA Subjects</span><span data-review="csca_subject_ids">—</span></div>
+                    @endif
                 </div>
 
                 <div class="form-group" data-field="message">
@@ -237,14 +282,15 @@
 
     const requiredByStep = {
         1: ['student_name', 'email', 'mobile_no'],
-        2: ['last_education'],
+        2: ['last_education', 'result' @if ($showCscaField), 'csca_subject_ids' @endif],
         3: [],
         4: []
     };
 
     const fieldStepMap = {
         student_name: 1, email: 1, mobile_no: 1, country: 1,
-        last_education: 2, country_preferred: 2, course: 2,
+        last_education: 2, result: 2, country_preferred: 2, course: 2,
+        csca_subject_ids: 2, 'csca_subject_ids[]': 2,
         university_ids: 3, subject_ids: 3,
         'university_ids[]': 3, 'subject_ids[]': 3,
         message: 4
@@ -264,7 +310,7 @@
     }
 
     function getFieldLabel(name) {
-        if (name === 'university_ids' || name === 'subject_ids') {
+        if (name === 'university_ids' || name === 'subject_ids' || name === 'csca_subject_ids') {
             return getMultiSelectLabel(name);
         }
 
@@ -282,14 +328,21 @@
         if (!field || !group) return true;
 
         let valid = true;
-        const value = field.value.trim();
 
-        if (requiredByStep[1].includes(name) || requiredByStep[2].includes(name)) {
-            if (!value) valid = false;
-        }
+        if (field.multiple) {
+            valid = Array.from(field.selectedOptions).some(function (option) {
+                return option.value;
+            });
+        } else {
+            const value = field.value.trim();
 
-        if (name === 'email' && value) {
-            valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+            if (requiredByStep[1].includes(name) || requiredByStep[2].includes(name)) {
+                if (!value) valid = false;
+            }
+
+            if (name === 'email' && value) {
+                valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+            }
         }
 
         group.classList.toggle('has-error', !valid);
@@ -308,7 +361,7 @@
     }
 
     function updateReview() {
-        ['student_name', 'email', 'mobile_no', 'country', 'last_education', 'country_preferred', 'course', 'university_ids', 'subject_ids'].forEach(function (name) {
+        ['student_name', 'email', 'mobile_no', 'country', 'last_education', 'result', 'country_preferred', 'course', 'university_ids', 'subject_ids', 'csca_subject_ids'].forEach(function (name) {
             const target = document.querySelector('[data-review="' + name + '"]');
             if (target) target.textContent = getFieldLabel(name);
         });
@@ -333,7 +386,7 @@
         }
 
         if (currentStep === totalSteps) updateReview();
-        if (currentStep === 3 && typeof window.refreshApplicationMultiSelect === 'function') {
+        if ((currentStep === 2 || currentStep === 3) && typeof window.refreshApplicationMultiSelect === 'function') {
             window.refreshApplicationMultiSelect();
         }
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -363,7 +416,7 @@
         }
     });
 
-    ['student_name', 'email', 'mobile_no', 'last_education'].forEach(function (name) {
+    ['student_name', 'email', 'mobile_no', 'last_education', 'result'].forEach(function (name) {
         const field = getField(name);
         if (field) {
             field.addEventListener('input', function () { validateField(name); });
@@ -371,7 +424,7 @@
         }
     });
 
-    ['university_ids', 'subject_ids'].forEach(function (name) {
+    ['university_ids', 'subject_ids', 'csca_subject_ids'].forEach(function (name) {
         const select = document.getElementById(name);
         if (select) {
             select.addEventListener('change', function () {

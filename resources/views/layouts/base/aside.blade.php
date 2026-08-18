@@ -414,6 +414,13 @@
                                     <span class="menu-text font-weight-bolder">Add New</span>
                                 </a>
                             </li>
+                            <li class="menu-item {{ request()->is('application-qr-codes') ? 'menu-item-active' : '' }}"
+                                aria-haspopup="true">
+                                <a href="{{ route('application-qr-codes') }}" class="menu-link">
+                                    <i class="menu-bullet menu-bullet-dot"><span></span></i>
+                                    <span class="menu-text font-weight-bolder">Application QR</span>
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </li>

@@ -21,6 +21,7 @@ class PublicApplicationRequest extends FormRequest
             'country' => 'nullable|string|max:255',
             'country_preferred' => 'nullable|string|max:255',
             'last_education' => 'required|string|max:255',
+            'result' => 'required|string|max:50',
             'course' => 'nullable|string|max:255',
             'university_ids' => 'nullable|array',
             'university_ids.*' => [
@@ -43,6 +44,7 @@ class PublicApplicationRequest extends FormRequest
             'mobile_no' => 'phone number',
             'country_preferred' => 'country preferred',
             'last_education' => 'last education',
+            'result' => 'last result',
             'course' => 'preferred course',
             'university_ids' => 'university',
             'university_ids.*' => 'university',

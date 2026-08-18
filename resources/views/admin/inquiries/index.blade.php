@@ -44,6 +44,7 @@
                         <label class="font-weight-bold mb-2 d-block" for="branchFilter">Branch</label>
                         @if ($canManageAnyBranch && $branches->count() > 1)
                             <select class="form-control form-control-sm" id="branchFilter">
+                                <option value="" {{ $branchId ? '' : 'selected' }}>All Branches</option>
                                 @foreach ($branches as $branch)
                                     <option value="{{ $branch->id }}" {{ (int) $branchId === (int) $branch->id ? 'selected' : '' }}>
                                         {{ $branch->name }}
@@ -85,6 +86,9 @@
                                 <th>Country</th>
                                 <th>Preferred</th>
                                 <th>Education</th>
+                                <th>Last Result</th>
+                                <th>Year</th>
+                                <th>CSCA Subjects</th>
                                 <th>Course</th>
                                 <th>University</th>
                                 <th>Subject</th>
@@ -120,6 +124,9 @@
                                 <td>{{ $inquiry->country ?: '—' }}</td>
                                 <td>{{ $inquiry->country_preferred ?: '—' }}</td>
                                 <td>{{ $inquiry->last_education ?: '—' }}</td>
+                                <td>{{ $inquiry->result ?: '—' }}</td>
+                                <td>{{ $inquiry->year ?: '—' }}</td>
+                                <td style="max-width: 180px;" class="text-truncate" title="{{ $inquiry->csca_subjects }}">{{ $inquiry->csca_subjects ?: '—' }}</td>
                                 <td>{{ $inquiry->course ?: '—' }}</td>
                                 <td style="max-width: 180px;" class="text-truncate" title="{{ $inquiry->university }}">{{ $inquiry->university ?: '—' }}</td>
                                 <td style="max-width: 140px;" class="text-truncate" title="{{ $inquiry->subject }}">{{ $inquiry->subject ?: '—' }}</td>
@@ -158,7 +165,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="16" class="text-center py-10">
+                                <td colspan="19" class="text-center py-10">
                                     <span class="text-muted font-size-h6">No inquiries found for this branch.</span>
                                 </td>
                             </tr>
@@ -217,7 +224,12 @@
         var url = new URL(window.location.href);
 
         if ($('#branchFilter').length) {
-            url.searchParams.set('branch_id', $('#branchFilter').val());
+            var branch = $('#branchFilter').val();
+            if (branch) {
+                url.searchParams.set('branch_id', branch);
+            } else {
+                url.searchParams.delete('branch_id');
+            }
         }
 
         var type = $('#typeFilter').val();

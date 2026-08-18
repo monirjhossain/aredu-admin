@@ -30,7 +30,7 @@
             </div>
         @endif
 
-        <a href="{{ url('application-form') }}" class="btn submit-btn" style="display: inline-block; width: auto; text-decoration: none; padding: 14px 28px; margin-top: 8px;">
+        <a href="{{ session('inquiry_form_url', url('application-form')) }}" class="btn submit-btn" style="display: inline-block; width: auto; text-decoration: none; padding: 14px 28px; margin-top: 8px;">
             Submit Another Application
         </a>
     </div>

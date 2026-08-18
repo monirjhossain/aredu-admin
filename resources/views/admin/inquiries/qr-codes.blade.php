@@ -1,5 +1,9 @@
 @extends('layouts.default')
 
+@php
+    $publicForms = $publicForms ?? config('inquiry.public_forms', []);
+@endphp
+
 @section('content')
 <div class="content-header">
     <div class="container-fluid">
@@ -20,35 +24,76 @@
 
 <div class="content">
     <div class="container-fluid">
-        <div class="row">
-            @forelse ($branches as $branch)
-                @php
-                    $formUrl = \App\Support\BranchApplicationQr::formUrl($branch);
-                    $qrImageUrl = \App\Support\BranchApplicationQr::imageUrl($branch, 220);
-                    $logoUrl = \App\Support\BranchApplicationQr::logoUrl($branch);
-                @endphp
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-body text-center">
-                            <img src="{{ $logoUrl }}" alt="{{ $branch->name }}" style="max-height: 56px; margin-bottom: 12px;">
-                            <h5 class="font-weight-bold mb-3">{{ $branch->name }}</h5>
-                            <img src="{{ $qrImageUrl }}" alt="QR Code for {{ $branch->name }}" class="img-fluid mb-3" style="max-width: 220px;">
-                            <p class="text-muted small mb-3" style="word-break: break-all;">{{ $formUrl }}</p>
-                            <a href="{{ route('application-qr-codes.show', $branch->id) }}" class="btn btn-primary btn-sm mr-2" target="_blank">
-                                <i class="fas fa-print"></i> Print / Download
-                            </a>
-                            <a href="{{ $formUrl }}" class="btn btn-light-primary btn-sm" target="_blank">
-                                <i class="fas fa-external-link-alt"></i> Open Form
-                            </a>
+        <div class="mb-10">
+            <h3 class="font-weight-bolder mb-1">Application Form</h3>
+            <p class="text-muted mb-6">Branch-wise QR codes for the student application form.</p>
+            <div class="row">
+                @forelse ($branches as $branch)
+                    @php
+                        $formUrl = \App\Support\BranchApplicationQr::formUrl($branch);
+                        $qrImageUrl = \App\Support\BranchApplicationQr::imageUrl($branch, 220);
+                        $logoUrl = \App\Support\BranchApplicationQr::logoUrl($branch);
+                    @endphp
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body text-center">
+                                <img src="{{ $logoUrl }}" alt="{{ $branch->name }}" style="max-height: 56px; margin-bottom: 12px;">
+                                <h5 class="font-weight-bold mb-3">{{ $branch->name }}</h5>
+                                <img src="{{ $qrImageUrl }}" alt="QR Code for {{ $branch->name }}" class="img-fluid mb-3" style="max-width: 220px;">
+                                <p class="text-muted small mb-3" style="word-break: break-all;">{{ $formUrl }}</p>
+                                <a href="{{ route('application-qr-codes.show', $branch->id) }}" class="btn btn-primary btn-sm mr-2" target="_blank">
+                                    <i class="fas fa-print"></i> Print / Download
+                                </a>
+                                <a href="{{ $formUrl }}" class="btn btn-light-primary btn-sm" target="_blank">
+                                    <i class="fas fa-external-link-alt"></i> Open Form
+                                </a>
+                            </div>
                         </div>
                     </div>
-                </div>
-            @empty
-                <div class="col-12">
-                    <div class="alert alert-warning mb-0">No branches found.</div>
-                </div>
-            @endforelse
+                @empty
+                    <div class="col-12">
+                        <div class="alert alert-warning mb-0">No branches found.</div>
+                    </div>
+                @endforelse
+            </div>
         </div>
+
+        @foreach ($publicForms as $type => $form)
+            <div class="mb-10 pt-8 border-top">
+                <h3 class="font-weight-bolder mb-1">{{ $form['type'] }}</h3>
+                <p class="text-muted mb-6">Branch-wise QR codes for the {{ $form['type'] }} form.</p>
+                <div class="row">
+                    @forelse ($branches as $branch)
+                        @php
+                            $courseUrl = \App\Support\BranchApplicationQr::courseFormUrl($branch, $type);
+                            $courseQr = \App\Support\BranchApplicationQr::courseImageUrl($branch, $type, 220);
+                            $logoUrl = \App\Support\BranchApplicationQr::logoUrl($branch);
+                        @endphp
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body text-center">
+                                    <img src="{{ $logoUrl }}" alt="{{ $branch->name }}" style="max-height: 56px; margin-bottom: 12px;">
+                                    <h5 class="font-weight-bold mb-1">{{ $branch->name }}</h5>
+                                    <div class="text-muted font-size-sm mb-3">{{ $form['type'] }}</div>
+                                    <img src="{{ $courseQr }}" alt="{{ $form['type'] }} QR for {{ $branch->name }}" class="img-fluid mb-3" style="max-width: 220px;">
+                                    <p class="text-muted small mb-3" style="word-break: break-all;">{{ $courseUrl }}</p>
+                                    <a href="{{ route('inquiry-qr-codes.show', ['type' => $type, 'branch' => $branch->id]) }}" class="btn btn-primary btn-sm mr-2" target="_blank">
+                                        <i class="fas fa-print"></i> Print / Download
+                                    </a>
+                                    <a href="{{ $courseUrl }}" class="btn btn-light-primary btn-sm" target="_blank">
+                                        <i class="fas fa-external-link-alt"></i> Open Form
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="col-12">
+                            <div class="alert alert-warning mb-0">No branches found.</div>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        @endforeach
     </div>
 </div>
 @endsection

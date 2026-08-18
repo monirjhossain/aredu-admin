@@ -114,6 +114,14 @@
 
     <div class="{{ $columnClass }}">
         @if ($groupClass)<div class="{{ $groupClass }}">@endif
+            <label for="result">Last Result</label>
+            <input type="text" name="result" id="result" value="{{ old('result', $inquiry->result ?? '') }}" class="{{ $inputClass }}" placeholder="GPA / Division">
+            @error('result')<span class="invalid-feedback d-block">{{ $message }}</span>@enderror
+        @if ($groupClass)</div>@endif
+    </div>
+
+    <div class="{{ $columnClass }}">
+        @if ($groupClass)<div class="{{ $groupClass }}">@endif
             <label for="course">Preferred Course</label>
             <select name="course" id="course" class="{{ $inputClass }} @error('course') is-invalid @enderror">
                 <option value="">— Select preferred course —</option>

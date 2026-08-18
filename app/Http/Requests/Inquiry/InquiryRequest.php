@@ -22,6 +22,10 @@ class InquiryRequest extends FormRequest
             'course' => 'nullable|string|max:255',
             'email' => 'required|email|max:255',
             'last_education' => 'required|string|max:255',
+            'result' => 'nullable|string|max:50',
+            'year' => 'nullable|string|max:20',
+            'csca_subject_ids' => 'nullable|array',
+            'csca_subject_ids.*' => 'integer|exists:csca_exams,id',
             'message' => 'nullable|string|max:5000',
             'mobile_no' => 'required|string|max:50',
             'type' => 'nullable|string|max:255',
@@ -44,6 +48,8 @@ class InquiryRequest extends FormRequest
             'mobile_no' => 'phone number',
             'country_preferred' => 'country preferred',
             'last_education' => 'last education',
+            'result' => 'last result',
+            'csca_subject_ids' => 'CSCA subjects',
             'course' => 'preferred course',
             'university_ids' => 'university',
             'university_ids.*' => 'university',
@@ -55,5 +61,14 @@ class InquiryRequest extends FormRequest
     public function messages()
     {
         return [];
+    }
+
+    protected function prepareForValidation()
+    {
+        $ids = array_values(array_filter((array) $this->input('csca_subject_ids', [])));
+
+        $this->merge([
+            'csca_subject_ids' => $ids ?: null,
+        ]);
     }
 }
