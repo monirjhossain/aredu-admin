@@ -37,9 +37,69 @@
         }
 
         .page-wrap {
-            max-width: 720px;
+            max-width: 760px;
             margin: 0 auto;
             padding: 20px 16px 40px;
+        }
+
+        .csca-landing { margin-bottom: 22px; text-align: left; }
+        .csca-kicker {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: #fff; border: 1px solid rgba(249,115,22,.18);
+            color: #c2410c; font-size: .78rem; font-weight: 800;
+            padding: 7px 12px; border-radius: 999px; margin-bottom: 12px;
+        }
+        .csca-lead {
+            font-size: 1.02rem; line-height: 1.8; color: #374151; margin: 0 0 16px;
+        }
+        .csca-courses {
+            display: grid; gap: 10px; margin: 0 0 18px;
+        }
+        .csca-course {
+            background: #fff; border: 1px solid rgba(249,115,22,.12);
+            border-radius: 14px; padding: 12px 14px;
+            font-weight: 700; color: #9a3412; display: flex; gap: 10px; align-items: flex-start;
+            box-shadow: 0 10px 24px rgba(17,24,39,.04);
+        }
+        .csca-course span { color: #16a34a; font-size: 1.05rem; line-height: 1.2; }
+        .csca-note {
+            background: linear-gradient(180deg, #fff7ed 0%, #fff 100%);
+            border: 1px solid rgba(249,115,22,.14);
+            border-radius: 16px; padding: 16px 16px 4px; margin-bottom: 16px;
+        }
+        .csca-note p { margin: 0 0 12px; color: #4b5563; font-size: .94rem; line-height: 1.75; }
+        .csca-stats {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 16px;
+        }
+        .csca-stat {
+            background: #111827; color: #fff; border-radius: 16px; padding: 16px 14px; text-align: center;
+        }
+        .csca-stat strong { display: block; font-size: 1.45rem; font-weight: 800; color: #fb923c; }
+        .csca-stat em { font-style: normal; font-size: .78rem; color: #d1d5db; }
+        .csca-why h3 {
+            margin: 0 0 10px; font-size: 1.08rem; font-weight: 800;
+        }
+        .csca-unis { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+        .csca-uni {
+            background: #fff; border: 1px solid #e5e7eb; border-radius: 999px;
+            padding: 7px 12px; font-size: .78rem; font-weight: 700; color: #374151;
+        }
+        .wa-btn {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; padding: 14px 18px; border-radius: 14px; text-decoration: none;
+            background: #25D366; color: #fff; font-weight: 800; font-size: .98rem;
+            box-shadow: 0 12px 28px rgba(37,211,102,.28); margin: 0 0 10px;
+        }
+        .wa-btn:hover { filter: brightness(1.05); }
+        .wa-sub { text-align: center; color: #6b7280; font-size: .82rem; margin: 0 0 20px; }
+        .wa-float {
+            position: fixed; right: 16px; bottom: 16px; z-index: 80;
+            width: 58px; height: 58px; border-radius: 50%;
+            background: #25D366; color: #fff; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 12px 30px rgba(37,211,102,.4); text-decoration: none;
+        }
+        @media (max-width: 520px) {
+            .csca-stats { grid-template-columns: 1fr; }
         }
 
         .hero {

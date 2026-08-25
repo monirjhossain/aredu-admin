@@ -9,6 +9,8 @@
     $showCscaField = !empty($showCscaField);
     $cscaExams = $cscaExams ?? collect();
     $selectedCscaIds = array_map('intval', (array) old('csca_subject_ids', []));
+    $whatsappUrl = $whatsappUrl ?? null;
+    $typeKey = $typeKey ?? null;
 @endphp
 
 @section('content')
@@ -22,6 +24,10 @@
         <div class="branch-badge">{{ $branch->name }} Branch @if (!empty($typeLabel)) · {{ $typeLabel }} @endif</div>
     @endif
 </div>
+
+@if (($typeKey ?? '') === 'csca')
+    @include('frontend.applications.partials.csca-landing', ['whatsappUrl' => $whatsappUrl])
+@endif
 
 <div class="wizard-card">
     <div class="wizard-progress">

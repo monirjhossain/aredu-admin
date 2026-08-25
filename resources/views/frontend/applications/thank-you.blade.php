@@ -33,6 +33,13 @@
         <a href="{{ session('inquiry_form_url', url('application-form')) }}" class="btn submit-btn" style="display: inline-block; width: auto; text-decoration: none; padding: 14px 28px; margin-top: 8px;">
             Submit Another Application
         </a>
+        @if (session('whatsapp_group_url'))
+            <div style="margin-top: 14px;">
+                <a class="wa-btn" href="{{ session('whatsapp_group_url') }}" target="_blank" rel="noopener" style="max-width: 360px; margin: 0 auto;">
+                    Join Free CSCA WhatsApp Group
+                </a>
+            </div>
+        @endif
     </div>
 </div>
 

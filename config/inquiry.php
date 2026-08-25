@@ -12,9 +12,10 @@ return [
     'public_forms' => [
         'csca' => [
             'type' => 'CSCA',
-            'title' => 'CSCA Inquiry Form',
-            'subtitle' => 'Submit your CSCA details and our team will contact you shortly.',
+            'title' => 'Free CSCA Preparatory Course',
+            'subtitle' => '2027 March & September Intake — সম্পূর্ণ ফ্রি CSCA, Spoken English ও Chinese Language কোর্স।',
             'success' => 'Your CSCA inquiry has been submitted successfully!',
+            'whatsapp' => 'https://chat.whatsapp.com/GfdWN13HhmEBrZHDVGwqcX',
         ],
         'chinese-basic-language-course' => [
             'type' => 'Chinese Basic Language Course',

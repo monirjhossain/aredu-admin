@@ -292,6 +292,7 @@ class InquiryController extends Controller
                 'subtitle' => $config['subtitle'],
                 'typeKey' => $type,
                 'typeLabel' => $config['type'],
+                'whatsappUrl' => $config['whatsapp'] ?? null,
                 'showCscaField' => $type === 'csca',
                 'branch' => $branch,
                 'branchId' => $branch->id,
@@ -338,7 +339,8 @@ class InquiryController extends Controller
                 ->route('application-form.thank-you')
                 ->with('success', $config['success'])
                 ->with('application_tracking_id', $inquiry->tracking_id)
-                ->with('inquiry_form_url', route('inquiry-forms.show', ['type' => $type, 'branch' => $branch->id]));
+                ->with('inquiry_form_url', route('inquiry-forms.show', ['type' => $type, 'branch' => $branch->id]))
+                ->with('whatsapp_group_url', $config['whatsapp'] ?? null);
         } catch (\Throwable $th) {
             DB::rollBack();
 
@@ -543,7 +545,11 @@ class InquiryController extends Controller
     private function resolvePublicFormBranch(Request $request): Branch
     {
         $branchId = (int) $request->query('branch', $request->input('branch_id'));
-        $branch = Branch::find($branchId);
+        $branch = $branchId ? Branch::find($branchId) : null;
+
+        if (!$branch) {
+            $branch = Branch::orderBy('id')->first();
+        }
 
         if (!$branch) {
             abort(404, 'Invalid form link. Please use a valid branch inquiry form.');
