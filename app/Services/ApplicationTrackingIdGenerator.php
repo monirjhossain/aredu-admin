@@ -25,6 +25,12 @@ class ApplicationTrackingIdGenerator
             $nextSerial = ((int) ($matches[1] ?? 0)) + 1;
         }
 
-        return $prefix . str_pad((string) $nextSerial, 4, '0', STR_PAD_LEFT);
+        do {
+            $candidate = $prefix . str_pad((string) $nextSerial, 4, '0', STR_PAD_LEFT);
+            $exists = Inquiry::withTrashed()->where('tracking_id', $candidate)->exists();
+            $nextSerial++;
+        } while ($exists);
+
+        return $candidate;
     }
 }

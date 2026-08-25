@@ -373,7 +373,8 @@
         });
     }
 
-    function goToStep(step) {
+    function goToStep(step, options) {
+        options = options || {};
         currentStep = Math.max(1, Math.min(totalSteps, step));
 
         panels.forEach(function (panel) {
@@ -395,25 +396,31 @@
         if ((currentStep === 2 || currentStep === 3) && typeof window.refreshApplicationMultiSelect === 'function') {
             window.refreshApplicationMultiSelect();
         }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        if (options.scrollToForm) {
+            var card = form.closest('.wizard-card') || form;
+            if (card && card.scrollIntoView) {
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
     }
 
     form.querySelectorAll('[data-action="next"]').forEach(function (btn) {
         btn.addEventListener('click', function () {
-            if (validateStep(currentStep)) goToStep(currentStep + 1);
+            if (validateStep(currentStep)) goToStep(currentStep + 1, { scrollToForm: true });
         });
     });
 
     form.querySelectorAll('[data-action="prev"]').forEach(function (btn) {
         btn.addEventListener('click', function () {
-            goToStep(currentStep - 1);
+            goToStep(currentStep - 1, { scrollToForm: true });
         });
     });
 
     form.addEventListener('submit', function (e) {
         if (!validateStep(1) || !validateStep(2)) {
             e.preventDefault();
-            goToStep(!validateStep(1) ? 1 : 2);
+            goToStep(!validateStep(1) ? 1 : 2, { scrollToForm: true });
             return;
         }
         if (submitBtn) {

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 
 
 class Inquiry extends Model
@@ -75,7 +76,7 @@ class Inquiry extends Model
                 $inquiry->branch_id = Auth::user()->branch;
             }
 
-            if (empty($inquiry->tracking_id) && !empty($inquiry->branch_id)) {
+            if (empty($inquiry->tracking_id) && !empty($inquiry->branch_id) && Schema::hasColumn('inquiries', 'tracking_id')) {
                 $branch = Branch::find($inquiry->branch_id);
                 if ($branch) {
                     $inquiry->tracking_id = app(ApplicationTrackingIdGenerator::class)->generate($branch);

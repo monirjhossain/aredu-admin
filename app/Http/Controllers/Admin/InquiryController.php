@@ -22,6 +22,8 @@ use App\Support\BranchApplicationQr;
 use App\Support\InquiryBranchAccess;
 use App\Traits\UploadAble;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
@@ -313,7 +315,7 @@ class InquiryController extends Controller
         try {
             $nameParts = preg_split('/\s+/', trim($request->input('student_name')), 2);
 
-            $inquiry = Inquiry::create([
+            $payload = $this->filterExistingInquiryColumns([
                 'type' => $config['type'],
                 'branch_id' => $branch->id,
                 'first_name' => $nameParts[0] ?? '',
@@ -324,6 +326,7 @@ class InquiryController extends Controller
                 'country_preferred' => $request->input('country_preferred'),
                 'last_education' => $request->input('last_education'),
                 'result' => $request->input('result'),
+                'year' => (string) date('Y'),
                 'course' => $request->input('course'),
                 'university' => $this->selectionResolver->universityNamesFromRequest($request),
                 'subject' => $this->selectionResolver->subjectNamesFromRequest($request),
@@ -333,21 +336,39 @@ class InquiryController extends Controller
                 'view' => 0,
             ]);
 
+            $inquiry = Inquiry::create($payload);
+
             DB::commit();
 
-            return redirect()
+            $redirect = redirect()
                 ->route('application-form.thank-you')
                 ->with('success', $config['success'])
                 ->with('application_tracking_id', $inquiry->tracking_id)
                 ->with('inquiry_form_url', route('inquiry-forms.show', ['type' => $type, 'branch' => $branch->id]))
-                ->with('whatsapp_group_url', $config['whatsapp'] ?? null);
+                ->with('inquiry_form_type', $type);
+
+            if ($type === 'csca') {
+                $redirect->with(
+                    'whatsapp_group_url',
+                    $config['whatsapp'] ?? 'https://chat.whatsapp.com/GfdWN13HhmEBrZHDVGwqcX'
+                );
+            }
+
+            return $redirect;
         } catch (\Throwable $th) {
             DB::rollBack();
+
+            Log::error('Public inquiry form submit failed', [
+                'type' => $type,
+                'message' => $th->getMessage(),
+                'file' => $th->getFile(),
+                'line' => $th->getLine(),
+            ]);
 
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', 'Something went wrong. Please try again.');
+                ->with('error', 'Submit failed: ' . $th->getMessage());
         }
     }
 
@@ -580,5 +601,18 @@ class InquiryController extends Controller
         $names = CSCAExam::whereIn('id', $examIds)->orderBy('name')->pluck('name')->filter()->implode(', ');
 
         return $names !== '' ? $names : null;
+    }
+
+    private function filterExistingInquiryColumns(array $payload): array
+    {
+        $filtered = [];
+
+        foreach ($payload as $column => $value) {
+            if (Schema::hasColumn('inquiries', $column)) {
+                $filtered[$column] = $value;
+            }
+        }
+
+        return $filtered;
     }
 }
