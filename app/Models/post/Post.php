@@ -39,8 +39,17 @@ class Post extends Model
 
     protected $appends = ['image_url'];
 
-    public function getImageUrlAttribute() {
-        return  url('/').'/'.$this->image;
+    public function getImageUrlAttribute()
+    {
+        if (empty($this->image)) {
+            return null;
+        }
+
+        if (preg_match('#^https?://#i', $this->image)) {
+            return $this->image;
+        }
+
+        return rtrim(config('app.url'), '/') . '/' . ltrim($this->image, '/');
     }
 
     protected static function boot()

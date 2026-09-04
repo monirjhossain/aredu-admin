@@ -84,7 +84,7 @@
                                             <input type="text" name="meta[password]" value="{{ old('meta.password', $post->getMeta('password')) }}" class="form-control" placeholder="Enter">
                                         </div>
                                         <div class="form-group">
-                                            <label class="control-label" for="subjects">Subject / Mejos</label>
+                                            <label class="control-label" for="subjects">Subject / Majors</label>
                                             <div class="flex-wrap border p-3" style="height: 200px; overflow: scroll;">
                                                 @foreach($subjects as $subject)
                                                 <div class="custom-control custom-checkbox" style="margin-right: 20px">
@@ -95,8 +95,44 @@
                                             </div>
                                         </div>
                                         @endif
+                                        @if ($type == 'scholarship')
                                         <div class="form-group">
-                                            <label class="control-label" for="categories">Categories</label>
+                                            <label>Short description</label>
+                                            <textarea name="post_excerpt" rows="3" class="form-control">{{ old('post_excerpt', $post->post_excerpt) }}</textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Coverage</label>
+                                            <select name="meta[coverage]" class="form-control">
+                                                @foreach(['Full','Partial','Full tuition','Varies'] as $cov)
+                                                    <option value="{{ $cov }}" @if(old('meta.coverage', $post->getMeta('coverage'))==$cov) selected @endif>{{ $cov }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Universities count (approx)</label>
+                                            <input type="number" min="0" name="meta[universities]" value="{{ old('meta.universities', $post->getMeta('universities', 0)) }}" class="form-control">
+                                        </div>
+                                        @endif
+                                        @if ($type == 'service')
+                                        <div class="form-group">
+                                            <label>Short summary</label>
+                                            <textarea name="post_excerpt" rows="2" class="form-control">{{ old('post_excerpt', $post->post_excerpt) }}</textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Icon class (Tabler)</label>
+                                            <input type="text" name="meta[icon]" value="{{ old('meta.icon', $post->getMeta('icon', 'ti-briefcase')) }}" class="form-control">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Accent color</label>
+                                            <input type="text" name="meta[color]" value="{{ old('meta.color', $post->getMeta('color', '#E11D2E')) }}" class="form-control">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Background color</label>
+                                            <input type="text" name="meta[bg]" value="{{ old('meta.bg', $post->getMeta('bg', '#FCE8EA')) }}" class="form-control">
+                                        </div>
+                                        @endif
+                                        <div class="form-group">
+                                            <label class="control-label" for="categories">Categories @if($type=='university')(Cities / Provinces)@endif</label>
                                             <div class="flex-wrap border p-3" style="height: 200px; overflow: scroll;">
                                                 @foreach($categories as $category)
                                                 <div class="custom-control custom-checkbox" style="margin-right: 20px">

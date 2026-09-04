@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Session;
 use App\Models\Category;
 use App\Http\Requests\Post\PostRequest;
 use App\Models\Post\Post;
@@ -11,15 +10,52 @@ use App\Models\Post\PostMeta;
 use App\Models\Subject;
 use App\Models\Tag;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 
 class PostController extends Controller
 {
+    /**
+     * Map admin URL prefix → post_type / labels.
+     *
+     * @return array{label:string,type:string,url:string}
+     */
+    private function contentTypeConfig()
+    {
+        $types = [
+            'posts' => ['Post', 'post', 'posts'],
+            'pages' => ['Page', 'page', 'pages'],
+            'sliders' => ['Slider', 'slider', 'sliders'],
+            'universities' => ['University', 'university', 'universities'],
+            'success-story' => ['Success Story', 'success-story', 'success-story'],
+            'events' => ['Event', 'event', 'events'],
+            'testimonials' => ['Testimonial', 'testimonial', 'testimonials'],
+            'scholarships' => ['Scholarship', 'scholarship', 'scholarships'],
+            'services' => ['Service', 'service', 'services'],
+            'videos' => ['Video', 'video', 'videos'],
+        ];
+
+        foreach ($types as $path => $cfg) {
+            if (request()->is($path) || request()->is($path . '/*')) {
+                return [
+                    'label' => $cfg[0],
+                    'type' => $cfg[1],
+                    'url' => $cfg[2],
+                ];
+            }
+        }
+
+        return [
+            'label' => 'Post',
+            'type' => 'post',
+            'url' => 'posts',
+        ];
+    }
+
     public function index(Request $request)
     {
+        $cfg = $this->contentTypeConfig();
         $posts = Post::orderBy('id', 'DESC');
         $data['request'] = $request;
 
@@ -30,53 +66,20 @@ class PostController extends Controller
         }
 
         if ($request->input('search')) {
-            $posts->where('post_title', 'like', '%' . $request->input('search') . '%')
-                ->orWhere('post_name', 'like', '%' . $request->input('search') . '%')
-                ->orWhere('post_content', 'like', '%' . $request->input('search') . '%');
+            $posts->where(function ($q) use ($request) {
+                $q->where('post_title', 'like', '%' . $request->input('search') . '%')
+                    ->orWhere('post_name', 'like', '%' . $request->input('search') . '%')
+                    ->orWhere('post_content', 'like', '%' . $request->input('search') . '%');
+            });
         }
 
-        if (request()->is('posts') || request()->is('posts/*')) {
-            $posts->where('post_type', 'post');
-            $data['title'] = 'Post List';
-            $data['type'] = 'post';
-            $data['url'] = 'posts';
-        }
-        if (request()->is('pages') || request()->is('pages/*')) {
-            $posts->where('post_type', 'page');
-            $data['title'] = 'Page List';
-            $data['type'] = 'page';
-            $data['url'] = 'pages';
-        }
-        if (request()->is('sliders') || request()->is('sliders/*')) {
-            $posts->where('post_type', 'slider');
-            $data['title'] = 'Slider List';
-            $data['type'] = 'slider';
-            $data['url'] = 'sliders';
-        }
-        if (request()->is('universities') || request()->is('universities/*')) {
-            $posts->where('post_type', 'university');
-            $data['title'] = 'University List';
-            $data['type'] = 'university';
-            $data['url'] = 'universities';
+        $posts->where('post_type', $cfg['type']);
+        $data['title'] = $cfg['label'] . ' List';
+        $data['type'] = $cfg['type'];
+        $data['url'] = $cfg['url'];
+
+        if ($cfg['type'] === 'university') {
             $data['subjects'] = Subject::all();
-        }
-        if (request()->is('success-story') || request()->is('success-story/*')) {
-            $posts->where('post_type', 'success-story');
-            $data['title'] = 'success-story List';
-            $data['type'] = 'success-story';
-            $data['url'] = 'success-story';
-        }
-        if (request()->is('events') || request()->is('events/*')) {
-            $posts->where('post_type', 'event');
-            $data['title'] = 'event List';
-            $data['type'] = 'event';
-            $data['url'] = 'events';
-        }
-        if (request()->is('testimonials') || request()->is('testimonials/*')) {
-            $posts->where('post_type', 'testimonial');
-            $data['title'] = 'testimonial List';
-            $data['type'] = 'testimonial';
-            $data['url'] = 'testimonials';
         }
 
         $data['posts'] = $posts->with(['user', 'categories', 'subjects', 'postMetas'])->paginate(20);
@@ -86,63 +89,42 @@ class PostController extends Controller
 
     public function create()
     {
-        if (request()->is('posts') || request()->is('posts/*')) {
-            $data['title'] = 'Post Create';
-            $data['type'] = 'post';
-            $data['url'] = 'posts';
-        }
-        if (request()->is('pages') || request()->is('pages/*')) {
-            $data['title'] = 'Page Create';
-            $data['type'] = 'page';
-            $data['url'] = 'pages';
-        }
-        if (request()->is('sliders') || request()->is('sliders/*')) {
-            $data['title'] = 'Slider Create';
-            $data['type'] = 'slider';
-            $data['url'] = 'sliders';
-        }
-        if (request()->is('universities') || request()->is('universities/*')) {
-            $data['title'] = 'University Create';
-            $data['type'] = 'university';
-            $data['url'] = 'universities';
+        $cfg = $this->contentTypeConfig();
+        $data['title'] = $cfg['label'] . ' Create';
+        $data['type'] = $cfg['type'];
+        $data['url'] = $cfg['url'];
+
+        if ($cfg['type'] === 'university') {
             $data['subjects'] = Subject::orderBy('name', 'ASC')->get();
         }
-        if (request()->is('success-story') || request()->is('success-story/*')) {
-            $data['title'] = 'success-story Create';
-            $data['type'] = 'success-story';
-            $data['url'] = 'success-story';
-        }
-        if (request()->is('events') || request()->is('events/*')) {
-            $data['title'] = 'event Create';
-            $data['type'] = 'event';
-            $data['url'] = 'events';
-        }
-        if (request()->is('testimonials') || request()->is('testimonials/*')) {
-            $data['title'] = 'testimonial Create';
-            $data['type'] = 'testimonial';
-            $data['url'] = 'testimonials';
-        }
+
         $data['tags'] = Tag::orderBy('name', 'ASC')->get();
         $data['categories'] = Category::orderBy('name', 'ASC')->get();
+
         return view('admin.post.create')->with($data);
-}
+    }
 
     public function store(PostRequest $request)
     {
-        // return $request;
         DB::beginTransaction();
         try {
             $post = new Post();
             $postFillableData = $request->only($post->getFillable());
             $post->fill($postFillableData)->save();
             $post->post_author = Auth::user()->id;
+
+            if ($request->filled('post_excerpt')) {
+                $post->post_excerpt = $request->input('post_excerpt');
+            }
+
             if ($request->file('image')) {
                 $image = $post->id . '_' . time() . '.' . $request->image->extension();
                 $request->image->move(public_path('uploads/posts'), $image);
                 $post->image = 'uploads/posts/' . $image;
             }
             $post->save();
-            if($request->post_type == "university"){
+
+            if ($request->post_type == 'university') {
                 $post->subjects()->attach($request->subjects);
             }
             $post->tags()->attach($request->tags);
@@ -151,9 +133,9 @@ class PostController extends Controller
             if ($request->has('meta')) {
                 $data = collect($request->meta)->map(function ($value, $key) use ($post) {
                     return [
-                        'post_id'    => $post->id,
-                        'meta_key'        => $key,
-                        'meta_value'      => $value,
+                        'post_id' => $post->id,
+                        'meta_key' => $key,
+                        'meta_value' => $value,
                     ];
                 })->values()->toArray();
                 PostMeta::insert($data);
@@ -162,134 +144,61 @@ class PostController extends Controller
             DB::commit();
             return redirect()->back()->with('success', 'Successfully Added');
         } catch (\Throwable $th) {
-            // DB::rollback();
-            return $th->getMessage();
-            return redirect()->back()->with('error', 'Operation Failed.');;
+            DB::rollback();
+            return redirect()->back()->with('error', 'Operation Failed: ' . $th->getMessage());
         }
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Post  $post
-     * @return \Illuminate\Http\Response
-     */
     public function show($id)
     {
+        $cfg = $this->contentTypeConfig();
         $data['post'] = Post::findOrFail($id);
-        if (request()->is('posts') || request()->is('posts/*')) {
-            $data['title'] = 'Post View';
-            $data['type'] = 'post';
-            $data['url'] = 'posts';
-        }
-        if (request()->is('pages') || request()->is('pages/*')) {
-            $data['title'] = 'Page View';
-            $data['type'] = 'page';
-            $data['url'] = 'pages';
-        }
-        if (request()->is('sliders') || request()->is('sliders/*')) {
-            $data['title'] = 'Slider View';
-            $data['type'] = 'slider';
-            $data['url'] = 'sliders';
-        }
-        if (request()->is('universities') || request()->is('universities/*')) {
-            $data['title'] = 'University View';
-            $data['type'] = 'university';
-            $data['url'] = 'universities';
-        }
-        if (request()->is('success-story') || request()->is('success-story/*')) {
-            $data['title'] = 'success-story View';
-            $data['type'] = 'success-story';
-            $data['url'] = 'success-story';
-        }
-        if (request()->is('events') || request()->is('events/*')) {
-            $data['title'] = 'event View';
-            $data['type'] = 'event';
-            $data['url'] = 'events';
-        }
-        if (request()->is('testimonials') || request()->is('testimonials/*')) {
-            $data['title'] = 'testimonial View';
-            $data['type'] = 'testimonial';
-            $data['url'] = 'testimonials';
-        }
+        $data['title'] = $cfg['label'] . ' View';
+        $data['type'] = $cfg['type'];
+        $data['url'] = $cfg['url'];
+
         return view('admin.post.show')->with($data);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Post  $post
-     * @return \Illuminate\Http\Response
-     */
     public function edit($id)
     {
+        $cfg = $this->contentTypeConfig();
         $data['post'] = Post::with('postMetas')->findOrFail($id);
-        // $post = Post::with('metas')->findOrFail($id);
-        if (request()->is('posts') || request()->is('posts/*')) {
-            $data['title'] = 'Post Edit';
-            $data['type'] = 'post';
-            $data['url'] = 'posts';
-        }
-        if (request()->is('pages') || request()->is('pages/*')) {
-            $data['title'] = 'Page Edit';
-            $data['type'] = 'page';
-            $data['url'] = 'pages';
-        }
-        if (request()->is('sliders') || request()->is('sliders/*')) {
-            $data['title'] = 'Slider Edit';
-            $data['type'] = 'slider';
-            $data['url'] = 'sliders';
-        }
-        if (request()->is('universities') || request()->is('universities/*')) {
-            $data['title'] = 'University Edit';
-            $data['type'] = 'university';
-            $data['url'] = 'universities';
+        $data['title'] = $cfg['label'] . ' Edit';
+        $data['type'] = $cfg['type'];
+        $data['url'] = $cfg['url'];
+
+        if ($cfg['type'] === 'university') {
             $data['subjects'] = Subject::orderBy('name', 'ASC')->get();
         }
-        if (request()->is('events') || request()->is('events/*')) {
-            $data['title'] = 'event Edit';
-            $data['type'] = 'event';
-            $data['url'] = 'events';
-        }
-        if (request()->is('success-story') || request()->is('success-story/*')) {
-            $data['title'] = 'success-story Edit';
-            $data['type'] = 'success-story';
-            $data['url'] = 'success-story';
-        }
-        if (request()->is('testimonials') || request()->is('testimonials/*')) {
-            $data['title'] = 'testimonial Edit';
-            $data['type'] = 'testimonial';
-            $data['url'] = 'testimonials';
-        }
+
         $data['tags'] = Tag::orderBy('name', 'ASC')->get();
         $data['categories'] = Category::orderBy('name', 'ASC')->get();
-        // return $data;
-        return view('admin.post.edit')->with($data);;
+
+        return view('admin.post.edit')->with($data);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Post  $post
-     * @return \Illuminate\Http\Response
-     */
     public function update(PostRequest $request, $id)
     {
-        // return $request;
         $post = Post::findOrFail($id);
         DB::beginTransaction();
         try {
             $postFillableData = $request->only($post->getFillable());
             $post->fill($postFillableData)->save();
             $post->post_author = Auth::user()->id;
+
+            if ($request->filled('post_excerpt')) {
+                $post->post_excerpt = $request->input('post_excerpt');
+            }
+
             if ($request->file('image')) {
                 $image = $post->id . '_' . time() . '.' . $request->image->extension();
                 $request->image->move(public_path('uploads/posts'), $image);
                 $post->image = 'uploads/posts/' . $image;
             }
             $post->save();
-            if($request->post_type == "university"){
+
+            if ($request->post_type == 'university') {
                 $post->subjects()->sync($request->subjects);
             }
             $post->tags()->sync($request->tags);
@@ -305,20 +214,13 @@ class PostController extends Controller
             }
 
             DB::commit();
-            return redirect()->back()->with('success', 'Successfully Added');
+            return redirect()->back()->with('success', 'Successfully Updated');
         } catch (\Throwable $th) {
             DB::rollback();
-            return $th->getMessage();
-            return redirect()->back()->with('error', 'Operation Failed.');;
+            return redirect()->back()->with('error', 'Operation Failed: ' . $th->getMessage());
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Post  $post
-     * @return \Illuminate\Http\Response
-     */
     public function destroy($id)
     {
         DB::beginTransaction();
@@ -334,29 +236,22 @@ class PostController extends Controller
             return redirect()->back()->with('success', 'Successfully Deleted');
         } catch (\Throwable $th) {
             DB::rollback();
-            return $th->getMessage();
-            return redirect()->back()->with('error', 'Operation Failed.');;
+            return redirect()->back()->with('error', 'Operation Failed: ' . $th->getMessage());
         }
-        return redirect()->back();
     }
 
     public function exportSeeder()
     {
-        // 1. Get all posts data
         $posts = DB::table('posts')->get()->toArray();
-
-        // 2. Convert objects to arrays
         $postsArray = array_map(function ($post) {
             return (array) $post;
         }, $posts);
 
-        // 3. Seeder content
         $seederContent = "<?php\n\nnamespace Database\\Seeders;\n\nuse Illuminate\\Database\\Seeder;\nuse Illuminate\\Support\\Facades\\DB;\n\nclass PostsTableSeeder extends Seeder\n{\n    public function run()\n    {\n        DB::table('posts')->insert(" . var_export($postsArray, true) . ");\n    }\n}\n";
 
-        // 4. Save file
         $filePath = database_path('seeders/PostsTableSeeder.php');
         File::put($filePath, $seederContent);
 
-        return "Seeder created at: " . $filePath;
+        return 'Seeder created at: ' . $filePath;
     }
 }

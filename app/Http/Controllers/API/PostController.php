@@ -2,191 +2,143 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Session;
-use App\Models\Category;
-use App\District;
-use App\Division;
-use App\Http\Requests\Post\PostRequest;
+use App\Http\Controllers\API\BaseController;
 use App\Models\Post\Post;
-use App\Models\Tag;
-use App\Upazila;
-use Carbon\Carbon;
-use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use GuzzleHttp\Client;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class PostController extends BaseController
 {
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
+     * Public post list for website (university, blog, event, scholarship, etc.).
      */
-
     public function index(Request $request)
     {
-        $post_type = $request->input('post_type');
-        $posts = Post::orderBy('id', 'DESC');
-        if($post_type){
-            $posts->where('post_type', $post_type);
+        $postType = $request->input('post_type');
+        $perPage = (int) $request->input('per_page', 20);
+        $perPage = $perPage > 0 && $perPage <= 100 ? $perPage : 20;
+
+        $posts = Post::query()
+            ->with([
+                'categories:id,name,slug',
+                'tags:id,name,slug',
+                'subjects:id,name',
+                'postMetas',
+            ])
+            ->orderByDesc('id');
+
+        if ($postType) {
+            $posts->where('post_type', $postType);
         }
-        $data['posts'] = $posts->with('categories', 'tags')->paginate(20);
+
+        // Optional publish filter — only when client asks (?status=1)
+        if ($request->filled('status')) {
+            $posts->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $posts->where(function ($q) use ($search) {
+                $q->where('post_title', 'like', '%' . $search . '%')
+                    ->orWhere('post_content', 'like', '%' . $search . '%')
+                    ->orWhere('post_name', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Filter universities by city/category slug or id
+        $category = $request->input('category', $request->input('city'));
+        if ($category) {
+            $posts->whereHas('categories', function ($q) use ($category) {
+                if (ctype_digit((string) $category)) {
+                    $q->where('categories.id', $category);
+                } else {
+                    $q->where('categories.slug', $category)
+                        ->orWhere('categories.name', $category);
+                }
+            });
+        }
+
+        // Filter by major/subject id or name
+        $subject = $request->input('subject', $request->input('major'));
+        if ($subject) {
+            $posts->whereHas('subjects', function ($q) use ($subject) {
+                if (ctype_digit((string) $subject)) {
+                    $q->where('subjects.id', $subject);
+                } else {
+                    $q->where('subjects.name', 'like', '%' . $subject . '%');
+                }
+            });
+        }
+
+        // Filter by tag slug/name
+        if ($request->filled('tag')) {
+            $tag = $request->input('tag');
+            $posts->whereHas('tags', function ($q) use ($tag) {
+                if (ctype_digit((string) $tag)) {
+                    $q->where('tags.id', $tag);
+                } else {
+                    $q->where('tags.slug', $tag)
+                        ->orWhere('tags.name', 'like', '%' . $tag . '%');
+                }
+            });
+        }
+
+        // Universities that appear to offer scholarships
+        if ($request->boolean('scholarship')) {
+            $posts->where(function ($q) {
+                $q->where('post_title', 'like', '%scholarship%')
+                    ->orWhere('post_content', 'like', '%scholarship%')
+                    ->orWhereHas('tags', function ($tq) {
+                        $tq->where('name', 'like', '%scholarship%');
+                    });
+            });
+        }
+
+        $data['posts'] = $posts->paginate($perPage);
+
         return $this->sendResponse($data, 'successfully.');
-        // return view('admin.post.index', compact('posts'));
-
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        $tags = Tag::all();
-        $categories = Category::all();
-        return view('admin.post.create', compact(['categories', 'tags']));
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(PostRequest $request)
-    {
-        DB::beginTransaction();
-        try {
-            $post = new Post();
-            $postFillableData = $request->only($post->getFillable());
-            $post->fill($postFillableData)->save();
-            $post->post_author = Auth::user()->id;
-            if ($request->file('image')) {
-                $image = $post->id . '_' . time() . '.' . $request->image->extension();
-                $request->image->move(public_path('uploads/posts'), $image);
-                $post->image = 'uploads/posts/' . $image;
-            }
-            $post->save();
-            $post->tags()->attach($request->tags);
-            $post->categories()->attach($request->categories);
-            DB::commit();
-            Session::flash('success', 'Post created successfully');
-            return redirect()->back()->with('success', 'Successfully Added');
-        } catch (\Throwable $th) {
-            DB::rollback();
-            return $th->getMessage();
-            return redirect()->back()->with('error', 'Operation Failed.');;
-        }
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Post  $post
-     * @return \Illuminate\Http\Response
+     * Single post by numeric id or "id-slug" / slug.
      */
     public function show($id)
     {
-        $data['post'] = Post::findOrfail($id);
-        return $this->sendResponse($data, 'successfully.');
+        $post = $this->resolvePost($id);
+
+        if (!$post) {
+            return $this->sendError('Post not found.', ['error' => 'Post not found.'], 404);
+        }
+
+        $post->load([
+            'categories:id,name,slug',
+            'tags:id,name,slug',
+            'subjects:id,name',
+            'postMetas',
+        ]);
+
+        return $this->sendResponse(['post' => $post], 'successfully.');
     }
 
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Post  $post
-     * @return \Illuminate\Http\Response
+     * @param  string|int  $id
+     * @return Post|null
      */
-    public function edit(Post $post)
+    private function resolvePost($id)
     {
-        $tags = Tag::all();
-        $categories = Category::all();
-        return view('admin.post.edit', compact(['post', 'categories', 'tags']));
-    }
+        $raw = (string) $id;
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Post  $post
-     * @return \Illuminate\Http\Response
-     */
-    public function update(PostRequest $request, Post $post)
-    {
-        DB::beginTransaction();
-        try {
-            // $post = new Post();
-            $postFillableData = $request->only($post->getFillable());
-            $post->fill($postFillableData)->save();
-            $post->post_author = Auth::user()->id;
-            if ($request->file('image')) {
-                $image = $post->id . '_' . time() . '.' . $request->image->extension();
-                $request->image->move(public_path('uploads/posts'), $image);
-                $post->image = 'uploads/posts/' . $image;
-            }
-            $post->save();
-            $post->tags()->sync($request->tags);
-            $post->categories()->sync($request->categories);
-            DB::commit();
-            return redirect()->back()->with('success', 'Successfully Added');
-        } catch (\Throwable $th) {
-            DB::rollback();
-            return $th->getMessage();
-            return redirect()->back()->with('error', 'Operation Failed.');;
+        if (ctype_digit($raw)) {
+            return Post::find($raw);
         }
 
-        if ($request->hasFile('image')) {
-            if ($post->image != null) {
-                Storage::disk('public')->delete($post->image);
+        // Frontend routes use "{id}-{post_name}"
+        if (preg_match('/^(\d+)/', $raw, $m)) {
+            $post = Post::find($m[1]);
+            if ($post) {
+                return $post;
             }
-            $image = $request->image;
-            $image_new_name = time() . '.' . $image->getClientOriginalExtension();
-            $image->move('storage/post/', $image_new_name);
-            $post->image = '/storage/post/' . $image_new_name;
-        }
-        $post->save();
-
-        Session::flash('success', 'Post updated successfully');
-        return redirect()->back();
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Post  $post
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Post $post)
-    {
-        if ($post) {
-            if (file_exists(public_path($post->image))) {
-                unlink(public_path($post->image));
-            }
-
-            $post->delete();
-            Session::flash('Post deleted successfully');
         }
 
-        return redirect()->back();
-    }
-
-    public function upazilas(Request $request)
-    {
-
-        if ($request->ajax()) {
-            if ($request->id == null) {
-                return response()->json([
-                    'upazilas' => Upazila::all()
-                ]);
-            }
-            return response()->json([
-                'upazilas' => Upazila::where('district_id', $request->id)->get()
-            ]);
-        }
+        return Post::where('post_name', $raw)->first();
     }
 }

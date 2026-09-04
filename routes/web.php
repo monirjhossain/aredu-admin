@@ -88,6 +88,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('events', PostController::class);
     Route::resource('success-story', PostController::class);
     Route::resource('universities', PostController::class);
+    Route::resource('scholarships', PostController::class);
     Route::resource('videos', PostController::class);
     Route::resource('todo', TodoController::class);
     Route::resource('task', TaskController::class);
@@ -137,6 +138,8 @@ Route::middleware('auth')->group(function () {
         Route::resource('university_status', SettingController::class);
         Route::resource('sms_template', SettingController::class);
         Route::resource('csca_exam', CSCAExamController::class);
+        Route::get('website', [\App\Http\Controllers\Admin\WebsiteSettingController::class, 'edit'])->name('website.edit');
+        Route::put('website', [\App\Http\Controllers\Admin\WebsiteSettingController::class, 'update'])->name('website.update');
     });
 
     Route::resource('currencies', CurrencyController::class);
