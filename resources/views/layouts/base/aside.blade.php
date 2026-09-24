@@ -153,12 +153,14 @@
                     <div class="menu-submenu">
                         <i class="menu-arrow"></i>
                         <ul class="menu-subnav">
+                            @if(Route::has('setting.website.edit') && in_array(auth()->user()->role_id, [1]))
                             <li class="menu-item {{ request()->is('setting/website') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="{{ route('setting.website.edit') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                     <span class="menu-text font-weight-bolder">Website Settings</span>
                                 </a>
                             </li>
+                            @endif
                             <li class="menu-item {{ request()->is('universities') || request()->is('universities/*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="{{ route('universities.index') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
