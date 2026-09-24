@@ -140,7 +140,7 @@
                 </li>
                 @endif
 
-                @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,3,4,5,6,7,8,9,10]))
+                @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,7]))
                 <li class="menu-item {{ request()->is('posts*') || request()->is('universities*') || request()->is('scholarships*') || request()->is('services*') || request()->is('pages*') || request()->is('success-story*') || request()->is('events*') || request()->is('testimonials*') || request()->is('sliders*') || request()->is('videos*') || request()->is('category*') || request()->is('tag*') || request()->is('setting/website*') || request()->is('setting/subjects*') || request()->is('setting/studies*') ? 'menu-item-open' : '' }}"
                     aria-haspopup="true" data-menu-toggle="hover">
                     <a href="javascript:;" class="menu-link menu-toggle">
@@ -161,90 +161,118 @@
                                 </a>
                             </li>
                             @endif
+                            @if(Route::has('universities.index'))
                             <li class="menu-item {{ request()->is('universities') || request()->is('universities/*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="{{ route('universities.index') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                     <span class="menu-text font-weight-bolder">Universities</span>
                                 </a>
                             </li>
+                            @endif
+                            @if(Route::has('scholarships.index'))
                             <li class="menu-item {{ request()->is('scholarships') || request()->is('scholarships/*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="{{ route('scholarships.index') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                     <span class="menu-text font-weight-bolder">Scholarships</span>
                                 </a>
                             </li>
+                            @endif
+                            @if(Route::has('services.index'))
                             <li class="menu-item {{ request()->is('services') || request()->is('services/*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="{{ route('services.index') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                     <span class="menu-text font-weight-bolder">Services</span>
                                 </a>
                             </li>
+                            @endif
+                            @if(Route::has('category.index'))
                             <li class="menu-item {{ request()->is('category') || request()->is('category/*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="{{ route('category.index') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                     <span class="menu-text font-weight-bolder">Cities / Categories</span>
                                 </a>
                             </li>
+                            @endif
+                            @if(Route::has('setting.subjects.index'))
                             <li class="menu-item {{ request()->is('setting/subjects') || request()->is('setting/subjects/*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="{{ route('setting.subjects.index') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                     <span class="menu-text font-weight-bolder">Majors / Subjects</span>
                                 </a>
                             </li>
+                            @endif
+                            @if(Route::has('setting.studies.index'))
                             <li class="menu-item {{ request()->is('setting/studies') || request()->is('setting/studies/*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="{{ route('setting.studies.index') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                     <span class="menu-text font-weight-bolder">Degree Levels</span>
                                 </a>
                             </li>
+                            @endif
+                            @if(Route::has('posts.index'))
                             <li class="menu-item {{ request()->is('posts') || request()->is('posts/*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="{{ route('posts.index') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                     <span class="menu-text font-weight-bolder">Blogs / Posts</span>
                                 </a>
                             </li>
+                            @endif
+                            @if(Route::has('pages.index'))
                             <li class="menu-item {{ request()->is('pages') || request()->is('pages/*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="{{ route('pages.index') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                     <span class="menu-text font-weight-bolder">Pages</span>
                                 </a>
                             </li>
+                            @endif
+                            @if(Route::has('events.index'))
                             <li class="menu-item {{ request()->is('events') || request()->is('events/*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="{{ route('events.index') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                     <span class="menu-text font-weight-bolder">Events</span>
                                 </a>
                             </li>
+                            @endif
+                            @if(Route::has('success-story.index'))
                             <li class="menu-item {{ request()->is('success-story') || request()->is('success-story/*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="{{ route('success-story.index') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                     <span class="menu-text font-weight-bolder">Success Stories</span>
                                 </a>
                             </li>
+                            @endif
+                            @if(Route::has('testimonials.index'))
                             <li class="menu-item {{ request()->is('testimonials') || request()->is('testimonials/*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="{{ route('testimonials.index') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                     <span class="menu-text font-weight-bolder">Testimonials</span>
                                 </a>
                             </li>
+                            @endif
+                            @if(Route::has('sliders.index'))
                             <li class="menu-item {{ request()->is('sliders') || request()->is('sliders/*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="{{ route('sliders.index') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                     <span class="menu-text font-weight-bolder">Sliders</span>
                                 </a>
                             </li>
+                            @endif
+                            @if(Route::has('videos.index'))
                             <li class="menu-item {{ request()->is('videos') || request()->is('videos/*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="{{ route('videos.index') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                     <span class="menu-text font-weight-bolder">Videos</span>
                                 </a>
                             </li>
+                            @endif
+                            @if(Route::has('tag.index'))
                             <li class="menu-item {{ request()->is('tag') || request()->is('tag/*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="{{ route('tag.index') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                     <span class="menu-text font-weight-bolder">Tags</span>
                                 </a>
                             </li>
+                            @endif
                         </ul>
                     </div>
                 </li>
