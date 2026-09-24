@@ -248,8 +248,8 @@
                 </li>
                 @endif
 
-                @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,3,5,6]))
-                <li class="menu-item {{ request()->is('inquiries') ? 'menu-item-open' : '' }} {{ request()->is('inquiries/*') ? 'menu-item-open' : '' }}"
+                @if(auth()->check())
+                <li class="menu-item {{ request()->is('inquiries') ? 'menu-item-open' : '' }} {{ request()->is('inquiries/*') ? 'menu-item-open' : '' }} {{ request()->is('application-qr-codes') || request()->is('application-qr-codes/*') ? 'menu-item-open' : '' }}"
                     aria-haspopup="true" data-menu-toggle="hover">
                     <a href="javascript:;" class="menu-link menu-toggle">
                         <span class="menu-text font-weight-bolder"><i class="fas fa-inbox"></i>Inquiries</span>
@@ -258,7 +258,7 @@
                     <div class="menu-submenu">
                         <i class="menu-arrow"></i>
                         <ul class="menu-subnav">
-                            <li class="menu-item {{ request()->is('inquiries') ? 'menu-item-active' : '' }}""
+                            <li class="menu-item {{ request()->is('inquiries') && !request()->is('inquiries/*') ? 'menu-item-active' : '' }}"
                                 aria-haspopup="true">
                                 <a href="{{ route('inquiries.index') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
@@ -272,7 +272,7 @@
                                     <span class="menu-text font-weight-bolder">Add New</span>
                                 </a>
                             </li>
-                            <li class="menu-item {{ request()->is('application-qr-codes') ? 'menu-item-active' : '' }}"
+                            <li class="menu-item {{ request()->is('application-qr-codes') || request()->is('application-qr-codes/*') ? 'menu-item-active' : '' }}"
                                 aria-haspopup="true">
                                 <a href="{{ route('application-qr-codes') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
