@@ -39,6 +39,39 @@
                 <a href="{{ route('students.index') }}" class="dashboard-kpi-card__link">View students</a>
             </div>
         </div>
+
+        <div class="col-12 col-sm-6 col-xl-3 mb-3 mb-md-4">
+            <div class="dashboard-kpi-card dashboard-kpi-card--warning">
+                <div class="dashboard-kpi-card__icon"><i class="fas fa-exchange-alt"></i></div>
+                <div class="dashboard-kpi-card__body">
+                    <span class="dashboard-kpi-card__value">{{ number_format($c['carry_over_students'] ?? 0) }}</span>
+                    <span class="dashboard-kpi-card__label">Carry-over Students</span>
+                </div>
+                <a href="{{ route('students.index', ['carry_over' => 1]) }}" class="dashboard-kpi-card__link">View carry-overs</a>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3 mb-3 mb-md-4">
+            <div class="dashboard-kpi-card dashboard-kpi-card--purple">
+                <div class="dashboard-kpi-card__icon"><i class="fas fa-pause-circle"></i></div>
+                <div class="dashboard-kpi-card__body">
+                    <span class="dashboard-kpi-card__value">{{ number_format($c['deferred_attempts'] ?? 0) }}</span>
+                    <span class="dashboard-kpi-card__label">Deferred Attempts</span>
+                </div>
+                <a href="{{ route('students.index', ['carry_over' => 1]) }}" class="dashboard-kpi-card__link">View list</a>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3 mb-3 mb-md-4">
+            <div class="dashboard-kpi-card dashboard-kpi-card--danger">
+                <div class="dashboard-kpi-card__icon"><i class="fas fa-folder-open"></i></div>
+                <div class="dashboard-kpi-card__body">
+                    <span class="dashboard-kpi-card__value">{{ number_format($c['file_back_attempts'] ?? 0) }}</span>
+                    <span class="dashboard-kpi-card__label">File Back Attempts</span>
+                </div>
+                <a href="{{ route('students.index', ['carry_over' => 1]) }}" class="dashboard-kpi-card__link">View list</a>
+            </div>
+        </div>
         @endif
 
         @if ($hasApplicationKpi)

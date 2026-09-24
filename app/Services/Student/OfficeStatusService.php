@@ -39,6 +39,8 @@ class OfficeStatusService
         $student->load('student_status');
         $newStatusName = optional($student->student_status)->name;
 
+        app(StudentIntakeAttemptService::class)->syncStatusToActiveAttempt($student, $newStatusId);
+
         $this->notifyChange($student, $oldStatusName, $newStatusName, 'status_changed', true);
 
         return ['changed' => true, 'status_name' => $newStatusName];

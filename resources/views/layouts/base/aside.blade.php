@@ -330,11 +330,18 @@
                                     <span class="menu-text font-weight-bolder">Add New</span>
                                 </a>
                             </li>
-                            <li class="menu-item {{ request()->is('students') ? 'menu-item-active' : '' }}"
+                            <li class="menu-item {{ request()->is('students') && !request()->filled('carry_over') && !request()->filled('universitylist') && !request()->filled('statuslist') && !request()->filled('branch_id') ? 'menu-item-active' : '' }}"
                                 aria-haspopup="true">
                                 <a href="{{ route('students.index') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                     <span class="menu-text font-weight-bolder">All students</span>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ request()->is('students') && request()->query('carry_over') == '1' ? 'menu-item-active' : '' }}"
+                                aria-haspopup="true">
+                                <a href="{{ route('students.index', ['carry_over' => 1]) }}" class="menu-link">
+                                    <i class="menu-bullet menu-bullet-dot"><span></span></i>
+                                    <span class="menu-text font-weight-bolder">Carry-over Students</span>
                                 </a>
                             </li>
                             @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,3]))

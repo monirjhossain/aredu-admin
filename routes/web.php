@@ -107,6 +107,10 @@ Route::middleware('auth')->group(function () {
         ->name('inquiries.convert-to-student');
     Route::patch('students/{student}/office-status', [StudentController::class, 'updateOfficeStatus'])
         ->name('students.update-office-status');
+    Route::post('students/{student}/carry-over-intake', [StudentController::class, 'carryOverIntake'])
+        ->name('students.carry-over-intake');
+    Route::post('students/{student}/intake-attempt-notes', [StudentController::class, 'addIntakeAttemptNote'])
+        ->name('students.intake-attempt-notes.store');
     Route::post('students/{student}/subjects', [StudentController::class, 'attachSubject'])
         ->name('students.attach-subject');
     Route::post('students/{student}/universities', [StudentController::class, 'attachUniversity'])

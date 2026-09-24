@@ -1,7 +1,7 @@
 @php
     $charts = $charts ?? [];
     $hasApplicationsChart = isset($charts['applications_by_status']);
-    $hasStudentCharts = isset($charts['monthly_students']) || isset($charts['office_student_status']) || isset($charts['students_by_intake']);
+    $hasStudentCharts = isset($charts['monthly_students']) || isset($charts['office_student_status']) || isset($charts['students_by_intake']) || isset($charts['intake_attempt_outcomes']);
     $hasBranchChart = isset($charts['students_by_branch']);
     $hasCounselorChart = isset($charts['counselor_wise_students']);
     $hasFinanceCharts = isset($charts['monthly_revenue']) || isset($charts['paid_vs_due']) || isset($charts['monthly_invoice_count']) || isset($charts['income_vs_expense']);
@@ -59,6 +59,19 @@
                 </div>
                 <div class="card-body">
                     <div id="chart-students-by-intake" class="dashboard-chart"></div>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        @if (isset($charts['intake_attempt_outcomes']))
+        <div class="col-12 col-lg-6 mb-3 mb-md-4">
+            <div class="card card-custom dashboard-chart-card h-100">
+                <div class="card-header border-0 pt-4 pt-lg-5 pb-0">
+                    <h5 class="card-title font-weight-bolder mb-0">Intake Attempt Outcomes</h5>
+                </div>
+                <div class="card-body">
+                    <div id="chart-intake-attempt-outcomes" class="dashboard-chart"></div>
                 </div>
             </div>
         </div>

@@ -70,6 +70,9 @@
                     @if($student->intake)
                         <span class="mb-1"><i class="fas fa-calendar-alt"></i>{{ $student->intake }}</span>
                     @endif
+                    @if($student->st_office_id)
+                        <span class="mb-1 ml-md-5"><i class="fas fa-id-card"></i>{{ $student->st_office_id }}</span>
+                    @endif
                 </div>
             </div>
         </div>
@@ -124,6 +127,8 @@
             @endforeach
         </div>
     </div>
+
+    @include('admin.students.partials.intake-history')
 
     <div class="card card-custom student-info-card gutter-b">
         <div class="card-header">

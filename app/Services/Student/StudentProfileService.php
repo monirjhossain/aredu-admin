@@ -26,6 +26,9 @@ class StudentProfileService
         'universitiesAppStatus.subject',
         'universitiesAppStatus.statusUni',
         'universitiesAppStatus.statusAll.statusUni',
+        'intakeAttempts.status',
+        'intakeAttempts.notes.createdBy',
+        'currentIntakeAttempt.status',
     ];
 
     /**
@@ -81,6 +84,9 @@ class StudentProfileService
                 ->get(),
             'intakeOptions' => IntakeOptions::list(),
             'defaultIntake' => IntakeOptions::defaultForStudent($student->intake),
+            'intakeAttempts' => $student->intakeAttempts,
+            'intakeOutcomeLabels' => \App\Models\Student\StudentIntakeAttempt::outcomeLabels(),
+            'canCarryOverIntake' => Gate::allows('manage', $student),
         ];
     }
 }

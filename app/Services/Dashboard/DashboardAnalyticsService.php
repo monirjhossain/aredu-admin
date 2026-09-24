@@ -49,6 +49,7 @@ class DashboardAnalyticsService
             $charts['monthly_students'] = $this->monthlyNewStudents($user, $branchId, $counselorOnly);
             $charts['office_student_status'] = $this->officeStudentStatus($user, $branchId, $counselorOnly);
             $charts['students_by_intake'] = $this->studentsByIntake($user, $branchId, $counselorOnly);
+            $charts['intake_attempt_outcomes'] = $this->intakeAttemptOutcomes($user, $branchId, $counselorOnly);
         }
         if ($access['sections']['charts_branch'] ?? false) {
             $charts['students_by_branch'] = $this->studentsByBranch();
@@ -90,6 +91,11 @@ class DashboardAnalyticsService
                 ->whereYear('created_at', $now->year)
                 ->whereMonth('created_at', $now->month)
                 ->count(),
+            'carry_over_students' => (clone $studentQuery)
+                ->whereHas('intakeAttempts', null, '>=', 2)
+                ->count(),
+            'deferred_attempts' => $this->countAttemptsByOutcome($user, $branchId, $counselorOnly, 'deferred'),
+            'file_back_attempts' => $this->countAttemptsByOutcome($user, $branchId, $counselorOnly, 'file_back'),
         ];
     }
 
@@ -288,6 +294,45 @@ class DashboardAnalyticsService
             'categories' => $rows->pluck('intake')->map(static fn ($v) => (string) $v)->all(),
             'data' => $rows->pluck('total')->map(static fn ($v) => (int) $v)->all(),
         ];
+    }
+
+    /**
+     * @return array{categories: string[], data: int[]}
+     */
+    private function intakeAttemptOutcomes(User $user, int $branchId, bool $counselorOnly): array
+    {
+        $labels = \App\Models\Student\StudentIntakeAttempt::outcomeLabels();
+        $studentIds = $this->studentsQuery($user, $branchId, $counselorOnly)->pluck('id');
+
+        $counts = \App\Models\Student\StudentIntakeAttempt::query()
+            ->select('outcome', DB::raw('COUNT(*) as total'))
+            ->whereIn('student_id', $studentIds)
+            ->whereNotNull('outcome')
+            ->groupBy('outcome')
+            ->pluck('total', 'outcome');
+
+        $categories = [];
+        $data = [];
+        foreach ($labels as $key => $label) {
+            $categories[] = $label;
+            $data[] = (int) ($counts[$key] ?? 0);
+        }
+
+        return ['categories' => $categories, 'data' => $data];
+    }
+
+    private function countAttemptsByOutcome(User $user, int $branchId, bool $counselorOnly, string $outcome): int
+    {
+        $studentIds = $this->studentsQuery($user, $branchId, $counselorOnly)->pluck('id');
+
+        if ($studentIds->isEmpty()) {
+            return 0;
+        }
+
+        return (int) \App\Models\Student\StudentIntakeAttempt::query()
+            ->whereIn('student_id', $studentIds)
+            ->where('outcome', $outcome)
+            ->count();
     }
 
     /**

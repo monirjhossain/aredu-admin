@@ -96,6 +96,16 @@ class Student extends Model
         return $this->belongsTo(StudentStatus::class, 'status');
     }
 
+    public function intakeAttempts()
+    {
+        return $this->hasMany(StudentIntakeAttempt::class)->orderByDesc('started_at')->orderByDesc('id');
+    }
+
+    public function currentIntakeAttempt()
+    {
+        return $this->belongsTo(StudentIntakeAttempt::class, 'current_intake_attempt_id');
+    }
+
     public function documents()
     {
         return $this->belongsToMany(Document::class);
@@ -195,6 +205,10 @@ class Student extends Model
             } while ($exists);
 
             $student->st_office_id = $candidate;
+        });
+
+        static::created(function ($student) {
+            app(\App\Services\Student\StudentIntakeAttemptService::class)->ensureInitialAttempt($student);
         });
 
     }

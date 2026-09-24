@@ -194,6 +194,13 @@
         color: '#8950fc',
     }]);
 
+    var attemptOutcomes = data.intake_attempt_outcomes || { categories: [], data: [] };
+    renderColumnBar('chart-intake-attempt-outcomes', attemptOutcomes.categories, [{
+        name: 'Attempts',
+        data: attemptOutcomes.data,
+        color: '#f64e60',
+    }]);
+
     var byBranch = data.students_by_branch || { categories: [], data: [] };
     renderColumnBar('chart-students-by-branch', byBranch.categories, [{
         name: 'Students',

@@ -128,6 +128,12 @@
                             <option value="no" {{ $request->has_csca === 'no' ? 'selected' : '' }}>No</option>
                         </select>
                     </div>
+                    <div class="col mb-2">
+                        <select name="carry_over" class="form-control">
+                            <option value="">-Carry-over-</option>
+                            <option value="1" {{ $request->carry_over === '1' ? 'selected' : '' }}>Carry-over only</option>
+                        </select>
+                    </div>
                     <input id="print" type="hidden" name="print" value="no">
                     <input id="export" type="hidden" name="export" value="no">
                 </div>
@@ -212,6 +218,9 @@
                                     'wrapClass' => 'student-office-status-wrap',
                                 ])
                                 <span class="badge badge-primary mt-1">{{ $item->intake }}</span>
+                                @if(($item->intake_attempts_count ?? 0) >= 2)
+                                    <span class="badge badge-warning mt-1">Carry-over</span>
+                                @endif
                             </td>
                             <td>{{ $item->studyLevel->name ?? '' }}</td>
                             <td class="uni-status-cell--stacked">

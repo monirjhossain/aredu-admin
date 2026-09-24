@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Student\StudentRequest;
 use App\Http\Requests\Student\AttachStudentSubjectRequest;
 use App\Http\Requests\Student\AttachStudentUniversityRequest;
+use App\Http\Requests\Student\AddIntakeAttemptNoteRequest;
+use App\Http\Requests\Student\CarryOverIntakeRequest;
 use App\Http\Requests\Student\UpdateOfficeStatusRequest;
 use App\Queries\StudentCscaQuery;
 use App\Mail\MailSystem;
@@ -21,9 +23,11 @@ use App\Models\CSCAExam;
 use App\Models\Role;
 use App\Models\SmsTemplate;
 use App\Models\Student\Student;
+use App\Models\Student\StudentIntakeAttempt;
 use App\Models\Student\StudentUniversity;
 use App\Models\StudentStatus;
 use App\Services\Student\OfficeStatusService;
+use App\Services\Student\StudentIntakeAttemptService;
 use App\Services\Student\UniversityApplicationListService;
 use App\Models\Study;
 use App\Models\UniversityStatus;
@@ -50,12 +54,17 @@ class StudentController extends Controller
     /** @var UniversityApplicationListService */
     private $applicationListService;
 
+    /** @var StudentIntakeAttemptService */
+    private $intakeAttemptService;
+
     public function __construct(
         OfficeStatusService $officeStatusService,
-        UniversityApplicationListService $applicationListService
+        UniversityApplicationListService $applicationListService,
+        StudentIntakeAttemptService $intakeAttemptService
     ) {
         $this->officeStatusService = $officeStatusService;
         $this->applicationListService = $applicationListService;
+        $this->intakeAttemptService = $intakeAttemptService;
     }
 
     private function normalizeCscaExamPayload(?array $cscaExams): array
@@ -201,6 +210,11 @@ class StudentController extends Controller
         }
         if ($request->input('intake')) {
             $students->where('intake', $request->input('intake'));
+        }
+        if ($request->input('carry_over') === '1') {
+            $students->whereHas('intakeAttempts', function ($q) {
+                $q->whereNull('deleted_at');
+            }, '>=', 2);
         }
         StudentCscaQuery::apply($students, $request->input('has_csca'));
         if ($request->input('student_statuses')) {
@@ -375,6 +389,7 @@ class StudentController extends Controller
                 'branchInfo:id,name',
                 'user:id,name',
             ])
+            ->withCount('intakeAttempts')
             ->orderBy('st_office_id', 'DESC')
             ->paginate($perPage);
         $data['title'] = 'Student List - Total: ' . $totalStudent;
@@ -590,10 +605,12 @@ class StudentController extends Controller
         try {
             $oldStatus = $student->status;
             $oldStatusName = optional($student->student_status)->name;
+            $oldIntake = (string) ($student->intake ?? '');
             $oldNote = isset($student->note) ? trim((string) $student->note) : '';
             $oldRemarks = isset($student->remarks) ? trim((string) $student->remarks) : '';
             // $student = new Student();
             $studentFillableData = $request->only($student->getFillable());
+            unset($studentFillableData['st_office_id']);
             $student->fill($studentFillableData)->save();
             $student->user_id = Auth::user()->id;
             $student->save();
@@ -601,7 +618,15 @@ class StudentController extends Controller
             $newRemarks = isset($student->remarks) ? trim((string) $student->remarks) : '';
 
             $statusChanged = $oldStatus != $student->status;
+            $intakeChanged = $oldIntake !== (string) ($student->intake ?? '');
             $noteOrRemarksChanged = ($oldNote !== $newNote) || ($oldRemarks !== $newRemarks);
+
+            if ($statusChanged) {
+                $this->intakeAttemptService->syncStatusToActiveAttempt($student, (int) $student->status);
+            }
+            if ($intakeChanged) {
+                $this->intakeAttemptService->syncIntakeToActiveAttempt($student, $student->intake);
+            }
 
             if ($statusChanged || $noteOrRemarksChanged) {
                 $student->load('student_status');
@@ -729,6 +754,53 @@ class StudentController extends Controller
                 'message' => 'Could not update office status.',
             ], 422);
         }
+    }
+
+    public function carryOverIntake(CarryOverIntakeRequest $request, Student $student)
+    {
+        $this->authorize('manage', $student);
+
+        try {
+            $this->intakeAttemptService->carryOver($student, [
+                'new_intake' => $request->input('new_intake'),
+                'outcome' => $request->input('outcome', StudentIntakeAttempt::OUTCOME_DEFERRED),
+                'note' => $request->input('note'),
+                'start_status_id' => $request->input('start_status_id'),
+            ]);
+
+            Session::flash('success', 'Student carried to next intake. Permanent ID unchanged.');
+
+            return redirect()->route('students.show', $student);
+        } catch (\InvalidArgumentException $e) {
+            Session::flash('error', $e->getMessage());
+
+            return redirect()->back();
+        } catch (\Throwable $e) {
+            Session::flash('error', 'Could not carry student to next intake.');
+
+            return redirect()->back();
+        }
+    }
+
+    public function addIntakeAttemptNote(AddIntakeAttemptNoteRequest $request, Student $student)
+    {
+        $this->authorize('manage', $student);
+
+        $attempt = StudentIntakeAttempt::query()
+            ->where('student_id', $student->id)
+            ->where('id', (int) $request->input('attempt_id'))
+            ->firstOrFail();
+
+        try {
+            $this->intakeAttemptService->addNote($attempt, (string) $request->input('body'));
+            Session::flash('success', 'Note added to intake attempt.');
+        } catch (\InvalidArgumentException $e) {
+            Session::flash('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            Session::flash('error', 'Could not add note.');
+        }
+
+        return redirect()->route('students.show', $student);
     }
 
     public function attachSubject(AttachStudentSubjectRequest $request, Student $student)
