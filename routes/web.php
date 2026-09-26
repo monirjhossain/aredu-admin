@@ -105,6 +105,8 @@ Route::middleware('auth')->group(function () {
         ->name('inquiry-qr-codes.show');
     Route::post('inquiries/{inquiry}/convert-to-student', [InquiryController::class, 'convertToStudent'])
         ->name('inquiries.convert-to-student');
+    Route::get('students/suggest-file-id', [StudentController::class, 'suggestFileId'])
+        ->name('students.suggest-file-id');
     Route::patch('students/{student}/office-status', [StudentController::class, 'updateOfficeStatus'])
         ->name('students.update-office-status');
     Route::post('students/{student}/carry-over-intake', [StudentController::class, 'carryOverIntake'])

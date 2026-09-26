@@ -71,7 +71,10 @@
                         <span class="mb-1"><i class="fas fa-calendar-alt"></i>{{ $student->intake }}</span>
                     @endif
                     @if($student->st_office_id)
-                        <span class="mb-1 ml-md-5"><i class="fas fa-id-card"></i>{{ $student->st_office_id }}</span>
+                        <span class="mb-1 ml-md-5"><i class="fas fa-id-card"></i>System {{ $student->st_office_id }}</span>
+                    @endif
+                    @if($student->file_student_id)
+                        <span class="mb-1 ml-md-5"><i class="fas fa-folder"></i>File {{ $student->file_student_id }}</span>
                     @endif
                 </div>
             </div>

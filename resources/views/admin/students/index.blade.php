@@ -2,6 +2,48 @@
 
 @section('styles')
     <link href="{{ asset('css/admin/inline-status.css') }}" rel="stylesheet" type="text/css" />
+    <style>
+        .intake-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+            min-width: 118px;
+        }
+        .intake-pill {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            background: #e8f0fe;
+            color: #1a56db;
+        }
+        .intake-pill.is-empty {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+        .intake-carry {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 0;
+            border-radius: 999px;
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #0f766e;
+            background: #e6f6f3;
+            transition: background 0.15s ease, transform 0.15s ease;
+        }
+        .intake-carry:hover {
+            background: #d1efe9;
+            color: #0b5e57;
+            transform: translateY(-1px);
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -180,7 +222,9 @@
                     <tr>
                         <th style="width: 10px"> # </th>
                         <th>ID</th>
+                        <th>File ID</th>
                         <th class="min-w-180px">Name</th>
+                        <th>Intake</th>
                         <th>Study Level</th>
                         <th class="uni-status-cell--stacked">University / Status</th>
                         <th>Subject</th>
@@ -207,6 +251,7 @@
                         <tr>
                             <td>{{ $itemSl-- }}</td>
                             <td>{{ $item->st_office_id ?? '-' }}</td>
+                            <td>{{ $item->file_student_id ?: '—' }}</td>
                             <td class="student-name-cell">
                                 <div class="student-name-cell__title">{{ $item->full_name }}</div>
                                 @include('admin.students.partials.inline-status-select', [
@@ -217,10 +262,23 @@
                                     'compact' => true,
                                     'wrapClass' => 'student-office-status-wrap',
                                 ])
-                                <span class="badge badge-primary mt-1">{{ $item->intake }}</span>
-                                @if(($item->intake_attempts_count ?? 0) >= 2)
-                                    <span class="badge badge-warning mt-1">Carry-over</span>
-                                @endif
+                            </td>
+                            <td>
+                                <div class="intake-cell">
+                                    <span class="intake-pill {{ $item->intake ? '' : 'is-empty' }}">{{ $item->intake ?: 'No intake' }}</span>
+                                    @if(($item->intake_attempts_count ?? 0) >= 2)
+                                        <span class="badge badge-warning">Carry-over</span>
+                                    @endif
+                                    <button type="button"
+                                        class="intake-carry js-carry-intake"
+                                        data-action="{{ route('students.carry-over-intake', $item) }}"
+                                        data-name="{{ $item->full_name }}"
+                                        data-office-id="{{ $item->st_office_id }}"
+                                        data-intake="{{ $item->intake }}">
+                                        <i class="fas fa-arrow-right"></i>
+                                        Next intake
+                                    </button>
+                                </div>
                             </td>
                             <td>{{ $item->studyLevel->name ?? '' }}</td>
                             <td class="uni-status-cell--stacked">
@@ -328,7 +386,7 @@
         </tr>
                     @empty
                         <tr>
-                            <td colspan="12">
+                            <td colspan="14">
                                 <h5 class="text-center">No student found.</h5>
                             </td>
                         </tr>
@@ -338,6 +396,55 @@
         </div>
         <div class="card-footer">
             {!! $students->appends(collect(request()->query())->filter(fn ($value) => filled($value))->all())->links() !!}
+        </div>
+        <div class="modal fade" id="carryFromListModal" tabindex="-1" role="dialog" aria-labelledby="carryFromListModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <form method="POST" id="carryFromListForm" action="">
+                    @csrf
+                    <input type="hidden" name="return_to" value="index">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="carryFromListModalLabel">Carry to Next Intake</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="text-muted font-size-sm mb-1" id="carryFromListStudent"></p>
+                            <p class="text-muted font-size-sm">
+                                Permanent ID stays the same. Current attempt will be closed and a new active attempt will start.
+                            </p>
+                            <div class="form-group">
+                                <label for="carryFromListIntake">New intake <span class="text-danger">*</span></label>
+                                <select name="new_intake" id="carryFromListIntake" class="form-control" required>
+                                    <option value="">Select intake</option>
+                                    @foreach(($intakeCarryOptions ?? []) as $option)
+                                        <option value="{{ $option }}">{{ $option }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="carryFromListOutcome">Close current as</label>
+                                <select name="outcome" id="carryFromListOutcome" class="form-control">
+                                    @foreach(($intakeOutcomeLabels ?? []) as $value => $label)
+                                        @if($value !== \App\Models\Student\StudentIntakeAttempt::OUTCOME_IN_PROGRESS)
+                                            <option value="{{ $value }}" @if($value === 'deferred') selected @endif>{{ $label }}</option>
+                                        @endif
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="form-group mb-0">
+                                <label for="carryFromListNote">Note (optional)</label>
+                                <textarea name="note" id="carryFromListNote" rows="3" class="form-control" placeholder="Reason for carry-over"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary font-weight-bold">Confirm Carry Over</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
         <!-- Modal-->
         <div class="modal fade" id="exampleModalLong" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdrop" aria-hidden="true">
@@ -451,6 +558,26 @@
 
         $form.submit();
     }
+
+    $(document).on('click', '.js-carry-intake', function () {
+        var $btn = $(this);
+        var current = String($btn.attr('data-intake') || '');
+        $('#carryFromListForm').attr('action', $btn.attr('data-action'));
+        $('#carryFromListStudent').text(
+            ($btn.attr('data-name') || '') +
+            ' · ' + ($btn.attr('data-office-id') || '') +
+            ' · current intake ' + (current || '—')
+        );
+        $('#carryFromListNote').val('');
+        $('#carryFromListIntake option').prop('disabled', false);
+        $('#carryFromListIntake option').each(function () {
+            if ($(this).val() && $(this).val() === current) {
+                $(this).prop('disabled', true);
+            }
+        });
+        $('#carryFromListIntake').val('');
+        $('#carryFromListModal').modal('show');
+    });
 
     $(document).ready(function() {
         $('.sms_send').click(function() {

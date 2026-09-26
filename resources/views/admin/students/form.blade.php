@@ -3,6 +3,24 @@
     <div class="row">
         <div class="col-lg-4 col-md-4 col-sm-12">
             <div class="form-group">
+                <label for="file_student_id">File ID</label>
+                <input type="text" name="file_student_id" id="file_student_id" maxlength="50"
+                    value="{{ old('file_student_id', data_get($student ?? null, 'file_student_id', '')) }}"
+                    class="form-control" placeholder="DHA2027-001"
+                    data-branch-id="{{ data_get($student ?? null, 'branch_id') }}">
+                <span class="form-text text-muted">Fills from branch + intake year, for example DHA2027-001. You can still edit it before save.</span>
+            </div>
+        </div>
+        @if(!empty(data_get($student ?? null, 'st_office_id')))
+        <div class="col-lg-4 col-md-4 col-sm-12">
+            <div class="form-group">
+                <label>System ID</label>
+                <input type="text" class="form-control" value="{{ $student->st_office_id }}" readonly>
+            </div>
+        </div>
+        @endif
+        <div class="col-lg-4 col-md-4 col-sm-12">
+            <div class="form-group">
                 <label for="study_id">Study Level</label>
                 <select name="study_id" class="form-control" id="">
                     @foreach ($studies as $item)
@@ -36,7 +54,7 @@
             <div class="form-group">
                 <label for="intake">Intake</label>
                 {{-- <input type="text" name="study_level" value="{{ old('study_level') }}" class="form-control" placeholder="Type here"> --}}
-                <select name="intake" class="form-control" id="">
+                <select name="intake" class="form-control" id="student_intake">
                     @foreach ($intake as $item)
                         {{-- <option {{ old('intake', $student->intake ?? '') == $item ? 'selected' : '' }} value="{{$item}}">{{$item}}</option> --}}
                         <option {{str_contains($item, now()->year) ? 'selected' : ''}} value="{{$item}}">{{$item}}</option>
@@ -609,5 +627,33 @@
             cscaSection.style.display = isHidden ? 'block' : 'none';
             hasCscaInput.value = isHidden ? '1' : '0';
         });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var intake = document.getElementById('student_intake');
+        var fileId = document.getElementById('file_student_id');
+        if (!intake || !fileId) return;
+
+        function fillFileId() {
+            if (fileId.dataset.touched === '1') return;
+            if (!intake.value) return;
+            var branchId = fileId.getAttribute('data-branch-id') || '';
+            var url = '{{ route('students.suggest-file-id') }}'
+                + '?intake=' + encodeURIComponent(intake.value)
+                + (branchId ? '&branch_id=' + encodeURIComponent(branchId) : '');
+            fetch(url, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                    if (fileId.dataset.touched === '1') return;
+                    if (data.file_student_id) fileId.value = data.file_student_id;
+                })
+                .catch(function () {});
+        }
+
+        fileId.addEventListener('input', function () {
+            fileId.dataset.touched = '1';
+        });
+        intake.addEventListener('change', fillFileId);
+        if (!fileId.value) fillFileId();
     });
 </script>

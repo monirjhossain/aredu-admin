@@ -53,6 +53,7 @@ class Student extends Model
             'last_education',
             'education_level_id',
             'st_office_id',
+            'file_student_id',
             'father_name',
             'father_occoupation',
             'father_mobile_no',
@@ -207,6 +208,14 @@ class Student extends Model
             $student->st_office_id = $candidate;
         });
 
+        static::creating(function ($student) {
+            if (!empty($student->file_student_id)) {
+                return;
+            }
+
+            $student->file_student_id = self::nextFileStudentId($student->branch_id, $student->intake);
+        });
+
         static::created(function ($student) {
             app(\App\Services\Student\StudentIntakeAttemptService::class)->ensureInitialAttempt($student);
         });
@@ -214,5 +223,41 @@ class Student extends Model
     }
     public function branchInfo() {
         return $this->belongsTo(Branch::class, 'branch_id');
+    }
+
+    /**
+     * File ID from branch short name + intake year, e.g. DHA2027-001.
+     */
+    public static function nextFileStudentId($branchId, ?string $intake): ?string
+    {
+        $branch = $branchId ? Branch::find($branchId) : null;
+        if (!$branch) {
+            return null;
+        }
+
+        $branchShort = strtoupper(trim((string) ($branch->short_name ?: ('BR' . $branch->id))));
+        preg_match('/\d{4}/', (string) $intake, $matches);
+        $year = $matches[0] ?? date('Y');
+        $prefix = $branchShort . $year . '-';
+
+        $lastStudent = self::withTrashed()
+            ->where('file_student_id', 'like', $prefix . '%')
+            ->orderByDesc('id')
+            ->first();
+
+        $nextSerial = 1;
+        if ($lastStudent) {
+            preg_match('/-(\d+)$/', (string) $lastStudent->file_student_id, $serialMatch);
+            $nextSerial = ((int) ($serialMatch[1] ?? 0)) + 1;
+        }
+
+        do {
+            $serial = str_pad((string) $nextSerial, 3, '0', STR_PAD_LEFT);
+            $candidate = $prefix . $serial;
+            $exists = self::withTrashed()->where('file_student_id', $candidate)->exists();
+            $nextSerial++;
+        } while ($exists);
+
+        return $candidate;
     }
 }

@@ -232,6 +232,7 @@ class StudentController extends Controller
             $q->where('first_name', 'like', '%' . $request->input('search') . '%')
                 ->orWhere('last_name', 'like', '%' . $request->input('search') . '%')
                 ->orWhere('st_office_id', 'like', '%' . $request->input('search') . '%')
+                ->orWhere('file_student_id', 'like', '%' . $request->input('search') . '%')
                 ->orWhere('study_id', 'like', '%' . $request->input('search') . '%')
                 // ->orWhere('subject', 'like', '%' . $request->input('search') . '%')
                 ->orWhereHas('subjects', function ($q) use ($request) {
@@ -399,6 +400,8 @@ class StudentController extends Controller
         $data['study_levels'] = Study::all();
         $data['subjects'] = Subject::orderBy('name', 'asc')->get();
         $data['intakes'] = $this->intakeCreate();
+        $data['intakeCarryOptions'] = \App\Support\IntakeOptions::list();
+        $data['intakeOutcomeLabels'] = \App\Models\Student\StudentIntakeAttempt::outcomeLabels();
         $data['universities'] = Post::orderBy('post_title', 'asc')->select('id', 'post_title')->where('post_type', 'university')->get();
         $data['student_statuses'] = StudentStatus::select('id', 'name')->orderBy('id')->get();
         $data['counselors'] = $counselors;
@@ -756,6 +759,15 @@ class StudentController extends Controller
         }
     }
 
+    public function suggestFileId(Request $request)
+    {
+        $branchId = $request->input('branch_id') ?: Auth::user()->branch;
+
+        return response()->json([
+            'file_student_id' => Student::nextFileStudentId($branchId, $request->input('intake')),
+        ]);
+    }
+
     public function carryOverIntake(CarryOverIntakeRequest $request, Student $student)
     {
         $this->authorize('manage', $student);
@@ -769,6 +781,10 @@ class StudentController extends Controller
             ]);
 
             Session::flash('success', 'Student carried to next intake. Permanent ID unchanged.');
+
+            if ($request->input('return_to') === 'index') {
+                return redirect()->back();
+            }
 
             return redirect()->route('students.show', $student);
         } catch (\InvalidArgumentException $e) {

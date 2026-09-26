@@ -14,9 +14,25 @@ class StudentRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation()
+    {
+        $fileId = trim((string) $this->input('file_student_id', ''));
+        $this->merge([
+            'file_student_id' => $fileId === '' ? null : $fileId,
+        ]);
+    }
+
     public function rules()
     {
+        $studentId = optional($this->route('student'))->id;
+
         $rules = [
+            'file_student_id' => [
+                'nullable',
+                'string',
+                'max:50',
+                Rule::unique('students', 'file_student_id')->ignore($studentId),
+            ],
             "study_id" =>  'required',
             "first_name" =>  'required',
             "last_name" =>  'required',
