@@ -330,7 +330,8 @@ class StudentController extends Controller
                         'Subject' => $student->subjects->pluck('name')->implode(', '),
                         'Mobile number' => $student->mobile_no ?? '',
                         'CGPA' => optional($education)->result ?? '',
-                        'Passing Year' => optional(optional($education)->attend_to)->format('Y') ?? '',
+                        'Passing Year' => optional($education)->passing_year
+                            ?: (optional(optional($education)->attend_to)->format('Y') ?? ''),
                         'Branch' => optional($student->branchInfo)->name ?? '',
                         'English language' => $student->language_cer ?? '',
                         'CSCA' => $student->studentCscaExams->isNotEmpty()
@@ -389,6 +390,7 @@ class StudentController extends Controller
                 'jncounselor:id,name',
                 'branchInfo:id,name',
                 'user:id,name',
+                'educationQualifications:id,student_id,passing_year',
             ])
             ->withCount('intakeAttempts')
             ->orderBy('st_office_id', 'DESC')
@@ -486,6 +488,7 @@ class StudentController extends Controller
                 $education->attend_to          = $educations['attend_to'][$i] ?? null;
                 $education->result          = $educations['result'][$i] ?? null;
                 $education->out_of          = $educations['out_of'][$i] ?? null;
+                $education->passing_year    = $educations['passing_year'][$i] ?? null;
                 $education->country            = $educations['country'][$i] ?? null;
                 $education->institution        = $educations['institution'][$i] ?? null;
                 $education->group_subject      = $educations['group_subject'][$i] ?? null;
@@ -671,6 +674,7 @@ class StudentController extends Controller
                 $education->attend_to          = $educations['attend_to'][$i] ?? null;
                 $education->result          = $educations['result'][$i] ?? null;
                 $education->out_of          = $educations['out_of'][$i] ?? null;
+                $education->passing_year    = $educations['passing_year'][$i] ?? null;
                 $education->country            = $educations['country'][$i] ?? null;
                 $education->institution        = $educations['institution'][$i] ?? null;
                 $education->group_subject      = $educations['group_subject'][$i] ?? null;

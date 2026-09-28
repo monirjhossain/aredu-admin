@@ -356,6 +356,17 @@
                     <input type="text" name="educations[out_of][]"  value="{{ old('educations.out_of.' . $loop->index, $education->out_of) }}" class="form-control" placeholder="Type here">
                 </div>
             </div>
+            <div class="col-lg-4 col-md-4 col-sm-12">
+                <div class="form-group">
+                    <label>Passing Year</label>
+                    <input type="number" name="educations[passing_year][]" min="1950" max="{{ date('Y') + 1 }}" step="1"
+                        value="{{ old('educations.passing_year.' . $loop->index, $education->passing_year) }}"
+                        class="form-control @error('educations.passing_year.' . $loop->index) is-invalid @enderror" placeholder="2024">
+                    @error('educations.passing_year.' . $loop->index)
+                        <span class="text-danger">{{ $message }}</span>
+                    @enderror
+                </div>
+            </div>
         @endforeach
 
         @if($educations->isEmpty())
@@ -434,6 +445,17 @@
                 <div class="form-group">
                     <label for="out_of">Out Of</label>
                     <input type="text" name="educations[out_of][]" value="{{ old('out_of', $student->height ?? '') }}" class="form-control" placeholder="Type here">
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-12">
+                <div class="form-group">
+                    <label for="passing_year">Passing Year</label>
+                    <input type="number" name="educations[passing_year][]" min="1950" max="{{ date('Y') + 1 }}" step="1"
+                        value="{{ old('educations.passing_year.0') }}"
+                        class="form-control @error('educations.passing_year.0') is-invalid @enderror" placeholder="2024">
+                    @error('educations.passing_year.0')
+                        <span class="text-danger">{{ $message }}</span>
+                    @enderror
                 </div>
             </div>
         @endif

@@ -26,6 +26,9 @@
                     <span class="text-muted font-size-sm d-block mt-1">Manage branch applications and convert to students</span>
                 </div>
                 <div class="card-toolbar">
+                    <a href="{{ route('inquiries.index', array_filter(['branch_id' => $branchId, 'type' => request('type'), 'export' => 'yes'])) }}" class="btn btn-success btn-sm font-weight-bold mr-2">
+                        <i class="la la-download"></i> Export
+                    </a>
                     <button onclick="getSmsTemplate(0)" type="button" class="btn btn-light-primary btn-sm font-weight-bold mr-2 messageModal" data-toggle="modal" data-target="#exampleModalLong" title="Send SMS">
                         <i class="fas fa-envelope"></i> SMS
                     </button>

@@ -75,6 +75,10 @@ class InquiryController extends Controller
             $inquiries->where('type', $request->input('type'));
         }
 
+        if ($request->input('export') === 'yes') {
+            return $this->streamInquiryCsv($inquiries->get());
+        }
+
         $inquiries = $inquiries->paginate(20)->appends($request->query());
 
         $typeQuery = Inquiry::query()
@@ -99,6 +103,69 @@ class InquiryController extends Controller
             'branchId',
             'canManageAnyBranch'
         ));
+    }
+
+    private function streamInquiryCsv($inquiries)
+    {
+        $filename = 'inquiries_' . date('Y-m-d_His') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        return response()->stream(function () use ($inquiries) {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, [
+                'ID',
+                'Tracking ID',
+                'Type',
+                'Branch',
+                'Name',
+                'Mobile',
+                'Email',
+                'Country',
+                'Preferred Country',
+                'Last Education',
+                'Result',
+                'Year',
+                'CSCA Subjects',
+                'Course',
+                'University',
+                'Subject',
+                'Message',
+                'Status',
+                'Student ID',
+                'Created At',
+            ]);
+
+            foreach ($inquiries as $inquiry) {
+                fputcsv($handle, [
+                    $inquiry->id,
+                    $inquiry->tracking_id,
+                    $inquiry->type,
+                    optional($inquiry->branchInfo)->name,
+                    $inquiry->full_name,
+                    $inquiry->mobile_no,
+                    $inquiry->email,
+                    $inquiry->country,
+                    $inquiry->country_preferred,
+                    $inquiry->last_education,
+                    $inquiry->result,
+                    $inquiry->year,
+                    $inquiry->csca_subjects,
+                    $inquiry->course,
+                    $inquiry->university,
+                    $inquiry->subject,
+                    $inquiry->message,
+                    $inquiry->status == '1' ? 'Active' : 'Inactive',
+                    $inquiry->student_id,
+                    optional($inquiry->created_at)->format('Y-m-d H:i'),
+                ]);
+            }
+
+            fclose($handle);
+        }, 200, $headers);
     }
 
     /**

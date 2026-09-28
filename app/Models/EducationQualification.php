@@ -15,6 +15,7 @@ class EducationQualification extends Model
         'group_subject',
         'result',
         'out_of',
+        'passing_year',
         'attend_from',
         'attend_to',
         'country',

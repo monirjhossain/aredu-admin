@@ -226,6 +226,7 @@
                         <th class="min-w-180px">Name</th>
                         <th>Intake</th>
                         <th>Study Level</th>
+                        <th>Passing Year</th>
                         <th class="uni-status-cell--stacked">University / Status</th>
                         <th>Subject</th>
                         {{-- <th>Documents</th> --}}
@@ -281,6 +282,7 @@
                                 </div>
                             </td>
                             <td>{{ $item->studyLevel->name ?? '' }}</td>
+                            <td>{{ optional($item->educationQualifications->sortByDesc('id')->first())->passing_year ?: '—' }}</td>
                             <td class="uni-status-cell--stacked">
                                 @include('admin.students.partials.university-applications-inline', [
                                     'student' => $item,
@@ -386,7 +388,7 @@
         </tr>
                     @empty
                         <tr>
-                            <td colspan="14">
+                            <td colspan="15">
                                 <h5 class="text-center">No student found.</h5>
                             </td>
                         </tr>
