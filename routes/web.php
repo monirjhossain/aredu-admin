@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\ReportsController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\CSCAExamController;
 use App\Http\Controllers\Admin\StudentApplicationController;
+use App\Http\Controllers\Admin\ScholarshipFormOptionController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\StudentInvoiceController;
 use App\Http\Controllers\Admin\Wallet\WalletController;
@@ -88,6 +89,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('events', PostController::class);
     Route::resource('success-story', PostController::class);
     Route::resource('universities', PostController::class);
+    Route::get('scholarship-options', [ScholarshipFormOptionController::class, 'index'])->name('scholarship-options.index');
+    Route::post('scholarship-options', [ScholarshipFormOptionController::class, 'store'])->name('scholarship-options.store');
+    Route::delete('scholarship-options/{scholarship_option}', [ScholarshipFormOptionController::class, 'destroy'])->name('scholarship-options.destroy');
     Route::resource('scholarships', PostController::class);
     Route::resource('videos', PostController::class);
     Route::resource('todo', TodoController::class);

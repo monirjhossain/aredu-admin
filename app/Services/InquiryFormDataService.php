@@ -87,7 +87,7 @@ class InquiryFormDataService
             ->values();
     }
 
-    private function lastEducationLevels(): Collection
+    public function lastEducationLevels(): Collection
     {
         $defaults = collect([
             'SSC',

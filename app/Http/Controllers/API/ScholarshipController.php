@@ -125,6 +125,13 @@ class ScholarshipController extends BaseController
             'content' => $post->post_content,
             'image' => $post->image_url,
             'status' => $post->status,
+            'city' => $post->getMeta('city', ''),
+            'program_id' => $post->getMeta('program_id', ''),
+            'degree' => $post->getMeta('degree', ''),
+            'teaching_language' => $post->getMeta('teaching_language', ''),
+            'intake' => $post->getMeta('intake', ''),
+            'scholarship_type' => $post->getMeta('scholarship_type', ''),
+            'deadline' => $post->getMeta('deadline', ''),
         ];
     }
 }

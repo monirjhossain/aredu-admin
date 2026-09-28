@@ -74,17 +74,10 @@
                                             <textarea name="post_excerpt" rows="3" class="form-control" placeholder="Shown on website cards">{{ old('post_excerpt') }}</textarea>
                                         </div>
                                         <div class="form-group">
-                                            <label>Coverage</label>
-                                            <select name="meta[coverage]" class="form-control">
-                                                @foreach(['Full','Partial','Full tuition','Varies'] as $cov)
-                                                    <option value="{{ $cov }}" @if(old('meta.coverage')==$cov) selected @endif>{{ $cov }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
                                             <label>Universities count (approx)</label>
                                             <input type="number" min="0" name="meta[universities]" value="{{ old('meta.universities', 0) }}" class="form-control">
                                         </div>
+                                        @include('admin.post._scholarship_fields')
                                         @endif
                                         @if ($type == 'service')
                                         <div class="form-group">

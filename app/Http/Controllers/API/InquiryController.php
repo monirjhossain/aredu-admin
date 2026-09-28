@@ -5,11 +5,19 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\API\BaseController;
 use App\Http\Requests\Inquiry\WebsiteInquiryRequest;
 use App\Models\Inquiry\Inquiry;
+use App\Services\InquiryFormDataService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class InquiryController extends BaseController
 {
+    public function educationLevels(InquiryFormDataService $formData)
+    {
+        return $this->sendResponse([
+            'levels' => $formData->lastEducationLevels()->values(),
+        ], 'successfully.');
+    }
+
     /**
      * Website apply / contact form submit.
      */

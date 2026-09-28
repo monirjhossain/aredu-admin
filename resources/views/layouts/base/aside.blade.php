@@ -177,6 +177,14 @@
                                 </a>
                             </li>
                             @endif
+                            @if(Route::has('scholarship-options.index'))
+                            <li class="menu-item {{ request()->is('scholarship-options') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                                <a href="{{ route('scholarship-options.index') }}" class="menu-link">
+                                    <i class="menu-bullet menu-bullet-dot"><span></span></i>
+                                    <span class="menu-text font-weight-bolder">Scholarship options</span>
+                                </a>
+                            </li>
+                            @endif
                             @if(Route::has('services.index'))
                             <li class="menu-item {{ request()->is('services') || request()->is('services/*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="{{ route('services.index') }}" class="menu-link">
