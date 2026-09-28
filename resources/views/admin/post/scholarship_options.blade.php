@@ -3,39 +3,61 @@
 @section('content')
 <div class="content-header">
     <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6"><h1 class="m-0 text-dark">Scholarship dropdowns</h1></div>
+        <div class="row mb-2 align-items-center">
+            <div class="col-sm-6">
+                <h1 class="m-0 text-dark">Scholarship options</h1>
+                <div class="text-muted mt-1">Dropdown lists used on the scholarship form and the website filters.</div>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right mb-0">
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('scholarships.index') }}">Scholarships</a></li>
+                    <li class="breadcrumb-item active">Options</li>
+                </ol>
+            </div>
         </div>
     </div>
 </div>
+
 <div class="content">
     <div class="container-fluid">
-        <p class="text-muted">These lists fill the scholarship create/edit form. City still comes from Cities / Categories.</p>
+        <div class="alert alert-light border mb-5">
+            City still comes from <a href="{{ route('category.index') }}">Cities / Categories</a>. The lists below are everything else.
+        </div>
+
         <div class="row">
             @foreach($groups as $key => $title)
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card">
-                        <div class="card-header"><strong>{{ $title }}</strong></div>
+                @php $items = $options[$key] ?? collect(); @endphp
+                <div class="col-md-6 col-xl-4 mb-5">
+                    <div class="card card-custom h-100">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <h3 class="card-label mb-0">{{ $title }}</h3>
+                            </div>
+                            <div class="card-toolbar">
+                                <span class="label label-inline label-light-primary font-weight-bold">{{ $items->count() }}</span>
+                            </div>
+                        </div>
                         <div class="card-body">
-                            <ul class="list-unstyled mb-3">
-                                @forelse(($options[$key] ?? collect()) as $option)
-                                    <li class="d-flex justify-content-between align-items-center mb-2">
-                                        <span>{{ $option->label }}</span>
-                                        <form method="POST" action="{{ route('scholarship-options.destroy', $option) }}" onsubmit="return confirm('Remove this option?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button class="btn btn-xs btn-light-danger">Remove</button>
-                                        </form>
-                                    </li>
+                            <div class="d-flex flex-wrap mb-4" style="gap: 8px;">
+                                @forelse($items as $option)
+                                    <form method="POST" action="{{ route('scholarship-options.destroy', $option) }}" onsubmit="return confirm('Remove {{ $option->label }}?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-light-primary font-weight-bold" title="Remove">
+                                            {{ $option->label }}
+                                            <i class="ki ki-close icon-xs ml-1"></i>
+                                        </button>
+                                    </form>
                                 @empty
-                                    <li class="text-muted">No options yet.</li>
+                                    <span class="text-muted">No options yet.</span>
                                 @endforelse
-                            </ul>
+                            </div>
                             <form method="POST" action="{{ route('scholarship-options.store') }}" class="d-flex">
                                 @csrf
                                 <input type="hidden" name="group" value="{{ $key }}">
-                                <input type="text" name="label" class="form-control form-control-sm mr-2" placeholder="Add {{ strtolower($title) }}" required>
-                                <button class="btn btn-sm btn-primary">Add</button>
+                                <input type="text" name="label" class="form-control mr-2" placeholder="Add {{ strtolower($title) }}" required>
+                                <button class="btn btn-primary font-weight-bold px-6">Add</button>
                             </form>
                         </div>
                     </div>
