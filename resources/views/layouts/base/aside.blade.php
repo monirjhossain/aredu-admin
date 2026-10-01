@@ -140,7 +140,7 @@
                 </li>
                 @endif
 
-                @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,7]))
+                @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,3,7]))
                 <li class="menu-item {{ request()->is('posts*') || request()->is('universities*') || request()->is('scholarships*') || request()->is('services*') || request()->is('pages*') || request()->is('success-story*') || request()->is('events*') || request()->is('testimonials*') || request()->is('sliders*') || request()->is('videos*') || request()->is('category*') || request()->is('tag*') || request()->is('setting/website*') || request()->is('setting/subjects*') || request()->is('setting/studies*') ? 'menu-item-open' : '' }}"
                     aria-haspopup="true" data-menu-toggle="hover">
                     <a href="javascript:;" class="menu-link menu-toggle">
