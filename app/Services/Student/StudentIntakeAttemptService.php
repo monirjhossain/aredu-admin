@@ -81,16 +81,31 @@ class StudentIntakeAttemptService
         }
 
         $note = isset($input['note']) ? trim((string) $input['note']) : null;
+        $newFileId = isset($input['new_file_student_id'])
+            ? trim((string) $input['new_file_student_id'])
+            : '';
         $startStatusId = isset($input['start_status_id'])
             ? (int) $input['start_status_id']
             : self::DEFAULT_START_STATUS_ID;
 
-        return DB::transaction(function () use ($student, $newIntake, $outcome, $note, $startStatusId) {
+        return DB::transaction(function () use ($student, $newIntake, $outcome, $note, $newFileId, $startStatusId) {
             $student = Student::query()->lockForUpdate()->findOrFail($student->id);
             $current = $this->ensureInitialAttempt($student);
 
             if ((string) $current->intake === $newIntake && $current->is_active) {
                 throw new InvalidArgumentException('New intake must be different from the current intake.');
+            }
+
+            $oldFileId = trim((string) ($student->file_student_id ?? ''));
+            $fileIdChanged = $newFileId !== '' && $newFileId !== $oldFileId;
+            if ($fileIdChanged) {
+                $taken = Student::withTrashed()
+                    ->where('file_student_id', $newFileId)
+                    ->where('id', '!=', $student->id)
+                    ->exists();
+                if ($taken) {
+                    throw new InvalidArgumentException('This File ID is already used.');
+                }
             }
 
             $current->forceFill([
@@ -102,6 +117,9 @@ class StudentIntakeAttemptService
 
             if ($note !== null && $note !== '') {
                 $this->addNote($current, $note);
+            }
+            if ($fileIdChanged) {
+                $this->addNote($current, 'File ID changed from ' . ($oldFileId !== '' ? $oldFileId : '—') . ' to ' . $newFileId);
             }
 
             $newAttempt = $this->createActiveAttempt(
@@ -116,6 +134,7 @@ class StudentIntakeAttemptService
                 'intake' => $newIntake,
                 'status' => $startStatusId,
                 'current_intake_attempt_id' => $newAttempt->id,
+                'file_student_id' => $fileIdChanged ? $newFileId : $student->file_student_id,
             ])->save();
 
             return $newAttempt;

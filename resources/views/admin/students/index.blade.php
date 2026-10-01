@@ -275,6 +275,7 @@
                                         data-action="{{ route('students.carry-over-intake', $item) }}"
                                         data-name="{{ $item->full_name }}"
                                         data-office-id="{{ $item->st_office_id }}"
+                                        data-file-id="{{ $item->file_student_id }}"
                                         data-intake="{{ $item->intake }}">
                                         <i class="fas fa-arrow-right"></i>
                                         Next intake
@@ -426,6 +427,16 @@
                                 </select>
                             </div>
                             <div class="form-group">
+                                <label for="carryFromListOldFileId">File ID</label>
+                                <input type="text" id="carryFromListOldFileId" class="form-control" value="" readonly>
+                            </div>
+                            @if(\App\Support\FileStudentIdAccess::canEdit(auth()->user()))
+                            <div class="form-group">
+                                <label for="carryFromListNewFileId">New File ID</label>
+                                <input type="text" name="new_file_student_id" id="carryFromListNewFileId" maxlength="50" class="form-control" value="" placeholder="Type a new File ID, or leave the current one">
+                            </div>
+                            @endif
+                            <div class="form-group">
                                 <label for="carryFromListOutcome">Close current as</label>
                                 <select name="outcome" id="carryFromListOutcome" class="form-control">
                                     @foreach(($intakeOutcomeLabels ?? []) as $value => $label)
@@ -571,6 +582,9 @@
             ' · current intake ' + (current || '—')
         );
         $('#carryFromListNote').val('');
+        var fileId = $btn.attr('data-file-id') || '';
+        $('#carryFromListOldFileId').val(fileId || '—');
+        $('#carryFromListNewFileId').val(fileId);
         $('#carryFromListIntake option').prop('disabled', false);
         $('#carryFromListIntake option').each(function () {
             if ($(this).val() && $(this).val() === current) {

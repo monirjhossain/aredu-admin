@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Student;
 
 // use Request;
+use App\Support\FileStudentIdAccess;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
@@ -16,6 +17,12 @@ class StudentRequest extends FormRequest
 
     protected function prepareForValidation()
     {
+        if (!FileStudentIdAccess::canEdit($this->user())) {
+            $this->offsetUnset('file_student_id');
+
+            return;
+        }
+
         $fileId = trim((string) $this->input('file_student_id', ''));
         $this->merge([
             'file_student_id' => $fileId === '' ? null : $fileId,

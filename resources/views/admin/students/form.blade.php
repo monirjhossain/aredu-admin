@@ -4,11 +4,25 @@
         <div class="col-lg-4 col-md-4 col-sm-12">
             <div class="form-group">
                 <label for="file_student_id">File ID</label>
+                @php
+                    $existingStudent = !empty(data_get($student ?? null, 'id'));
+                    $canEditFileId = \App\Support\FileStudentIdAccess::canEdit(auth()->user());
+                @endphp
                 <input type="text" name="file_student_id" id="file_student_id" maxlength="50"
                     value="{{ old('file_student_id', data_get($student ?? null, 'file_student_id', '')) }}"
                     class="form-control" placeholder="DHA2027-001"
-                    data-branch-id="{{ data_get($student ?? null, 'branch_id') }}">
-                <span class="form-text text-muted">Fills from branch + intake year, for example DHA2027-001. You can still edit it before save.</span>
+                    data-branch-id="{{ data_get($student ?? null, 'branch_id') }}"
+                    data-existing="{{ $existingStudent ? '1' : '0' }}"
+                    @unless($canEditFileId) readonly @endunless>
+                <span class="form-text text-muted">
+                    @if(!$canEditFileId)
+                        File ID is view only for your role.
+                    @elseif($existingStudent)
+                        You can edit File ID here. Changing intake will not replace it.
+                    @else
+                        Fills from branch + intake year, for example DHA2027-001. You can still edit it before save.
+                    @endif
+                </span>
             </div>
         </div>
         @if(!empty(data_get($student ?? null, 'st_office_id')))
@@ -54,10 +68,20 @@
             <div class="form-group">
                 <label for="intake">Intake</label>
                 {{-- <input type="text" name="study_level" value="{{ old('study_level') }}" class="form-control" placeholder="Type here"> --}}
+                @php
+                    $selectedIntake = old('intake', data_get($student ?? null, 'intake'));
+                    if ($selectedIntake === null || $selectedIntake === '') {
+                        foreach ($intake as $candidate) {
+                            if (str_contains((string) $candidate, (string) now()->year)) {
+                                $selectedIntake = $candidate;
+                                break;
+                            }
+                        }
+                    }
+                @endphp
                 <select name="intake" class="form-control" id="student_intake">
                     @foreach ($intake as $item)
-                        {{-- <option {{ old('intake', $student->intake ?? '') == $item ? 'selected' : '' }} value="{{$item}}">{{$item}}</option> --}}
-                        <option {{str_contains($item, now()->year) ? 'selected' : ''}} value="{{$item}}">{{$item}}</option>
+                        <option {{ (string) $selectedIntake === (string) $item ? 'selected' : '' }} value="{{$item}}">{{$item}}</option>
                     @endforeach
                 </select>
             </div>
@@ -655,6 +679,7 @@
         var intake = document.getElementById('student_intake');
         var fileId = document.getElementById('file_student_id');
         if (!intake || !fileId) return;
+        if (fileId.getAttribute('data-existing') === '1') return;
 
         function fillFileId() {
             if (fileId.dataset.touched === '1') return;

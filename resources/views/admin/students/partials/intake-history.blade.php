@@ -133,6 +133,16 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label for="old_file_student_id">File ID</label>
+                        <input type="text" id="old_file_student_id" class="form-control" value="{{ $student->file_student_id ?: '—' }}" readonly>
+                    </div>
+                    @if(\App\Support\FileStudentIdAccess::canEdit(auth()->user()))
+                    <div class="form-group">
+                        <label for="new_file_student_id">New File ID</label>
+                        <input type="text" name="new_file_student_id" id="new_file_student_id" maxlength="50" class="form-control" value="{{ $student->file_student_id }}" placeholder="Type a new File ID, or leave the current one">
+                    </div>
+                    @endif
+                    <div class="form-group">
                         <label for="carry_outcome">Close current as</label>
                         <select name="outcome" id="carry_outcome" class="form-control">
                             @foreach(($intakeOutcomeLabels ?? []) as $value => $label)

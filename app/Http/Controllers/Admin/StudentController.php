@@ -34,6 +34,7 @@ use App\Models\UniversityStatus;
 use App\Models\Subject;
 use App\Models\Tag;
 use App\Models\User;
+use App\Support\FileStudentIdAccess;
 use App\Support\StudentDisplay;
 use App\Support\StyledExcel;
 use App\Traits\UploadAble;
@@ -468,6 +469,9 @@ class StudentController extends Controller
         try {
             $student = new Student();
             $studentFillableData = $request->only($student->getFillable());
+            if (!FileStudentIdAccess::canEdit(Auth::user())) {
+                unset($studentFillableData['file_student_id']);
+            }
             $student->fill($studentFillableData)->save();
             $student->user_id = Auth::user()->id;
             $student->save();
@@ -617,6 +621,9 @@ class StudentController extends Controller
             // $student = new Student();
             $studentFillableData = $request->only($student->getFillable());
             unset($studentFillableData['st_office_id']);
+            if (!FileStudentIdAccess::canEdit(Auth::user())) {
+                unset($studentFillableData['file_student_id']);
+            }
             $student->fill($studentFillableData)->save();
             $student->user_id = Auth::user()->id;
             $student->save();
@@ -717,6 +724,9 @@ class StudentController extends Controller
         try {
             $student = new Student();
             $studentFillableData = $request->only($student->getFillable());
+            if (!FileStudentIdAccess::canEdit(Auth::user())) {
+                unset($studentFillableData['file_student_id']);
+            }
             $student->fill($studentFillableData)->save();
             DB::commit();
             Session::flash('success', 'Created successfully');
@@ -781,6 +791,9 @@ class StudentController extends Controller
                 'new_intake' => $request->input('new_intake'),
                 'outcome' => $request->input('outcome', StudentIntakeAttempt::OUTCOME_DEFERRED),
                 'note' => $request->input('note'),
+                'new_file_student_id' => FileStudentIdAccess::canEdit(Auth::user())
+                    ? $request->input('new_file_student_id')
+                    : null,
                 'start_status_id' => $request->input('start_status_id'),
             ]);
 
