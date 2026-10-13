@@ -4,7 +4,7 @@
 **Last updated:** 13 October 2026  
 **Audience:** Office staff  
 
-The discount is for the **File Opening charge** only. Staff create the campaign, the QR amounts, and the student limits from the admin **Campaigns** menu.
+The discount is for the **File Opening charge** only. Each campaign has **one QR**. Staff set the discount amounts, and how many times each amount can be won, from the admin **Campaigns** menu.
 
 **Mark used** does not change any invoice. It only records that the office has already applied that discount. Staff subtract the amount on the File Opening charge themselves, then click **Mark used**.
 
@@ -12,18 +12,20 @@ The discount is for the **File Opening charge** only. Staff create the campaign,
 
 ## 1. What it does
 
-One campaign can have several QR codes. Each QR has its own discount and its own student limit.
+One campaign has one QR code. Behind that QR is a list of discount amounts. Each amount has a count: how many students can win it.
 
 Example:
 
-| QR | Discount | Limit |
-|----|----------|-------|
-| QR 1 | 5,000 | 500 students |
-| QR 2 | 10,000 | 500 students |
-| QR 3 | 15,000 | 500 students |
-| QR 4 | 20,000 | 500 students |
+| Amount | How many times it can be won |
+|--------|------------------------------|
+| 5,000 | 300 |
+| 10,000 | 150 |
+| 15,000 | 40 |
+| 20,000 | 10 |
 
-A student scans a QR and fills **Name**, **Mobile number**, and **College Name**. A celebration popup then shows the discount and a **Claim Code**. From that popup they can **Download PDF**. The PDF is a slip with the AR Education logo, the discount, the code, and the student's name, mobile, and college.
+A student scans the QR and fills **Name**, **Mobile number**, and **College Name**. The system picks one remaining slot at random. An amount with more slots left is more likely to be picked. When an amount's slots are finished, it drops out of the draw.
+
+A celebration popup then shows the discount they won and a **Claim Code**. From that popup they can **Download PDF**. The PDF is a slip with the AR Education logo, the discount, the code, and the student's name, mobile, and college.
 
 The campaign page lists every student who claimed, with search by name, mobile, college, or code.
 
@@ -38,8 +40,8 @@ The sidebar menu is visible to **Super Admin**, **Admin**, **Manager**, and **IT
 ## 3. Office flow
 
 1. Open **Campaigns → New Campaign**.
-2. Set the campaign name, status (**Active** or **Closed**), and one row per QR (label, discount in BDT, student limit).
-3. Save. Open the campaign, then use **Download QR** or **Open form** for each code.
+2. Set the campaign name, status (**Active** or **Closed**), and one row per discount (label, amount in BDT, how many times it can be won).
+3. Save. Open the campaign and use **Download QR** or **Open form**. There is one QR for the whole campaign.
 4. Students scan and submit. They see the popup and can save the PDF.
 5. The campaign page shows who claimed, the amount, the code, and how many spots are left.
 6. When the student comes to the office, find the row by mobile or Claim Code.
@@ -52,15 +54,14 @@ If **Mark used** was clicked by mistake, click **Mark available**. The claim goe
 
 ## 4. Rules
 
-- The student does not type the discount. The QR sets the amount.
-- The same mobile number can claim the same QR only once. A later scan shows the original discount and the original code, including after the QR is full, paused, or the campaign is closed.
+- The student does not choose the discount. One remaining slot is drawn at random. Amounts with more slots left come up more often.
+- The same mobile number can win once per campaign. A later scan shows the original discount and the original code, including after the draw is full, an amount is paused, or the campaign is closed.
 - Spaces and dashes in the mobile number are ignored. `01711-111 222` and `01711111222` are the same number. `017...` and `88017...` are treated as two different numbers.
-- Each QR is separate. The same mobile can claim a different QR in the same campaign and receive that QR's own discount.
-- When the limit is full, new students cannot claim that QR. Students who already claimed can still open their code by submitting the same mobile.
-- Pausing a QR, or setting the campaign to **Closed**, stops new claims. Existing claims stay.
-- Changing a QR amount later does not change discounts already given. New claims use the new amount.
-- The student limit cannot be saved below the number of claims that QR already has.
-- A QR that already has claims is kept if its row is removed from the edit form.
+- When every amount's slots are used, new students cannot claim. Students who already claimed can still open their code by submitting the same mobile.
+- Pausing one amount removes only that amount from the draw. Setting the campaign to **Closed** stops all new claims. Existing claims stay.
+- Changing an amount later does not change discounts already given. New wins use the new amount.
+- "How many times" cannot be saved below the number of students who already won that amount.
+- An amount that already has winners is kept if its row is removed from the edit form.
 - **Mark used** does not deduct the invoice. It is the office record that the discount was applied.
 
 ---

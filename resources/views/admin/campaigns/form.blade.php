@@ -9,7 +9,7 @@
     <div class="campaign-hero">
         <div class="campaign-kicker">CAMPAIGN SETUP</div>
         <h1>{{ $title }}</h1>
-        <p>Each row becomes one QR. Students who scan it get that exact File Opening discount.</p>
+        <p>Everyone scans the same QR. Each row is one discount, and how many times that amount can be won.</p>
     </div>
 
     <form method="POST" action="{{ $campaign->exists ? route('campaigns.update', $campaign) : route('campaigns.store') }}">
@@ -46,7 +46,7 @@
 
         <div class="campaign-card card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h3 class="card-title mb-0 font-weight-bolder">QR discounts</h3>
+                <h3 class="card-title mb-0 font-weight-bolder">Discount amounts</h3>
                 <button type="button" class="btn btn-sm btn-light-primary font-weight-bold" id="addOfferRow">Add QR</button>
             </div>
             <div class="card-body" id="offerRows">

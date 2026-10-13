@@ -51,7 +51,7 @@ class CampaignController extends Controller
 
         return redirect()
             ->route('campaigns.show', $campaign)
-            ->with('success', 'Campaign created. Print the QR codes and share them.');
+            ->with('success', 'Campaign created. Download the QR and share it.');
     }
 
     public function show(Request $request, Campaign $campaign)
@@ -176,10 +176,10 @@ class CampaignController extends Controller
     private function defaultOffers(): array
     {
         return [
-            ['label' => '5,000 Discount', 'discount_amount' => 5000, 'max_claims' => 500, 'is_active' => true],
-            ['label' => '10,000 Discount', 'discount_amount' => 10000, 'max_claims' => 500, 'is_active' => true],
-            ['label' => '15,000 Discount', 'discount_amount' => 15000, 'max_claims' => 500, 'is_active' => true],
-            ['label' => '20,000 Discount', 'discount_amount' => 20000, 'max_claims' => 500, 'is_active' => true],
+            ['label' => '5,000 Discount', 'discount_amount' => 5000, 'max_claims' => 300, 'is_active' => true],
+            ['label' => '10,000 Discount', 'discount_amount' => 10000, 'max_claims' => 150, 'is_active' => true],
+            ['label' => '15,000 Discount', 'discount_amount' => 15000, 'max_claims' => 40, 'is_active' => true],
+            ['label' => '20,000 Discount', 'discount_amount' => 20000, 'max_claims' => 10, 'is_active' => true],
         ];
     }
 }

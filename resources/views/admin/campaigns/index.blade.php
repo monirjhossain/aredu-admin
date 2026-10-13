@@ -10,7 +10,7 @@
         <div>
             <div class="campaign-kicker">FILE OPENING OFFERS</div>
             <h1>Campaigns</h1>
-            <p>Create QR discounts, set how many students can claim them, and track every scan.</p>
+            <p>One QR per campaign. Set how many times each discount can be won, then track every claim.</p>
         </div>
         <a href="{{ route('campaigns.create') }}" class="btn btn-warning font-weight-bold mt-4 mt-md-0">
             <i class="fas fa-plus mr-1"></i> New Campaign
@@ -34,7 +34,7 @@
                             <div class="d-flex">
                                 <div class="mr-5">
                                     <strong class="d-block text-dark">{{ $campaign->offers_count }}</strong>
-                                    <span class="text-muted font-size-sm">QR codes</span>
+                                    <span class="text-muted font-size-sm">Amounts</span>
                                 </div>
                                 <div>
                                     <strong class="d-block text-dark">{{ $campaign->claims_count }}</strong>
@@ -50,7 +50,7 @@
                 <div class="campaign-card card">
                     <div class="card-body text-center py-10">
                         <h4 class="font-weight-bolder">No campaigns yet</h4>
-                        <p class="text-muted">Start with four QR codes: 5,000, 10,000, 15,000 and 20,000.</p>
+                        <p class="text-muted">Start with one QR. Students randomly win 5,000, 10,000, 15,000 or 20,000.</p>
                         <a href="{{ route('campaigns.create') }}" class="btn btn-primary font-weight-bold">Create the first campaign</a>
                     </div>
                 </div>

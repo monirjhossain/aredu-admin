@@ -14,7 +14,7 @@
         <div>
             <div class="campaign-kicker">{{ strtoupper($campaign->status) }} CAMPAIGN</div>
             <h1>{{ $campaign->name }}</h1>
-            <p>{{ $campaign->note ?: 'Track who scanned each QR and which discount they received.' }}</p>
+            <p>{{ $campaign->note ?: 'One QR. Each student wins a random discount from the amounts you set.' }}</p>
         </div>
         <div class="mt-4 mt-md-0">
             <a href="{{ route('campaigns.edit', $campaign) }}" class="btn btn-warning font-weight-bold mr-2">Edit</a>
@@ -27,25 +27,37 @@
     @endif
 
     <div class="row mb-4">
-        <div class="col-md-4 mb-3"><div class="campaign-stat"><strong>{{ $campaign->offers->count() }}</strong><span>QR codes</span></div></div>
+        <div class="col-md-4 mb-3"><div class="campaign-stat"><strong>{{ $campaign->offers->count() }}</strong><span>Discount amounts</span></div></div>
         <div class="col-md-4 mb-3"><div class="campaign-stat"><strong>{{ $totalClaims }}</strong><span>Students claimed</span></div></div>
         <div class="col-md-4 mb-3"><div class="campaign-stat"><strong>{{ max(0, $totalSpots - $totalClaims) }}</strong><span>Spots left</span></div></div>
     </div>
 
     <div class="row mb-6">
-        @foreach($campaign->offers as $offer)
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="qr-tile">
-                    <div class="qr-amount">{{ number_format($offer->discount_amount) }} BDT</div>
-                    <div class="font-weight-bold mb-2">{{ $offer->displayLabel() }}</div>
-                    <img src="{{ $offer->qrImageUrl(360) }}" alt="QR {{ $offer->displayLabel() }}">
-                    <div class="qr-meta mt-3">{{ $offer->claims_count }} / {{ $offer->max_claims }} claimed</div>
-                    <div class="qr-meta mb-3">{{ $offer->remainingClaims() }} left · {{ $offer->is_active ? 'Active' : 'Paused' }}</div>
-                    <a href="{{ $offer->publicUrl() }}" target="_blank" class="btn btn-sm btn-light-primary font-weight-bold mr-1">Open form</a>
-                    <a href="{{ $offer->qrImageUrl(800) }}" target="_blank" class="btn btn-sm btn-light font-weight-bold">Download QR</a>
+        <div class="col-lg-4 mb-4">
+            <div class="qr-tile">
+                <div class="font-weight-bolder mb-1">Campaign QR</div>
+                <div class="qr-meta mb-3">Every student scans this one code.</div>
+                <img src="{{ $campaign->qrImageUrl(360) }}" alt="Campaign QR">
+                <div class="mt-3">
+                    <a href="{{ $campaign->publicUrl() }}" target="_blank" class="btn btn-sm btn-light-primary font-weight-bold mr-1">Open form</a>
+                    <a href="{{ $campaign->qrImageUrl(800) }}" target="_blank" class="btn btn-sm btn-light font-weight-bold">Download QR</a>
                 </div>
             </div>
-        @endforeach
+        </div>
+        <div class="col-lg-8">
+            <div class="row">
+                @foreach($campaign->offers as $offer)
+                    <div class="col-md-6 mb-4">
+                        <div class="amount-tile">
+                            <div class="qr-amount">{{ number_format($offer->discount_amount) }} BDT</div>
+                            <div class="font-weight-bold mb-2">{{ $offer->displayLabel() }}</div>
+                            <div class="qr-meta">Won {{ $offer->claims_count }} of {{ $offer->max_claims }}</div>
+                            <div class="qr-meta">{{ $offer->remainingClaims() }} left · {{ $offer->is_active ? 'In the draw' : 'Paused' }}</div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
     </div>
 
     <div class="campaign-card card">
@@ -53,7 +65,7 @@
             <h3 class="card-title mb-0 font-weight-bolder">Claimed students</h3>
             <form method="GET" class="form-inline mt-3 mt-md-0">
                 <select name="offer" class="form-control form-control-sm mr-2 mb-2">
-                    <option value="">All QR codes</option>
+                    <option value="">All amounts</option>
                     @foreach($campaign->offers as $offer)
                         <option value="{{ $offer->id }}" {{ request('offer') == $offer->id ? 'selected' : '' }}>{{ number_format($offer->discount_amount) }}</option>
                     @endforeach
@@ -69,7 +81,7 @@
                         <tr>
                             <th>Student</th>
                             <th>College</th>
-                            <th>QR discount</th>
+                            <th>Discount won</th>
                             <th>Claim code</th>
                             <th>Status</th>
                             <th></th>

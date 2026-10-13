@@ -10,7 +10,7 @@
             <input type="number" min="1" name="offers[{{ $index }}][discount_amount]" class="form-control" value="{{ $offer->discount_amount ?? '' }}" required>
         </div>
         <div class="col-md-2">
-            <label>Student limit</label>
+            <label>How many times</label>
             <input type="number" min="1" name="offers[{{ $index }}][max_claims]" class="form-control" value="{{ $offer->max_claims ?? 500 }}" required>
         </div>
         <div class="col-md-2">

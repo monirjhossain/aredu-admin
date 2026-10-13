@@ -1,6 +1,6 @@
 @extends('layouts.public-application')
 
-@section('title', $offer->displayLabel())
+@section('title', $campaign->name)
 
 @section('content')
 <style>
@@ -167,8 +167,8 @@
             <img src="{{ asset('media/custom/logo.png') }}" alt="AR Education">
         </div>
         <h1>{{ $campaign->name }}</h1>
-        <p>Fill in your details to unlock your File Opening discount.</p>
-        <div class="branch-badge">{{ number_format($offer->discount_amount) }} BDT off</div>
+        <p>Fill in your details. Your File Opening discount is chosen at random.</p>
+        <div class="branch-badge">Random discount</div>
     </div>
 
     <div class="wizard-card">
@@ -186,14 +186,14 @@
                 </div>
             @endif
 
-            @if($full || !$offer->is_active || !$campaign->isActive())
+            @if(!$campaign->isActive() || $spots < 1)
                 <h2 class="step-heading">New claims are closed</h2>
-                <p class="step-subtitle">{{ $offer->remainingClaims() < 1 ? 'All discount spots on this QR have been claimed.' : 'This QR is not accepting new students right now.' }} If you already claimed, enter the same mobile number to see your code.</p>
+                <p class="step-subtitle">{{ $spots < 1 ? 'All discount spots on this QR have been claimed.' : 'This QR is not accepting new students right now.' }} If you already claimed, enter the same mobile number to see your code.</p>
             @else
                 <h2 class="step-heading">Claim your discount</h2>
-                <p class="step-subtitle">{{ $offer->remainingClaims() }} spots left on this QR.</p>
+                <p class="step-subtitle">{{ $spots }} spots left. The amount is picked at random.</p>
             @endif
-                <form method="POST" action="{{ route('campaigns.public.store', $offer->token) }}">
+                <form method="POST" action="{{ route('campaigns.public.store', $campaign->token) }}">
                     @csrf
                     <div class="form-group">
                         <label class="required" for="name">Name</label>
@@ -224,8 +224,8 @@
         <div class="camp-popup__code">{{ $claim->claim_code }}</div>
         <p class="camp-popup__meta">{{ $claim->name }} · {{ $claim->college_name }}</p>
         <p class="camp-popup__note">Show this code at the office. It will be applied on your File Opening charge. Take a screenshot before you close this.</p>
-        <a class="camp-popup__pdf" href="{{ route('campaigns.public.pdf', [$offer->token, $claim->claim_code]) }}">Download PDF</a>
-        <a class="camp-popup__close" href="{{ route('campaigns.public.show', $offer->token) }}">Done</a>
+        <a class="camp-popup__pdf" href="{{ route('campaigns.public.pdf', [$campaign->token, $claim->claim_code]) }}">Download PDF</a>
+        <a class="camp-popup__close" href="{{ route('campaigns.public.show', $campaign->token) }}">Done</a>
     </div>
 </div>
 @endif

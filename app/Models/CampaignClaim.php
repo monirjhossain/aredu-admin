@@ -11,6 +11,7 @@ class CampaignClaim extends Model
 
     protected $fillable = [
         'campaign_offer_id',
+        'campaign_id',
         'name',
         'mobile',
         'college_name',
@@ -29,6 +30,11 @@ class CampaignClaim extends Model
     public function offer()
     {
         return $this->belongsTo(CampaignOffer::class, 'campaign_offer_id');
+    }
+
+    public function campaign()
+    {
+        return $this->belongsTo(Campaign::class);
     }
 
     public function isUsed(): bool
