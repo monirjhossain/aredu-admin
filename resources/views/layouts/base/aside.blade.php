@@ -321,6 +321,33 @@
                     </div>
                 </li>
                 @endif
+
+                @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,3,6]))
+                <li class="menu-item {{ request()->is('campaigns') || request()->is('campaigns/*') ? 'menu-item-open' : '' }}" aria-haspopup="true" data-menu-toggle="hover">
+                    <a href="javascript:;" class="menu-link menu-toggle">
+                        <span class="menu-text font-weight-bolder"><i class="fas fa-qrcode"></i>Campaigns</span>
+                        <i class="menu-arrow"></i>
+                    </a>
+                    <div class="menu-submenu">
+                        <i class="menu-arrow"></i>
+                        <ul class="menu-subnav">
+                            <li class="menu-item {{ request()->is('campaigns') && !request()->is('campaigns/*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                                <a href="{{ route('campaigns.index') }}" class="menu-link">
+                                    <i class="menu-bullet menu-bullet-dot"><span></span></i>
+                                    <span class="menu-text font-weight-bolder">All campaigns</span>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ request()->is('campaigns/create') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                                <a href="{{ route('campaigns.create') }}" class="menu-link">
+                                    <i class="menu-bullet menu-bullet-dot"><span></span></i>
+                                    <span class="menu-text font-weight-bolder">New Campaign</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+                @endif
+
                 @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,3,4,5,6,7,8]))
                 <li class="menu-item {{ request()->is('students') ? 'menu-item-open' : '' }} {{ request()->is('students/*') ? 'menu-item-open' : '' }} {{ request('student') ? 'menu-item-open' : '' }} {{ request()->is('finance_entrie') && request()->query('student') ==100 ? 'menu-item-open' : '' }}"
                     aria-haspopup="true" data-menu-toggle="hover">

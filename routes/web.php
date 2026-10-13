@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Notifications\Notifiable;
 use App\Http\Controllers\Admin\BulkSmsController;
-use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\CampaignController;
 use App\Http\Controllers\Admin\CommonController;
 use App\Http\Controllers\Admin\Currency\CurrencyController;
 use App\Http\Controllers\Admin\FinanceEntryController;
@@ -73,6 +73,10 @@ Route::get('inquiry-form/{type}', [InquiryController::class, 'publicInquiryForm'
 Route::post('inquiry-form/{type}', [InquiryController::class, 'publicInquiryFormSubmit'])
     ->where('type', 'csca|chinese-basic-language-course|english-spoken-course')
     ->name('inquiry-forms.store');
+Route::get('campaign/{token}', [\App\Http\Controllers\PublicCampaignController::class, 'show'])->name('campaigns.public.show');
+Route::post('campaign/{token}', [\App\Http\Controllers\PublicCampaignController::class, 'store'])->name('campaigns.public.store');
+Route::get('campaign/{token}/claimed/{code}', [\App\Http\Controllers\PublicCampaignController::class, 'claimed'])->name('campaigns.public.claimed');
+Route::get('campaign/{token}/claimed/{code}/pdf', [\App\Http\Controllers\PublicCampaignController::class, 'pdf'])->name('campaigns.public.pdf');
 
 
 Route::get('/', [DashboardController::class, 'logincheck']);
@@ -99,6 +103,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('category', CategoryController::class);
     Route::resource('tag', TagController::class);
     Route::resource('inquiries', InquiryController::class);
+    Route::post('campaigns/{campaign}/claims/{claim}/mark', [CampaignController::class, 'markClaim'])->name('campaigns.claims.mark');
+    Route::resource('campaigns', CampaignController::class)->except(['destroy']);
     Route::get('application-qr-codes', [InquiryController::class, 'applicationQrCodes'])->name('application-qr-codes');
     Route::get('application-qr-codes/{branch}', [InquiryController::class, 'applicationQr'])->name('application-qr-codes.show');
     Route::get('inquiry-qr-codes/{type}', [InquiryController::class, 'courseQrCodes'])
