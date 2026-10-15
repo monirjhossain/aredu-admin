@@ -25,7 +25,7 @@ Example:
 
 A student scans the QR and fills **Name**, **Mobile number**, and **College Name**. The system picks one remaining slot at random. An amount with more slots left is more likely to be picked. When an amount's slots are finished, it drops out of the draw.
 
-A celebration popup then shows the discount they won and a **Claim Code**. From that popup they can **Download PDF**. The PDF is a slip with the AR Education logo, the discount, the code, and the student's name, mobile, and college.
+A celebration popup then shows the discount they won and a **Claim Code**. From that popup they can open a printable slip, the same way an invoice is printed. The slip has the AR Education logo, the discount, the code, and the student's name, mobile, and college. **Print / Save as PDF** uses the phone or browser print dialog.
 
 The campaign page lists every student who claimed, with search by name, mobile, college, or code.
 

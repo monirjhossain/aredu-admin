@@ -224,7 +224,7 @@
         <div class="camp-popup__code">{{ $claim->claim_code }}</div>
         <p class="camp-popup__meta">{{ $claim->name }} · {{ $claim->college_name }}</p>
         <p class="camp-popup__note">Show this code at the office. It will be applied on your File Opening charge. Take a screenshot before you close this.</p>
-        <a class="camp-popup__pdf" href="{{ route('campaigns.public.pdf', [$campaign->token, $claim->claim_code]) }}">Download PDF</a>
+        <a class="camp-popup__pdf" href="{{ route('campaigns.public.pdf', [$campaign->token, $claim->claim_code]) }}" target="_blank">Print / Save PDF</a>
         <a class="camp-popup__close" href="{{ route('campaigns.public.show', $campaign->token) }}">Done</a>
     </div>
 </div>

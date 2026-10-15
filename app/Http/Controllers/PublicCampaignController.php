@@ -7,7 +7,6 @@ use App\Models\Campaign;
 use App\Models\CampaignClaim;
 use App\Models\CampaignOffer;
 use App\Services\Campaign\CampaignClaimService;
-use App\Support\PdfGenerator;
 use RuntimeException;
 
 class PublicCampaignController extends Controller
@@ -51,23 +50,14 @@ class PublicCampaignController extends Controller
         return view('frontend.campaigns.form', $this->pageData($campaign, $claim));
     }
 
-    public function pdf(string $token, string $code, PdfGenerator $pdfs)
+    public function pdf(string $token, string $code)
     {
         $campaign = $this->campaign($token);
         $claim = $this->claim($campaign, $code);
 
-        $html = view('frontend.campaigns.pdf', [
+        return view('frontend.campaigns.pdf', [
             'campaign' => $campaign,
             'claim' => $claim,
-            'logo' => str_replace('\\', '/', public_path('media/custom/logo.png')),
-        ])->render();
-
-        return $pdfs->download($html, 'AR-Education-' . $claim->claim_code . '.pdf', [
-            'format' => 'A5',
-            'margin_left' => 12,
-            'margin_right' => 12,
-            'margin_top' => 12,
-            'margin_bottom' => 12,
         ]);
     }
 
