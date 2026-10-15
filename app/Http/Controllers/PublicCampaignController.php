@@ -7,6 +7,7 @@ use App\Models\Campaign;
 use App\Models\CampaignClaim;
 use App\Models\CampaignOffer;
 use App\Services\Campaign\CampaignClaimService;
+use Mpdf\Mpdf;
 use RuntimeException;
 
 class PublicCampaignController extends Controller
@@ -55,9 +56,27 @@ class PublicCampaignController extends Controller
         $campaign = $this->campaign($token);
         $claim = $this->claim($campaign, $code);
 
-        return view('frontend.campaigns.pdf', [
+        $html = view('frontend.campaigns.pdf', [
             'campaign' => $campaign,
             'claim' => $claim,
+            'logo' => str_replace('\\', '/', public_path('media/custom/logo.png')),
+        ])->render();
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A5',
+            'margin_left' => 12,
+            'margin_right' => 12,
+            'margin_top' => 12,
+            'margin_bottom' => 12,
+        ]);
+        $mpdf->WriteHTML($html);
+
+        $filename = 'AR-Education-' . $claim->claim_code . '.pdf';
+
+        return response($mpdf->Output('', 'S'), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
     }
 
