@@ -56,10 +56,12 @@
         animation: campPop 0.62s cubic-bezier(0.16, 1.35, 0.35, 1) both;
     }
     .camp-popup__party {
-        font-size: 2.4rem;
-        line-height: 1;
+        display: flex;
+        justify-content: center;
+        line-height: 0;
         animation: campParty 0.7s 0.12s cubic-bezier(0.16, 1.4, 0.35, 1) both;
     }
+    .camp-popup__party svg { width: 52px; height: 52px; }
     .camp-popup__congrats {
         margin: 8px 0 0;
         font-size: 0.95rem;
@@ -217,12 +219,17 @@
 <canvas class="camp-confetti" id="campConfetti" aria-hidden="true"></canvas>
 <div class="camp-popup" role="dialog" aria-modal="true" aria-labelledby="campPopupTitle">
     <div class="camp-popup__card">
-        <div class="camp-popup__party" aria-hidden="true">🎉</div>
+        <div class="camp-popup__party" aria-hidden="true">
+            <svg viewBox="0 0 64 64" aria-hidden="true">
+                <polygon fill="#f97316" points="32,4 37,24 58,18 42,32 58,46 37,40 32,60 27,40 6,46 22,32 6,18 27,24"/>
+                <circle cx="32" cy="32" r="8" fill="#fdba74"/>
+            </svg>
+        </div>
         <p class="camp-popup__congrats">Congratulations</p>
         <div class="branch-badge">{{ $campaign->name }}</div>
         <div class="camp-popup__amount" id="campPopupTitle">You got {{ number_format($claim->discount_amount) }} BDT discount</div>
         <div class="camp-popup__code">{{ $claim->claim_code }}</div>
-        <p class="camp-popup__meta">{{ $claim->name }} · {{ $claim->college_name }}</p>
+        <p class="camp-popup__meta">{{ $claim->name }} | {{ $claim->college_name }}</p>
         <p class="camp-popup__note">Show this code at the office. It will be applied on your Service Charge. Take a screenshot before you close this.</p>
         <a class="camp-popup__pdf" href="{{ route('campaigns.public.pdf', [$campaign->token, $claim->claim_code]) }}">Download PDF</a>
         <a class="camp-popup__close" href="{{ route('campaigns.public.show', $campaign->token) }}">Done</a>
