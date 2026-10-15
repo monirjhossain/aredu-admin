@@ -167,7 +167,7 @@
             <img src="{{ asset('media/custom/logo.png') }}" alt="AR Education">
         </div>
         <h1>{{ $campaign->name }}</h1>
-        <p>Fill in your details. Your File Opening discount is chosen at random.</p>
+        <p>Fill in your details. Your Service Charge discount is chosen at random.</p>
         <div class="branch-badge">Random discount</div>
     </div>
 
@@ -223,7 +223,7 @@
         <div class="camp-popup__amount" id="campPopupTitle">You got {{ number_format($claim->discount_amount) }} BDT discount</div>
         <div class="camp-popup__code">{{ $claim->claim_code }}</div>
         <p class="camp-popup__meta">{{ $claim->name }} · {{ $claim->college_name }}</p>
-        <p class="camp-popup__note">Show this code at the office. It will be applied on your File Opening charge. Take a screenshot before you close this.</p>
+        <p class="camp-popup__note">Show this code at the office. It will be applied on your Service Charge. Take a screenshot before you close this.</p>
         <a class="camp-popup__pdf" href="{{ route('campaigns.public.pdf', [$campaign->token, $claim->claim_code]) }}">Download PDF</a>
         <a class="camp-popup__close" href="{{ route('campaigns.public.show', $campaign->token) }}">Done</a>
     </div>

@@ -32,7 +32,7 @@
         <p class="brand">AR EDUCATION</p>
         <p class="campaign">{{ $campaign->name }}</p>
         <p class="amount">{{ number_format($claim->discount_amount) }} BDT discount</p>
-        <p class="label">File Opening charge</p>
+        <p class="label">Service Charge</p>
         <div class="code">{{ $claim->claim_code }}</div>
         <table class="meta">
             <tr>
@@ -48,7 +48,7 @@
                 <td>{{ $claim->college_name }}</td>
             </tr>
         </table>
-        <p class="note">Show this slip at the AR Education office. The discount will be applied on your File Opening charge.</p>
+        <p class="note">Show this slip at the AR Education office. The discount will be applied on your Service Charge.</p>
     </div>
 </body>
 </html>

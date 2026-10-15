@@ -130,7 +130,7 @@ class CampaignController extends Controller
                 'used_at' => now(),
                 'used_by' => Auth::id(),
             ])->save();
-            $message = 'Discount marked as used on the file opening charge.';
+            $message = 'Discount marked as used on the Service Charge.';
         }
 
         return redirect()->back()->with('success', $message);

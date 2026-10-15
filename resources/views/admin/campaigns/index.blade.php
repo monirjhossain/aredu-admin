@@ -8,7 +8,7 @@
 <div class="campaign-page">
     <div class="campaign-hero d-flex flex-wrap align-items-center justify-content-between">
         <div>
-            <div class="campaign-kicker">FILE OPENING OFFERS</div>
+            <div class="campaign-kicker">SERVICE CHARGE OFFERS</div>
             <h1>Campaigns</h1>
             <p>One QR per campaign. Set how many times each discount can be won, then track every claim.</p>
         </div>

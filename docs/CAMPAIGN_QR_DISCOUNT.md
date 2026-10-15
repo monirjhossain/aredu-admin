@@ -4,9 +4,9 @@
 **Last updated:** 13 October 2026  
 **Audience:** Office staff  
 
-The discount is for the **File Opening charge** only. Each campaign has **one QR**. Staff set the discount amounts, and how many times each amount can be won, from the admin **Campaigns** menu.
+The discount is for the **Service Charge** only. Each campaign has **one QR**. Staff set the discount amounts, and how many times each amount can be won, from the admin **Campaigns** menu.
 
-**Mark used** does not change any invoice. It only records that the office has already applied that discount. Staff subtract the amount on the File Opening charge themselves, then click **Mark used**.
+**Mark used** does not change any invoice. It only records that the office has already applied that discount. Staff subtract the amount from the Service Charge themselves, then click **Mark used**.
 
 ---
 
@@ -45,7 +45,7 @@ The sidebar menu is visible to **Super Admin**, **Admin**, **Manager**, and **IT
 4. Students scan and submit. They see the popup and can save the PDF.
 5. The campaign page shows who claimed, the amount, the code, and how many spots are left.
 6. When the student comes to the office, find the row by mobile or Claim Code.
-7. Subtract that discount from the File Opening charge on the invoice.
+7. Subtract that discount from the Service Charge on the invoice.
 8. Click **Mark used**. The row becomes **Used**, with the time and the staff member who clicked it.
 
 If **Mark used** was clicked by mistake, click **Mark available**. The claim goes back to **Available**.
