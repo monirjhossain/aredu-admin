@@ -7,6 +7,7 @@ use App\Models\Campaign;
 use App\Models\CampaignClaim;
 use App\Models\CampaignOffer;
 use App\Services\Campaign\CampaignClaimService;
+use Illuminate\Database\QueryException;
 use Mpdf\Mpdf;
 use RuntimeException;
 
@@ -38,6 +39,13 @@ class PublicCampaignController extends Controller
                 ->route('campaigns.public.show', $campaign->token)
                 ->withInput()
                 ->with('error', $e->getMessage());
+        } catch (QueryException $e) {
+            report($e);
+
+            return redirect()
+                ->route('campaigns.public.show', $campaign->token)
+                ->withInput()
+                ->with('error', 'Could not save your discount. Please try again.');
         }
 
         return redirect()->route('campaigns.public.claimed', [$campaign->token, $claim->claim_code]);

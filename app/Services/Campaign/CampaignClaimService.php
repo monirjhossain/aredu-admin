@@ -45,14 +45,13 @@ class CampaignClaimService
                 throw new RuntimeException('This QR is full. No more discounts are available.');
             }
 
-            $taken = CampaignClaim::query()->where('campaign_offer_id', $winner->id)->count();
             $claim = new CampaignClaim([
                 'campaign_id' => $locked->id,
                 'campaign_offer_id' => $winner->id,
                 'name' => trim($name),
                 'mobile' => $mobile,
                 'college_name' => trim($college),
-                'claim_code' => $this->makeCode($winner, $taken + 1),
+                'claim_code' => $this->nextCode($winner),
                 'discount_amount' => (int) $winner->discount_amount,
                 'status' => CampaignClaim::STATUS_AVAILABLE,
             ]);
@@ -106,10 +105,36 @@ class CampaignClaimService
         return null;
     }
 
-    private function makeCode(CampaignOffer $offer, int $serial): string
+    private function nextCode(CampaignOffer $offer): string
+    {
+        $prefix = $this->codePrefix($offer);
+        $max = 0;
+
+        $codes = CampaignClaim::query()
+            ->where('claim_code', 'like', $prefix . '%')
+            ->pluck('claim_code');
+
+        foreach ($codes as $code) {
+            if (preg_match('/-(\d+)$/', (string) $code, $matches)) {
+                $max = max($max, (int) $matches[1]);
+            }
+        }
+
+        $serial = $max + 1;
+        $code = $prefix . str_pad((string) $serial, 4, '0', STR_PAD_LEFT);
+
+        while (CampaignClaim::query()->where('claim_code', $code)->exists()) {
+            $serial++;
+            $code = $prefix . str_pad((string) $serial, 4, '0', STR_PAD_LEFT);
+        }
+
+        return $code;
+    }
+
+    private function codePrefix(CampaignOffer $offer): string
     {
         $thousands = max(1, (int) round(((int) $offer->discount_amount) / 1000));
 
-        return 'C' . $thousands . 'K-' . $offer->id . '-' . str_pad((string) $serial, 4, '0', STR_PAD_LEFT);
+        return 'C' . $thousands . 'K-' . $offer->id . '-';
     }
 }
