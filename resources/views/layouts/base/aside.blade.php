@@ -141,7 +141,7 @@
                 @endif
 
                 @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,3,7]))
-                <li class="menu-item {{ request()->is('posts*') || request()->is('universities*') || request()->is('scholarships*') || request()->is('services*') || request()->is('pages*') || request()->is('success-story*') || request()->is('events*') || request()->is('testimonials*') || request()->is('sliders*') || request()->is('videos*') || request()->is('category*') || request()->is('tag*') || request()->is('setting/website*') || request()->is('setting/subjects*') || request()->is('setting/studies*') ? 'menu-item-open' : '' }}"
+                <li class="menu-item {{ request()->is('posts*') || request()->is('universities*') || request()->is('scholarships*') || request()->is('services*') || request()->is('pages*') || request()->is('success-story*') || request()->is('events*') || request()->is('testimonials*') || request()->is('sliders*') || request()->is('videos*') || request()->is('video-gallery*') || request()->is('category*') || request()->is('tag*') || request()->is('setting/website*') || request()->is('setting/subjects*') || request()->is('setting/studies*') ? 'menu-item-open' : '' }}"
                     aria-haspopup="true" data-menu-toggle="hover">
                     <a href="javascript:;" class="menu-link menu-toggle">
                         <span class="svg-icon menu-icon">
@@ -270,6 +270,14 @@
                                 <a href="{{ route('videos.index') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                     <span class="menu-text font-weight-bolder">Videos</span>
+                                </a>
+                            </li>
+                            @endif
+                            @if(Route::has('video-gallery.index'))
+                            <li class="menu-item {{ request()->is('video-gallery') || request()->is('video-gallery/*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                                <a href="{{ route('video-gallery.index') }}" class="menu-link">
+                                    <i class="menu-bullet menu-bullet-dot"><span></span></i>
+                                    <span class="menu-text font-weight-bolder">Video gallery</span>
                                 </a>
                             </li>
                             @endif
