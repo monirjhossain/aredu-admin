@@ -92,6 +92,7 @@
                                 <th>Last Result</th>
                                 <th>Year</th>
                                 <th>CSCA Subjects</th>
+                                <th>Reference</th>
                                 <th>Course</th>
                                 <th>University</th>
                                 <th>Subject</th>
@@ -130,6 +131,7 @@
                                 <td>{{ $inquiry->result ?: '—' }}</td>
                                 <td>{{ $inquiry->year ?: '—' }}</td>
                                 <td style="max-width: 180px;" class="text-truncate" title="{{ $inquiry->csca_subjects }}">{{ $inquiry->csca_subjects ?: '—' }}</td>
+                                <td style="max-width: 160px;" class="text-truncate" title="{{ $inquiry->reference }}">{{ $inquiry->reference ?: '—' }}</td>
                                 <td>{{ $inquiry->course ?: '—' }}</td>
                                 <td style="max-width: 180px;" class="text-truncate" title="{{ $inquiry->university }}">{{ $inquiry->university ?: '—' }}</td>
                                 <td style="max-width: 140px;" class="text-truncate" title="{{ $inquiry->subject }}">{{ $inquiry->subject ?: '—' }}</td>
@@ -168,7 +170,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="19" class="text-center py-10">
+                                <td colspan="20" class="text-center py-10">
                                     <span class="text-muted font-size-h6">No inquiries found for this branch.</span>
                                 </td>
                             </tr>

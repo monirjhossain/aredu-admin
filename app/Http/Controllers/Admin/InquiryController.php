@@ -130,6 +130,7 @@ class InquiryController extends Controller
                 'Result',
                 'Year',
                 'CSCA Subjects',
+                'Reference',
                 'Course',
                 'University',
                 'Subject',
@@ -154,6 +155,7 @@ class InquiryController extends Controller
                     $inquiry->result,
                     $inquiry->year,
                     $inquiry->csca_subjects,
+                    $inquiry->reference,
                     $inquiry->course,
                     $inquiry->university,
                     $inquiry->subject,
@@ -554,6 +556,11 @@ class InquiryController extends Controller
         $payload['university'] = $this->selectionResolver->universityNamesFromRequest($request);
         $payload['subject'] = $this->selectionResolver->subjectNamesFromRequest($request);
         $payload['csca_subjects'] = $this->cscaSubjectNamesFromRequest($request);
+        $references = array_values(array_filter(array_map(
+            'trim',
+            (array) $request->input('references', [])
+        )));
+        $payload['reference'] = $references ? implode("\n", $references) : null;
 
         if (empty($payload['type'])) {
             $payload['type'] = 'Manual Inquiry';

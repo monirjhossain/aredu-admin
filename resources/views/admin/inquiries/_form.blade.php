@@ -52,3 +52,52 @@
         </div>
     </div>
 </div>
+
+@php
+    $referenceValues = old('references');
+    if ($referenceValues === null) {
+        $referenceValues = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string) ($inquiry->reference ?? '')))));
+    }
+@endphp
+
+<div class="form-group mb-0" id="inquiry-references">
+    <div id="inquiry-reference-rows">
+        @foreach ($referenceValues as $referenceValue)
+            <div class="input-group mb-2 inquiry-reference-row">
+                <input type="text" name="references[]" value="{{ $referenceValue }}" class="form-control" placeholder="Reference name or phone">
+                <div class="input-group-append">
+                    <button type="button" class="btn btn-light-danger js-remove-reference">Remove</button>
+                </div>
+            </div>
+        @endforeach
+    </div>
+    <button type="button" class="btn btn-outline-danger btn-block" id="addInquiryReference">ADD Reference Field</button>
+</div>
+
+<script>
+    (function () {
+        var rows = document.getElementById('inquiry-reference-rows');
+        var addButton = document.getElementById('addInquiryReference');
+        if (!rows || !addButton || addButton.dataset.bound === '1') return;
+        addButton.dataset.bound = '1';
+
+        function bindRemove(button) {
+            button.addEventListener('click', function () {
+                var row = button.closest('.inquiry-reference-row');
+                if (row) row.remove();
+            });
+        }
+
+        rows.querySelectorAll('.js-remove-reference').forEach(bindRemove);
+
+        addButton.addEventListener('click', function () {
+            var row = document.createElement('div');
+            row.className = 'input-group mb-2 inquiry-reference-row';
+            row.innerHTML = '<input type="text" name="references[]" class="form-control" placeholder="Reference name or phone">'
+                + '<div class="input-group-append"><button type="button" class="btn btn-light-danger js-remove-reference">Remove</button></div>';
+            rows.appendChild(row);
+            bindRemove(row.querySelector('.js-remove-reference'));
+            row.querySelector('input').focus();
+        });
+    })();
+</script>

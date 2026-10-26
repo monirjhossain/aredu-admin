@@ -42,6 +42,7 @@ class Inquiry extends Model
         'email',
         'oppurtunity',
         'message',
+        'reference',
         'status',
         'view',
         'user_id',
