@@ -51,6 +51,8 @@ class SettingService
 
     public const KEY_SITE_POPUP_CTA_URL = 'site_popup_cta_url';
 
+    public const KEY_SITE_POPUP_IMAGE_PATH = 'site_popup_image_path';
+
     public const DEFAULTS = [
         self::KEY_PLATFORM_NAME => 'AR Education IELTS',
         self::KEY_LOGO_PATH => null,
@@ -72,6 +74,7 @@ class SettingService
         self::KEY_SITE_POPUP_BODY => 'Explore free courses, timed mocks, and structured IELTS paths — start learning today.',
         self::KEY_SITE_POPUP_CTA_LABEL => 'Browse courses',
         self::KEY_SITE_POPUP_CTA_URL => '/courses',
+        self::KEY_SITE_POPUP_IMAGE_PATH => null,
     ];
 
     public function __construct(private readonly ActivityLogService $activity) {}
@@ -163,6 +166,7 @@ class SettingService
             self::KEY_SITE_POPUP_BODY,
             self::KEY_SITE_POPUP_CTA_LABEL,
             self::KEY_SITE_POPUP_CTA_URL,
+            self::KEY_SITE_POPUP_IMAGE_PATH,
         ]);
 
         $logoPath = $values[self::KEY_LOGO_PATH] ?? null;
@@ -234,7 +238,7 @@ class SettingService
     }
 
     /**
-     * @return array{enabled: bool, title: string, body: string, cta_label: string, cta_url: string}
+     * @return array{enabled: bool, title: string, body: string, cta_label: string, cta_url: string, image_url: ?string}
      */
     public function entryPopup(): array
     {
@@ -244,6 +248,7 @@ class SettingService
             self::KEY_SITE_POPUP_BODY,
             self::KEY_SITE_POPUP_CTA_LABEL,
             self::KEY_SITE_POPUP_CTA_URL,
+            self::KEY_SITE_POPUP_IMAGE_PATH,
         ]));
     }
 
@@ -409,6 +414,53 @@ class SettingService
         return $this->allForAdmin();
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    public function storeSitePopupImage(User $actor, UploadedFile $file): array
+    {
+        $path = $file->store('site-popup', 'public');
+        $previous = $this->get(self::KEY_SITE_POPUP_IMAGE_PATH);
+
+        $this->put(self::KEY_SITE_POPUP_IMAGE_PATH, $path);
+
+        if (is_string($previous) && $previous !== '' && $previous !== $path) {
+            Storage::disk('public')->delete($previous);
+        }
+
+        $this->activity->record(
+            $actor,
+            'settings.site_popup_image_updated',
+            null,
+            'Website entry popup image updated.',
+        );
+
+        return $this->allForAdmin();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function deleteSitePopupImage(User $actor): array
+    {
+        $previous = $this->get(self::KEY_SITE_POPUP_IMAGE_PATH);
+
+        if (is_string($previous) && $previous !== '') {
+            Storage::disk('public')->delete($previous);
+        }
+
+        $this->put(self::KEY_SITE_POPUP_IMAGE_PATH, '');
+
+        $this->activity->record(
+            $actor,
+            'settings.site_popup_image_removed',
+            null,
+            'Website entry popup image removed.',
+        );
+
+        return $this->allForAdmin();
+    }
+
     private function put(string $key, string $value): void
     {
         Setting::query()->updateOrCreate(
@@ -456,7 +508,7 @@ class SettingService
 
     /**
      * @param  array<string, mixed>  $values
-     * @return array{enabled: bool, title: string, body: string, cta_label: string, cta_url: string}
+     * @return array{enabled: bool, title: string, body: string, cta_label: string, cta_url: string, image_url: ?string}
      */
     private function entryPopupFrom(array $values): array
     {
@@ -465,6 +517,7 @@ class SettingService
         $body = (string) ($values[self::KEY_SITE_POPUP_BODY] ?? self::DEFAULTS[self::KEY_SITE_POPUP_BODY]);
         $ctaLabel = (string) ($values[self::KEY_SITE_POPUP_CTA_LABEL] ?? self::DEFAULTS[self::KEY_SITE_POPUP_CTA_LABEL]);
         $ctaUrl = (string) ($values[self::KEY_SITE_POPUP_CTA_URL] ?? self::DEFAULTS[self::KEY_SITE_POPUP_CTA_URL]);
+        $imagePath = $values[self::KEY_SITE_POPUP_IMAGE_PATH] ?? null;
 
         return [
             'enabled' => $enabled === '1' || $enabled === 'true',
@@ -472,6 +525,7 @@ class SettingService
             'body' => $body,
             'cta_label' => $ctaLabel !== '' ? $ctaLabel : (string) self::DEFAULTS[self::KEY_SITE_POPUP_CTA_LABEL],
             'cta_url' => $ctaUrl !== '' ? $ctaUrl : (string) self::DEFAULTS[self::KEY_SITE_POPUP_CTA_URL],
+            'image_url' => $this->logoUrl(is_string($imagePath) ? $imagePath : null),
         ];
     }
 

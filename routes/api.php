@@ -353,6 +353,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/admin/settings/logo', [SettingController::class, 'destroyLogo']);
         Route::post('/admin/settings/bkash-qr', [SettingController::class, 'storeBkashQr']);
         Route::delete('/admin/settings/bkash-qr', [SettingController::class, 'destroyBkashQr']);
+        Route::post('/admin/settings/site-popup-image', [SettingController::class, 'storeSitePopupImage']);
+        Route::delete('/admin/settings/site-popup-image', [SettingController::class, 'destroySitePopupImage']);
         Route::get('/admin/activity-logs', [ActivityLogController::class, 'index']);
     });
 

@@ -41,7 +41,7 @@ class ActivityLogService
             ->with('user:id,name,email')
             ->when(
                 isset($filters['action']) && is_string($filters['action']) && $filters['action'] !== '',
-                fn ($query) => $query->where('action', $filters['action']),
+                fn ($query) => $query->where('action', 'like', '%'.$filters['action'].'%'),
             )
             ->when(
                 isset($filters['user_id']) && $filters['user_id'] !== null && $filters['user_id'] !== '',

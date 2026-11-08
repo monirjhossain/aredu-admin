@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\SettingBkashQrRequest;
 use App\Http\Requests\Settings\SettingLogoRequest;
+use App\Http\Requests\Settings\SettingSitePopupImageRequest;
 use App\Http\Requests\Settings\UpdateSettingRequest;
 use App\Http\Responses\ApiResponse;
 use App\Services\Settings\SettingService;
@@ -66,6 +67,24 @@ class SettingController extends Controller
         return ApiResponse::success(
             $this->settings->deleteBkashQr($request->user()),
             'bKash QR removed.',
+        );
+    }
+
+    public function storeSitePopupImage(SettingSitePopupImageRequest $request): JsonResponse
+    {
+        return ApiResponse::success(
+            $this->settings->storeSitePopupImage($request->user(), $request->file('image')),
+            'Entry popup image updated.',
+        );
+    }
+
+    public function destroySitePopupImage(Request $request): JsonResponse
+    {
+        abort_unless($request->user()?->hasPermission('settings.manage'), 403);
+
+        return ApiResponse::success(
+            $this->settings->deleteSitePopupImage($request->user()),
+            'Entry popup image removed.',
         );
     }
 
