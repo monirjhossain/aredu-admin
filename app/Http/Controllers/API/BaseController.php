@@ -12,7 +12,7 @@ class BaseController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function sendResponse($result, $message)
+    public function sendResponse($result, $message, $cacheSeconds = 0)
     {
     	$response = [
             'success' => true,
@@ -21,7 +21,11 @@ class BaseController extends Controller
             'status_code' => 200,
             'data'    => $result,
         ];
-        return response()->json($response, 200);
+        $json = response()->json($response, 200);
+        if ($cacheSeconds > 0) {
+            $json->header('Cache-Control', 'public, max-age=' . (int) $cacheSeconds . ', stale-while-revalidate=' . ((int) $cacheSeconds * 2));
+        }
+        return $json;
     }
 
     public function NewSendResponse($result, $message)

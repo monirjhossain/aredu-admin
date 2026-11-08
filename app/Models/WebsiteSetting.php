@@ -40,6 +40,7 @@ class WebsiteSetting extends Model
             ['value' => is_array($value) || is_object($value) ? json_encode($value) : $value]
         );
         Cache::forget('website_settings_public');
+        Cache::forget('website_home_v1');
     }
 
     /**

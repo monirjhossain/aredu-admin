@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Models\Post\Post;
 use App\Models\Subject;
+use App\Support\ApiCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -14,45 +15,49 @@ class SubjectController extends BaseController
      */
     public function index(Request $request)
     {
-        $perPage = (int) $request->input('per_page', 100);
-        $perPage = $perPage > 0 && $perPage <= 200 ? $perPage : 100;
+        $payload = ApiCache::remember(ApiCache::requestKey($request, 'subjects.index'), function () use ($request) {
+            $perPage = (int) $request->input('per_page', 100);
+            $perPage = $perPage > 0 && $perPage <= 200 ? $perPage : 100;
 
-        $query = Subject::query()
-            ->where(function ($q) {
-                $q->where('status', 1)->orWhereNull('status');
-            })
-            ->withCount([
-                'posts as universities_count' => function ($q) {
+            $query = Subject::query()
+                ->where(function ($q) {
+                    $q->where('status', 1)->orWhereNull('status');
+                })
+                ->withCount([
+                    'posts as universities_count' => function ($q) {
+                        $q->where('post_type', 'university');
+                    },
+                ])
+                ->orderBy('name');
+
+            if ($request->filled('search')) {
+                $search = $request->input('search');
+                $query->where('name', 'like', '%' . $search . '%');
+            }
+
+            if ($request->boolean('with_universities')) {
+                $query->whereHas('posts', function ($q) {
                     $q->where('post_type', 'university');
-                },
-            ])
-            ->orderBy('name');
+                });
+            }
 
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where('name', 'like', '%' . $search . '%');
-        }
-
-        if ($request->boolean('with_universities')) {
-            $query->whereHas('posts', function ($q) {
-                $q->where('post_type', 'university');
+            $paginator = $query->paginate($perPage);
+            $items = collect($paginator->items())->map(function ($subject, $index) {
+                return $this->mapSubject($subject, $index);
             });
-        }
 
-        $paginator = $query->paginate($perPage);
-        $items = collect($paginator->items())->map(function ($subject, $index) {
-            return $this->mapSubject($subject, $index);
+            return [
+                'subjects' => [
+                    'data' => $items,
+                    'total' => $paginator->total(),
+                    'current_page' => $paginator->currentPage(),
+                    'per_page' => $paginator->perPage(),
+                    'last_page' => $paginator->lastPage(),
+                ],
+            ];
         });
 
-        return $this->sendResponse([
-            'subjects' => [
-                'data' => $items,
-                'total' => $paginator->total(),
-                'current_page' => $paginator->currentPage(),
-                'per_page' => $paginator->perPage(),
-                'last_page' => $paginator->lastPage(),
-            ],
-        ], 'successfully.');
+        return $this->sendResponse($payload, 'successfully.', 60);
     }
 
     /**
@@ -60,32 +65,40 @@ class SubjectController extends BaseController
      */
     public function show($id)
     {
-        $subject = $this->resolveSubject($id);
+        $payload = ApiCache::remember('subjects.show:' . md5((string) $id), function () use ($id) {
+            $subject = $this->resolveSubject($id);
 
-        if (!$subject) {
+            if (!$subject) {
+                return null;
+            }
+
+            $subject->loadCount([
+                'posts as universities_count' => function ($q) {
+                    $q->where('post_type', 'university');
+                },
+            ]);
+
+            $universities = Post::query()
+                ->with(['categories:id,name,slug', 'tags:id,name,slug', 'subjects:id,name'])
+                ->where('post_type', 'university')
+                ->whereHas('subjects', function ($q) use ($subject) {
+                    $q->where('subjects.id', $subject->id);
+                })
+                ->orderByDesc('id')
+                ->limit(40)
+                ->get();
+
+            return [
+                'subject' => $this->mapSubject($subject),
+                'universities' => $universities,
+            ];
+        });
+
+        if (!$payload) {
             return $this->sendError('Subject not found.', ['error' => 'Subject not found.'], 404);
         }
 
-        $subject->loadCount([
-            'posts as universities_count' => function ($q) {
-                $q->where('post_type', 'university');
-            },
-        ]);
-
-        $universities = Post::query()
-            ->with(['categories:id,name,slug', 'tags:id,name,slug', 'subjects:id,name'])
-            ->where('post_type', 'university')
-            ->whereHas('subjects', function ($q) use ($subject) {
-                $q->where('subjects.id', $subject->id);
-            })
-            ->orderByDesc('id')
-            ->limit(40)
-            ->get();
-
-        return $this->sendResponse([
-            'subject' => $this->mapSubject($subject),
-            'universities' => $universities,
-        ], 'successfully.');
+        return $this->sendResponse($payload, 'successfully.', 60);
     }
 
     /**

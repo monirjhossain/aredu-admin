@@ -6,6 +6,7 @@ use App\Http\Controllers\API\LoginController;
 use App\Http\Controllers\API\PostController;
 use App\Http\Controllers\API\ScholarshipController;
 use App\Http\Controllers\API\VideoController;
+use App\Http\Controllers\API\HomeController;
 use App\Http\Controllers\API\SubjectController;
 use App\Models\ScholarshipFormOption;
 use Illuminate\Support\Facades\Route;
@@ -40,6 +41,7 @@ Route::get('scholarships/{id}', [ScholarshipController::class, 'show']);
 
 Route::get('settings', [\App\Http\Controllers\API\WebsiteSettingController::class, 'show']);
 Route::get('videos', [VideoController::class, 'index']);
+Route::get('home', [HomeController::class, 'show']);
 
 Route::get('education-levels', [InquiryController::class, 'educationLevels']);
 Route::post('inquiries', [InquiryController::class, 'store']);

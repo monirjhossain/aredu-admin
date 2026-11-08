@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\API\HomeController;
 use App\Models\WebsiteVideo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
@@ -32,6 +33,7 @@ class WebsiteVideoController extends Controller
     public function store(Request $request)
     {
         WebsiteVideo::create($this->validated($request));
+        HomeController::forgetCache();
         Session::flash('success', 'Video added.');
 
         return redirect()->route('video-gallery.index');
@@ -47,6 +49,7 @@ class WebsiteVideoController extends Controller
     public function update(Request $request, WebsiteVideo $website_video)
     {
         $website_video->update($this->validated($request, $website_video));
+        HomeController::forgetCache();
         Session::flash('success', 'Video updated.');
 
         return redirect()->route('video-gallery.index');
@@ -55,6 +58,7 @@ class WebsiteVideoController extends Controller
     public function destroy(WebsiteVideo $website_video)
     {
         $website_video->delete();
+        HomeController::forgetCache();
         Session::flash('success', 'Video removed.');
 
         return redirect()->route('video-gallery.index');

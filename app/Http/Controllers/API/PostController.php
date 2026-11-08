@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\API\BaseController;
 use App\Models\Post\Post;
+use App\Support\ApiCache;
 use Illuminate\Http\Request;
 
 class PostController extends BaseController
@@ -13,89 +14,86 @@ class PostController extends BaseController
      */
     public function index(Request $request)
     {
-        $postType = $request->input('post_type');
-        $perPage = (int) $request->input('per_page', 20);
-        $perPage = $perPage > 0 && $perPage <= 100 ? $perPage : 20;
+        $payload = ApiCache::remember(ApiCache::requestKey($request, 'posts.index'), function () use ($request) {
+            $postType = $request->input('post_type');
+            $perPage = (int) $request->input('per_page', 20);
+            $perPage = $perPage > 0 && $perPage <= 100 ? $perPage : 20;
 
-        $posts = Post::query()
-            ->with([
-                'categories:id,name,slug',
-                'tags:id,name,slug',
-                'subjects:id,name',
-                'postMetas',
-            ])
-            ->orderByDesc('id');
+            $posts = Post::query()
+                ->with([
+                    'categories:id,name,slug',
+                    'tags:id,name,slug',
+                    'subjects:id,name',
+                    'postMetas',
+                ])
+                ->orderByDesc('id');
 
-        if ($postType) {
-            $posts->where('post_type', $postType);
-        }
+            if ($postType) {
+                $posts->where('post_type', $postType);
+            }
 
-        // Optional publish filter — only when client asks (?status=1)
-        if ($request->filled('status')) {
-            $posts->where('status', $request->input('status'));
-        }
+            if ($request->filled('status')) {
+                $posts->where('status', $request->input('status'));
+            }
 
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $posts->where(function ($q) use ($search) {
-                $q->where('post_title', 'like', '%' . $search . '%')
-                    ->orWhere('post_content', 'like', '%' . $search . '%')
-                    ->orWhere('post_name', 'like', '%' . $search . '%');
-            });
-        }
+            if ($request->filled('search')) {
+                $search = $request->input('search');
+                $posts->where(function ($q) use ($search) {
+                    $q->where('post_title', 'like', '%' . $search . '%')
+                        ->orWhere('post_content', 'like', '%' . $search . '%')
+                        ->orWhere('post_name', 'like', '%' . $search . '%');
+                });
+            }
 
-        // Filter universities by city/category slug or id
-        $category = $request->input('category', $request->input('city'));
-        if ($category) {
-            $posts->whereHas('categories', function ($q) use ($category) {
-                if (ctype_digit((string) $category)) {
-                    $q->where('categories.id', $category);
-                } else {
-                    $q->where('categories.slug', $category)
-                        ->orWhere('categories.name', $category);
-                }
-            });
-        }
+            $category = $request->input('category', $request->input('city'));
+            if ($category) {
+                $posts->whereHas('categories', function ($q) use ($category) {
+                    if (ctype_digit((string) $category)) {
+                        $q->where('categories.id', $category);
+                    } else {
+                        $q->where('categories.slug', $category)
+                            ->orWhere('categories.name', $category);
+                    }
+                });
+            }
 
-        // Filter by major/subject id or name
-        $subject = $request->input('subject', $request->input('major'));
-        if ($subject) {
-            $posts->whereHas('subjects', function ($q) use ($subject) {
-                if (ctype_digit((string) $subject)) {
-                    $q->where('subjects.id', $subject);
-                } else {
-                    $q->where('subjects.name', 'like', '%' . $subject . '%');
-                }
-            });
-        }
+            $subject = $request->input('subject', $request->input('major'));
+            if ($subject) {
+                $posts->whereHas('subjects', function ($q) use ($subject) {
+                    if (ctype_digit((string) $subject)) {
+                        $q->where('subjects.id', $subject);
+                    } else {
+                        $q->where('subjects.name', 'like', '%' . $subject . '%');
+                    }
+                });
+            }
 
-        // Filter by tag slug/name
-        if ($request->filled('tag')) {
-            $tag = $request->input('tag');
-            $posts->whereHas('tags', function ($q) use ($tag) {
-                if (ctype_digit((string) $tag)) {
-                    $q->where('tags.id', $tag);
-                } else {
-                    $q->where('tags.slug', $tag)
-                        ->orWhere('tags.name', 'like', '%' . $tag . '%');
-                }
-            });
-        }
+            if ($request->filled('tag')) {
+                $tag = $request->input('tag');
+                $posts->whereHas('tags', function ($q) use ($tag) {
+                    if (ctype_digit((string) $tag)) {
+                        $q->where('tags.id', $tag);
+                    } else {
+                        $q->where('tags.slug', $tag)
+                            ->orWhere('tags.name', 'like', '%' . $tag . '%');
+                    }
+                });
+            }
 
-        // Universities that appear to offer scholarships
-        if ($request->boolean('scholarship')) {
-            $posts->where(function ($q) {
-                $q->where('post_title', 'like', '%scholarship%')
-                    ->orWhere('post_content', 'like', '%scholarship%')
-                    ->orWhereHas('tags', function ($tq) {
-                        $tq->where('name', 'like', '%scholarship%');
-                    });
-            });
-        }
+            if ($request->boolean('scholarship')) {
+                $posts->where(function ($q) {
+                    $q->where('post_title', 'like', '%scholarship%')
+                        ->orWhere('post_content', 'like', '%scholarship%')
+                        ->orWhereHas('tags', function ($tq) {
+                            $tq->where('name', 'like', '%scholarship%');
+                        });
+                });
+            }
 
-        $data['posts'] = $posts->paginate($perPage);
+            return ['posts' => $posts->paginate($perPage)];
+        });
 
-        return $this->sendResponse($data, 'successfully.');
+        return $this->sendResponse($payload, 'successfully.', 60);
     }
 
     /**
@@ -103,20 +101,28 @@ class PostController extends BaseController
      */
     public function show($id)
     {
-        $post = $this->resolvePost($id);
+        $payload = ApiCache::remember('posts.show:' . md5((string) $id), function () use ($id) {
+            $post = $this->resolvePost($id);
 
-        if (!$post) {
+            if (!$post) {
+                return null;
+            }
+
+            $post->load([
+                'categories:id,name,slug',
+                'tags:id,name,slug',
+                'subjects:id,name',
+                'postMetas',
+            ]);
+
+            return ['post' => $post];
+        });
+
+        if (!$payload) {
             return $this->sendError('Post not found.', ['error' => 'Post not found.'], 404);
         }
 
-        $post->load([
-            'categories:id,name,slug',
-            'tags:id,name,slug',
-            'subjects:id,name',
-            'postMetas',
-        ]);
-
-        return $this->sendResponse(['post' => $post], 'successfully.');
+        return $this->sendResponse($payload, 'successfully.', 60);
     }
 
     /**
