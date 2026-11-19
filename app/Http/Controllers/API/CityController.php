@@ -105,18 +105,20 @@ class CityController extends BaseController
         $category->loadCount([
             'posts as universities_count' => function ($q) {
                 $q->where('post_type', 'university');
+                \App\Support\PublicContent::scopeActive($q);
             },
         ]);
 
-        $universities = Post::query()
-            ->with(['categories:id,name,slug', 'tags:id,name,slug', 'subjects:id,name'])
+        $universitiesQuery = Post::query()
+            ->with(['categories:id,name,slug', 'tags:id,name,slug', 'subjects:id,name', 'postMetas'])
             ->where('post_type', 'university')
             ->whereHas('categories', function ($q) use ($category) {
                 $q->where('categories.id', $category->id);
             })
             ->orderByDesc('id')
-            ->limit(100)
-            ->get();
+            ->limit(100);
+        \App\Support\PublicContent::scopeActive($universitiesQuery);
+        $universities = \App\Support\PublicContent::sanitizePosts($universitiesQuery->get())->values();
 
         return $this->sendResponse([
             'city' => $this->mapCity($category),

@@ -41,6 +41,9 @@ class WebsiteSetting extends Model
         );
         Cache::forget('website_settings_public');
         Cache::forget('website_home_v1');
+        Cache::forget('website_home_v2');
+        Cache::forget('website_home_v3');
+        Cache::forget('website_about_v1');
     }
 
     /**

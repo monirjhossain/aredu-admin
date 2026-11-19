@@ -141,7 +141,7 @@
                 @endif
 
                 @if(auth()->check() && in_array(auth()->user()->role_id, [1,2,3,7]))
-                <li class="menu-item {{ request()->is('posts*') || request()->is('universities*') || request()->is('scholarships*') || request()->is('services*') || request()->is('pages*') || request()->is('success-story*') || request()->is('events*') || request()->is('testimonials*') || request()->is('sliders*') || request()->is('videos*') || request()->is('video-gallery*') || request()->is('category*') || request()->is('tag*') || request()->is('setting/website*') || request()->is('setting/subjects*') || request()->is('setting/studies*') ? 'menu-item-open' : '' }}"
+                <li class="menu-item {{ request()->is('posts*') || request()->is('universities*') || request()->is('scholarships*') || request()->is('services*') || request()->is('pages*') || request()->is('success-story*') || request()->is('events*') || request()->is('testimonials*') || request()->is('sliders*') || request()->is('videos*') || request()->is('video-gallery*') || request()->is('home-content*') || request()->is('about-content*') || request()->is('category*') || request()->is('tag*') || request()->is('setting/website*') || request()->is('setting/subjects*') || request()->is('setting/studies*') ? 'menu-item-open' : '' }}"
                     aria-haspopup="true" data-menu-toggle="hover">
                     <a href="javascript:;" class="menu-link menu-toggle">
                         <span class="svg-icon menu-icon">
@@ -158,6 +158,22 @@
                                 <a href="{{ route('setting.website.edit') }}" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                     <span class="menu-text font-weight-bolder">Website Settings</span>
+                                </a>
+                            </li>
+                            @endif
+                            @if(Route::has('home-content.edit'))
+                            <li class="menu-item {{ request()->is('home-content') || request()->is('home-content/*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                                <a href="{{ route('home-content.edit') }}" class="menu-link">
+                                    <i class="menu-bullet menu-bullet-dot"><span></span></i>
+                                    <span class="menu-text font-weight-bolder">Home Page Content</span>
+                                </a>
+                            </li>
+                            @endif
+                            @if(Route::has('about-content.edit'))
+                            <li class="menu-item {{ request()->is('about-content') || request()->is('about-content/*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                                <a href="{{ route('about-content.edit') }}" class="menu-link">
+                                    <i class="menu-bullet menu-bullet-dot"><span></span></i>
+                                    <span class="menu-text font-weight-bolder">About Page Content</span>
                                 </a>
                             </li>
                             @endif

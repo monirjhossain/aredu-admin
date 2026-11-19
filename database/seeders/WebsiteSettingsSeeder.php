@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\WebsiteSetting;
+use App\Support\AboutPageContent;
+use App\Support\HomeSections;
 use Illuminate\Database\Seeder;
 
 class WebsiteSettingsSeeder extends Seeder
@@ -56,6 +58,14 @@ class WebsiteSettingsSeeder extends Seeder
                 continue;
             }
             WebsiteSetting::setValue($key, $value);
+        }
+
+        if (!WebsiteSetting::query()->where('key', HomeSections::SETTINGS_KEY)->exists()) {
+            HomeSections::save(HomeSections::defaults());
+        }
+
+        if (!WebsiteSetting::query()->where('key', AboutPageContent::SETTINGS_KEY)->exists()) {
+            AboutPageContent::save(AboutPageContent::defaults());
         }
     }
 }

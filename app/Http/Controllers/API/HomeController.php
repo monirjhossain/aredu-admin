@@ -8,6 +8,7 @@ use App\Models\Subject;
 use App\Models\WebsiteSetting;
 use App\Models\WebsiteVideo;
 use App\Support\ChinaRegionMap;
+use App\Support\HomeSections;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -15,7 +16,7 @@ use Throwable;
 
 class HomeController extends BaseController
 {
-    const CACHE_KEY = 'website_home_v1';
+    const CACHE_KEY = 'website_home_v3';
     const CACHE_TTL = 120;
 
     public function show()
@@ -23,6 +24,7 @@ class HomeController extends BaseController
         $payload = Cache::remember(self::CACHE_KEY, self::CACHE_TTL, function () {
             return [
                 'settings' => $this->safeSettings(),
+                'sections' => $this->safeSections(),
                 'universities' => $this->safeUniversities(12),
                 'cities' => $this->safeCities(8),
                 'scholarships' => $this->safeScholarships(6),
@@ -62,6 +64,18 @@ class HomeController extends BaseController
         }
     }
 
+    private function safeSections()
+    {
+        try {
+            if (!Schema::hasTable('website_settings') || !class_exists(HomeSections::class)) {
+                return HomeSections::defaults();
+            }
+            return HomeSections::publicPayload();
+        } catch (Throwable $e) {
+            return HomeSections::defaults();
+        }
+    }
+
     private function defaultSettings()
     {
         return [
@@ -79,14 +93,16 @@ class HomeController extends BaseController
     private function safeUniversities($limit)
     {
         try {
-            return Post::query()
-                ->with(['categories:id,name,slug', 'tags:id,name,slug'])
+            $query = Post::query()
+                ->with(['categories:id,name,slug', 'tags:id,name,slug', 'postMetas'])
                 ->where('post_type', 'university')
                 ->orderByDesc('id')
-                ->limit($limit)
-                ->get()
+                ->limit($limit);
+            \App\Support\PublicContent::scopeActive($query);
+
+            return $query->get()
                 ->map(function ($post) {
-                    return $this->mapUniversity($post);
+                    return $this->mapUniversity(\App\Support\PublicContent::sanitizePost($post));
                 })
                 ->values()
                 ->all();
@@ -157,7 +173,8 @@ class HomeController extends BaseController
                     'region' => ChinaRegionMap::regionFor($category->slug, $category->name),
                     'universities' => (int) $category->universities_count,
                     'uni_count' => (int) $category->universities_count,
-                    'image' => null,
+                    'image' => $category->image,
+                    'desc' => $category->description,
                 ];
             })->all();
         } catch (Throwable $e) {
@@ -168,13 +185,16 @@ class HomeController extends BaseController
     private function safeScholarships($limit)
     {
         try {
-            return Post::query()
+            $query = Post::query()
                 ->with(['postMetas', 'tags:id,name,slug'])
                 ->where('post_type', 'scholarship')
                 ->orderBy('post_title')
-                ->limit($limit)
-                ->get()
+                ->limit($limit);
+            \App\Support\PublicContent::scopeActive($query);
+
+            return $query->get()
                 ->map(function ($post) {
+                    $post = \App\Support\PublicContent::sanitizePost($post);
                     return [
                         'id' => $post->id,
                         'slug' => $post->post_name,
@@ -247,12 +267,12 @@ class HomeController extends BaseController
                 ->orderBy('name')
                 ->limit($limit)
                 ->get()
-                ->map(function ($subject) {
+                ->map(function ($subject, $index) {
                     return [
                         'id' => $subject->id,
                         'slug' => Str::slug($subject->name),
                         'name' => $subject->name,
-                        'field' => 'General',
+                        'field' => \App\Support\SubjectFieldMap::guess($subject->name, $index),
                         'degree' => null,
                         'universities' => (int) $subject->universities_count,
                         'uni_count' => (int) $subject->universities_count,
@@ -268,14 +288,16 @@ class HomeController extends BaseController
     private function safeSuccessPhotos($limit)
     {
         try {
-            return Post::query()
+            $query = Post::query()
                 ->with(['categories:id,name,slug'])
                 ->where('post_type', 'success-story')
                 ->whereNotNull('image')
                 ->where('image', '!=', '')
                 ->orderByDesc('id')
-                ->limit($limit)
-                ->get()
+                ->limit($limit);
+            \App\Support\PublicContent::scopeActive($query);
+
+            return $query->get()
                 ->map(function ($post) {
                     return [
                         'id' => $post->id,

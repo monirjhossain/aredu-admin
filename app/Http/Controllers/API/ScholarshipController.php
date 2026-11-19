@@ -4,7 +4,9 @@ namespace App\Http\Controllers\API;
 
 use App\Models\Post\Post;
 use App\Support\ApiCache;
+use App\Support\PublicContent;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ScholarshipController extends BaseController
 {
@@ -22,6 +24,8 @@ class ScholarshipController extends BaseController
                 ->where('post_type', 'scholarship')
                 ->orderBy('post_title');
 
+            PublicContent::scopeActive($query);
+
             if ($request->filled('search')) {
                 $search = $request->input('search');
                 $query->where(function ($q) use ($search) {
@@ -35,9 +39,23 @@ class ScholarshipController extends BaseController
                 $query->where('status', $request->input('status'));
             }
 
+            if ($request->filled('degree')) {
+                $degree = $request->input('degree');
+                $query->whereHas('postMetas', function ($q) use ($degree) {
+                    $q->where('meta_key', 'degree')->where('meta_value', 'like', '%' . $degree . '%');
+                });
+            }
+
+            if ($request->filled('scholarship_type')) {
+                $type = $request->input('scholarship_type');
+                $query->whereHas('postMetas', function ($q) use ($type) {
+                    $q->where('meta_key', 'scholarship_type')->where('meta_value', 'like', '%' . $type . '%');
+                });
+            }
+
             $paginator = $query->paginate($perPage);
             $items = collect($paginator->items())->map(function ($post) {
-                return $this->mapScholarship($post);
+                return $this->mapScholarship(PublicContent::sanitizePost($post));
             });
 
             return [
@@ -62,29 +80,18 @@ class ScholarshipController extends BaseController
         $payload = ApiCache::remember('scholarships.show:' . md5((string) $id), function () use ($id) {
             $post = $this->resolvePost($id);
 
-            if (!$post || $post->post_type !== 'scholarship') {
+            if (!$post || $post->post_type !== 'scholarship' || !PublicContent::isActive($post)) {
                 return null;
             }
 
             $post->load(['postMetas', 'tags:id,name,slug']);
+            PublicContent::sanitizePost($post);
 
-            $universities = Post::query()
-                ->with(['categories:id,name,slug', 'tags:id,name,slug'])
-                ->where('post_type', 'university')
-                ->where(function ($q) {
-                    $q->where('post_title', 'like', '%scholarship%')
-                        ->orWhere('post_content', 'like', '%scholarship%')
-                        ->orWhereHas('tags', function ($tq) {
-                            $tq->where('name', 'like', '%scholarship%');
-                        });
-                })
-                ->orderByDesc('id')
-                ->limit(12)
-                ->get();
+            $universities = $this->relatedUniversities($post);
 
             return [
                 'scholarship' => $this->mapScholarship($post),
-                'universities' => $universities,
+                'universities' => PublicContent::sanitizePosts($universities)->values(),
             ];
         });
 
@@ -93,6 +100,53 @@ class ScholarshipController extends BaseController
         }
 
         return $this->sendResponse($payload, 'successfully.', 60);
+    }
+
+    /**
+     * Prefer city-matched universities; fall back to scholarship-tagged ones.
+     *
+     * @param  Post  $post
+     * @return \Illuminate\Support\Collection
+     */
+    private function relatedUniversities(Post $post)
+    {
+        $city = trim((string) $post->getMeta('city', ''));
+        $base = Post::query()
+            ->with(['categories:id,name,slug', 'tags:id,name,slug', 'subjects:id,name', 'postMetas'])
+            ->where('post_type', 'university');
+        PublicContent::scopeActive($base);
+
+        if ($city !== '') {
+            $slug = Str::slug($city);
+            $byCity = (clone $base)
+                ->whereHas('categories', function ($q) use ($city, $slug) {
+                    $q->where('categories.name', $city)
+                        ->orWhere('categories.slug', $slug)
+                        ->orWhere('categories.name', 'like', '%' . $city . '%');
+                })
+                ->orderByDesc('id')
+                ->limit(12)
+                ->get();
+
+            if ($byCity->count()) {
+                return $byCity;
+            }
+        }
+
+        return $base
+            ->where(function ($q) {
+                $q->whereHas('postMetas', function ($mq) {
+                    $mq->where('meta_key', 'scholarship')
+                        ->whereIn('meta_value', ['1', 'yes', 'true', 'Yes', 'True']);
+                })
+                    ->orWhereHas('tags', function ($tq) {
+                        $tq->where('name', 'like', '%scholarship%');
+                    })
+                    ->orWhere('post_title', 'like', '%scholarship%');
+            })
+            ->orderByDesc('id')
+            ->limit(12)
+            ->get();
     }
 
     /**

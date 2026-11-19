@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\API\BaseController;
 use App\Models\Post\Post;
 use App\Support\ApiCache;
+use App\Support\PublicContent;
 use Illuminate\Http\Request;
 
 class PostController extends BaseController
@@ -27,6 +28,8 @@ class PostController extends BaseController
                     'postMetas',
                 ])
                 ->orderByDesc('id');
+
+            PublicContent::scopeActive($posts);
 
             if ($postType) {
                 $posts->where('post_type', $postType);
@@ -82,7 +85,11 @@ class PostController extends BaseController
 
             if ($request->boolean('scholarship')) {
                 $posts->where(function ($q) {
-                    $q->where('post_title', 'like', '%scholarship%')
+                    $q->whereHas('postMetas', function ($mq) {
+                        $mq->where('meta_key', 'scholarship')
+                            ->whereIn('meta_value', ['1', 'yes', 'true', 'Yes', 'True']);
+                    })
+                        ->orWhere('post_title', 'like', '%scholarship%')
                         ->orWhere('post_content', 'like', '%scholarship%')
                         ->orWhereHas('tags', function ($tq) {
                             $tq->where('name', 'like', '%scholarship%');
@@ -90,7 +97,12 @@ class PostController extends BaseController
                 });
             }
 
-            return ['posts' => $posts->paginate($perPage)];
+            $paginator = $posts->paginate($perPage);
+            $paginator->setCollection(
+                PublicContent::sanitizePosts($paginator->getCollection())->values()
+            );
+
+            return ['posts' => $paginator];
         });
 
         return $this->sendResponse($payload, 'successfully.', 60);
@@ -104,7 +116,7 @@ class PostController extends BaseController
         $payload = ApiCache::remember('posts.show:' . md5((string) $id), function () use ($id) {
             $post = $this->resolvePost($id);
 
-            if (!$post) {
+            if (!$post || !PublicContent::isActive($post)) {
                 return null;
             }
 
@@ -115,7 +127,7 @@ class PostController extends BaseController
                 'postMetas',
             ]);
 
-            return ['post' => $post];
+            return ['post' => PublicContent::sanitizePost($post)];
         });
 
         if (!$payload) {
@@ -137,7 +149,6 @@ class PostController extends BaseController
             return Post::find($raw);
         }
 
-        // Frontend routes use "{id}-{post_name}"
         if (preg_match('/^(\d+)/', $raw, $m)) {
             $post = Post::find($m[1]);
             if ($post) {

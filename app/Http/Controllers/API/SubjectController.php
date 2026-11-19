@@ -5,6 +5,8 @@ namespace App\Http\Controllers\API;
 use App\Models\Post\Post;
 use App\Models\Subject;
 use App\Support\ApiCache;
+use App\Support\PublicContent;
+use App\Support\SubjectFieldMap;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -72,21 +74,28 @@ class SubjectController extends BaseController
                 return null;
             }
 
+            $status = $subject->status;
+            if (!($status === null || (int) $status === 1)) {
+                return null;
+            }
+
             $subject->loadCount([
                 'posts as universities_count' => function ($q) {
                     $q->where('post_type', 'university');
+                    PublicContent::scopeActive($q);
                 },
             ]);
 
             $universities = Post::query()
-                ->with(['categories:id,name,slug', 'tags:id,name,slug', 'subjects:id,name'])
+                ->with(['categories:id,name,slug', 'tags:id,name,slug', 'subjects:id,name', 'postMetas'])
                 ->where('post_type', 'university')
                 ->whereHas('subjects', function ($q) use ($subject) {
                     $q->where('subjects.id', $subject->id);
                 })
                 ->orderByDesc('id')
-                ->limit(40)
-                ->get();
+                ->limit(40);
+            PublicContent::scopeActive($universities);
+            $universities = PublicContent::sanitizePosts($universities->get())->values();
 
             return [
                 'subject' => $this->mapSubject($subject),
@@ -129,7 +138,7 @@ class SubjectController extends BaseController
     private function mapSubject(Subject $subject, $index = 0)
     {
         $slug = Str::slug($subject->name);
-        $field = $this->guessField($subject->name, $index);
+        $field = SubjectFieldMap::guess($subject->name, $index);
 
         return [
             'id' => $subject->id,
@@ -142,55 +151,5 @@ class SubjectController extends BaseController
             'parent_id' => $subject->parent_id,
             'status' => $subject->status,
         ];
-    }
-
-    /**
-     * @param  string  $name
-     * @param  int  $index
-     * @return string
-     */
-    private function guessField($name, $index = 0)
-    {
-        $lower = strtolower($name);
-        $groups = [
-            'Engineering & Technology',
-            'Computer Science & IT',
-            'Business & Economics',
-            'Agriculture & Life Sciences',
-            'Chinese Language & Preparatory',
-            'Education',
-            'Social Sciences & Law',
-            'Arts, Design & Media',
-            'Natural Sciences',
-            'Architecture & Urban Planning',
-            'Humanities & Languages',
-        ];
-
-        if (preg_match('/engineer|technolog|mechanical|civil|electrical|automat/', $lower)) {
-            return 'Engineering & Technology';
-        }
-        if (preg_match('/computer|software|data|artificial|iot|network/', $lower)) {
-            return 'Computer Science & IT';
-        }
-        if (preg_match('/business|econom|trade|financ|account|mba|management/', $lower)) {
-            return 'Business & Economics';
-        }
-        if (preg_match('/medic|pharm|nurs|dental|clinical|biolog|chemistry/', $lower)) {
-            return 'Agriculture & Life Sciences';
-        }
-        if (preg_match('/chinese|language|hsk/', $lower)) {
-            return 'Chinese Language & Preparatory';
-        }
-        if (preg_match('/education|teach/', $lower)) {
-            return 'Education';
-        }
-        if (preg_match('/law|social|politic/', $lower)) {
-            return 'Social Sciences & Law';
-        }
-        if (preg_match('/art|design|media|music/', $lower)) {
-            return 'Arts, Design & Media';
-        }
-
-        return $groups[$index % count($groups)];
     }
 }

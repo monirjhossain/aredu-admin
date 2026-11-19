@@ -142,6 +142,7 @@ class PostController extends Controller
             }
 
             DB::commit();
+            \App\Support\PublicContent::forgetCaches();
             return redirect()->back()->with('success', 'Successfully Added');
         } catch (\Throwable $th) {
             DB::rollback();
@@ -214,6 +215,7 @@ class PostController extends Controller
             }
 
             DB::commit();
+            \App\Support\PublicContent::forgetCaches();
             return redirect()->back()->with('success', 'Successfully Updated');
         } catch (\Throwable $th) {
             DB::rollback();
@@ -233,6 +235,7 @@ class PostController extends Controller
                 $post->delete();
             }
             DB::commit();
+            \App\Support\PublicContent::forgetCaches();
             return redirect()->back()->with('success', 'Successfully Deleted');
         } catch (\Throwable $th) {
             DB::rollback();
