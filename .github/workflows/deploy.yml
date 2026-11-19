@@ -12,8 +12,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Same plain FTP as aredu-site (FTPS was dropping mid-upload)
-      - name: Deploy app code
+      - name: Build slim deploy folder
+        run: |
+          mkdir -p deploy_packet
+          # Only runtime Laravel paths — keeps FTP small/reliable
+          for d in app bootstrap config database routes resources public; do
+            if [ -d "$d" ]; then
+              rsync -a --exclude 'uploads' --exclude 'hot' --exclude 'storage' "$d" deploy_packet/
+            fi
+          done
+          cp -f artisan composer.json deploy_packet/ 2>/dev/null || true
+          # Ensure storage skeleton exists without huge logs
+          mkdir -p deploy_packet/storage/framework/{cache,sessions,views} deploy_packet/storage/logs deploy_packet/storage/app/public
+          touch deploy_packet/storage/logs/.gitkeep
+          ls -la deploy_packet
+
+      - name: Deploy slim packet over FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -22,33 +36,6 @@ jobs:
           protocol: ftp
           port: 21
           timeout: 600000
-          local-dir: ./
+          local-dir: ./deploy_packet/
           server-dir: ${{ secrets.FTP_SERVER_DIR }}
           dangerous-clean-slate: false
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/.github/**
-            **/.github/**/*
-            .env
-            .env.*
-            /.env
-            vendor/**
-            node_modules/**
-            tests/**
-            docs/**
-            html/**
-            DB/**
-            othersfile/**
-            storage/**
-            public/uploads/**
-            public/hot
-            .ftp-deploy-sync-state.json
-            phpunit.xml
-            README.md
-            DEPLOY.md
-            fileRunInMac.txt
-            package-lock.json
-            package.json
-            webpack.mix.js
-            composer.lock
