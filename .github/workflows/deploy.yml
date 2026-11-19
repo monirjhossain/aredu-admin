@@ -1,7 +1,10 @@
 name: Deploy admin to cPanel
 
-# Manual only — auto FTP on every push is too slow/unreliable on shared hosting.
+# Push to main → FTP sync slim Laravel packet (no vendor/.env).
+# Also runnable manually from Actions → Run workflow.
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 jobs:

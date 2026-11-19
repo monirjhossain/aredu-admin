@@ -1,6 +1,7 @@
 # Auto-deploy (office.areducation.net)
 
-Push to `main` → GitHub Actions runs `composer install --no-dev` → FTP uploads Laravel to the subdomain folder.
+Push to `main` → GitHub Actions builds a slim packet → FTP uploads Laravel code to the subdomain folder (not `vendor` / `.env`).
+You can also run **Actions → Deploy admin to cPanel → Run workflow** manually.
 
 ## cPanel document root
 
