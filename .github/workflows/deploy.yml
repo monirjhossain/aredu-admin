@@ -1,0 +1,52 @@
+name: Deploy admin to cPanel
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          extensions: mbstring, xml, ctype, json, bcmath, fileinfo, tokenizer, openssl, pdo, pdo_mysql
+          tools: composer:v2
+
+      - name: Install Composer deps
+        run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+
+      - name: Deploy to office.areducation.net
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
+          local-dir: ./
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/.github/**/*
+            .env
+            .env.*
+            /.env
+            node_modules/**
+            tests/**
+            docs/**
+            html/**
+            DB/**
+            othersfile/**
+            .ftp-deploy-sync-state.json
+            phpunit.xml
+            README.md
+            fileRunInMac.txt
