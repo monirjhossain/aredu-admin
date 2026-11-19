@@ -31,12 +31,18 @@ APP_URL=https://office.areducation.net
 
 CORS / frontend origin should allow `https://areducation.net`.
 
-After first deploy (SSH/Terminal if available):
+## Important: `vendor` is NOT uploaded by Actions
+
+Uploading `vendor/` over FTP is too slow (30+ min / timeouts). After the **first** code deploy, run once in cPanel **Terminal** (or SSH):
 
 ```bash
+cd ~/office.areducation.net
+composer install --no-dev --optimize-autoloader
 php artisan storage:link
 php artisan config:cache
 php artisan route:cache
 ```
+
+Later pushes only sync app code (fast). Re-run `composer install` only when `composer.lock` changes.
 
 Uploads stay in `storage/` / `public/uploads` — workflow does not wipe them (`dangerous-clean-slate: false`).
