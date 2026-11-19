@@ -31,7 +31,10 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
+          protocol: ftps
+          port: 21
+          timeout: 600000
+          security: loose
           local-dir: ./
           server-dir: ${{ secrets.FTP_SERVER_DIR }}
           dangerous-clean-slate: false
@@ -49,7 +52,15 @@ jobs:
             html/**
             DB/**
             othersfile/**
+            storage/logs/**
+            storage/framework/cache/**
+            storage/framework/sessions/**
+            storage/framework/views/**
             .ftp-deploy-sync-state.json
             phpunit.xml
             README.md
+            DEPLOY.md
             fileRunInMac.txt
+            package-lock.json
+            package.json
+            webpack.mix.js
